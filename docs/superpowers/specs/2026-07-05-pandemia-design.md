@@ -119,7 +119,29 @@ Juego 3D de navegador, vista de director (arriba, con zoom continuo), estilo *Pr
 - **Marcador en vivo:** % de población del rival, sus estructuras, mini-gráfica de ambas curvas. Avisos dramáticos ("¡Al rival le cayó el hospital!"). No se ve el mapa del rival.
 - **Link de desafío (asíncrono, Fase 1):** "Sobreviví 6:42 con 34%. Misma pandemia, supérame: [link]". El link codifica semilla + curva del retador; quien lo abre juega contra ese fantasma. Sin registro ni descarga.
 - **Matchmaking (Fase 2), estilo Clash Royale:** Buscar partida (en vivo), Jugar con amigo (código de sala de 6 letras), y el link asíncrono. Menú principal con esos 3 caminos.
-- **Futuro (fuera de alcance del prototipo):** modo 4 jugadores (último en pie), repeticiones descargables, más mapas, personalización.
+
+### 5.1 Ciudadanos con nombre e historias (prototipo)
+
+- Cada ciudadano tiene nombre y personalidad visible al hacer zoom.
+- La pantalla de resultado narra historias emergentes reales de la simulación: *"María (protectora) volvió 3 veces a la zona roja buscando a su hijo."* Los datos ya existen en la sim; solo se registran los hitos (rescates, reencuentros, sacrificios) y se redactan con plantillas.
+- Objetivo: convertir estadísticas en emociones y la pantalla final en captura compartible.
+
+### 5.2 Giros de semilla (prototipo, versión simple)
+
+- A mitad de partida, 1 evento derivado de la semilla, **idéntico en momento y tipo para ambos jugadores**: apagón (zombis más letales, más pánico), lluvia (amortigua ruido) o helicóptero de rescate (anuncia azotea y cuenta regresiva; proteger la ruta es opcional y arriesgado).
+- Aprovecharlo o no es habilidad de cada jugador; la simetría se mantiene siempre.
+
+### 5.3 Fase 2 — features de comunidad
+
+- **Desafío diario (efecto Wordle):** una semilla mundial por día, intentos limitados, tabla de líderes diaria.
+- **Clip automático ("el momento de la partida"):** el juego detecta el instante más dramático y lo regenera como mini-repetición compartible (gratis gracias al determinismo).
+- **Modo espectador:** ver la partida de un amigo en vivo transmitiendo solo sus inputs (kilobytes, gracias al determinismo).
+
+### 5.4 Futuro / ideas en el congelador (sin compromiso)
+
+- Modo 4 jugadores (último en pie), repeticiones descargables, más mapas, personalización.
+- Perro rastreador (detecta infectados, ladra; nunca muere), zombis especiales por semilla (Gritón, Tanque), contador moral (salvados vs sacrificados), rangos con copas y arenas (Brooklyn → Queens → Manhattan), colores de pintura desbloqueables.
+- **Steam (Fase 3):** empaquetar con Electron/Tauri; el código web se reutiliza al 100%. Logros y tablas vía Steamworks. Registro Steam Direct: 100 USD.
 
 ## 6. Arquitectura técnica
 
@@ -153,7 +175,7 @@ Gráficos placeholder: cajas = edificios, cápsulas = personas, colores = estado
 3. Pánico, personalidades, refugio y combate en grupo (comportamiento emergente). Edificios jugables con interiores, escaleras y vista recortada.
 4. Los 4 agentes con órdenes y habilidades (modo director completo).
 5. Posesión (tercera persona, WASD + ratón).
-6. Partida completa: reloj, Índice de Ciudad, rival fantasma, resultado, revancha.
+6. Partida completa: reloj, Índice de Ciudad, giro de semilla, rival fantasma, resultado con historias de ciudadanos, revancha.
 7. Link de desafío asíncrono + primera partida guiada.
 
 **Fase 2 (tras validar la diversión):** backend de matchmaking, códigos de sala, marcador en vivo real.
