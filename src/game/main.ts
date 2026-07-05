@@ -1,8 +1,8 @@
-import * as THREE from 'three';
 import { World } from '../sim/world';
 import { createScene } from '../render/scene';
 import { buildCityView } from '../render/cityView';
 import { CitizensView } from '../render/citizensView';
+import { CameraRig } from '../render/cameraRig';
 import { startLoop } from './loop';
 import { Hud } from '../ui/hud';
 
@@ -13,26 +13,16 @@ const world = new World(seed);
 const { renderer, scene } = createScene(canvas);
 buildCityView(scene, world.city);
 const citizensView = new CitizensView(scene, world.citizens.length);
+const rig = new CameraRig(canvas, { w: world.city.width, d: world.city.depth });
 const hud = new Hud(seed);
-
-// Cámara provisional (Task 8 la reemplaza por CameraRig).
-const camera = new THREE.PerspectiveCamera(
-  50,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1500
-);
-camera.position.set(world.city.width / 2 - 60, 70, world.city.depth / 2 + 60);
-camera.lookAt(world.city.width / 2, 0, world.city.depth / 2);
 
 window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
 });
 
 startLoop(world, (alpha) => {
   citizensView.update(world.citizens, alpha);
+  rig.update();
   hud.update(world);
-  renderer.render(scene, camera);
+  renderer.render(scene, rig.camera);
 });
