@@ -1,7 +1,7 @@
 import type { Rng } from './rng';
 import type { Citizen, Personality } from './types';
-import { corridorCenter } from './cityGen';
-import { CITY, CITY_WIDTH, CITY_DEPTH } from './config';
+import { corridorCenter, corridorIndexAt } from './cityGen';
+import { CITY, CITY_WIDTH, CITY_DEPTH, CITIZENS, DT, TICK_RATE } from './config';
 
 const NOMBRES = [
   'María', 'José', 'Carmen', 'Luis', 'Ana', 'Miguel', 'Sofía', 'Carlos',
@@ -76,4 +76,59 @@ export function spawnCitizens(rng: Rng, count: number): Citizen[] {
     });
   }
   return citizens;
+}
+
+/** Probabilidad de girar al entrar a un cruce. */
+const CRUCE_GIRO = 0.45;
+/** Probabilidad por tick de pararse a mirar (≈2.4%/seg). */
+const PAUSA_POR_TICK = 0.0008;
+
+export function updateCitizen(c: Citizen, rng: Rng): void {
+  c.prevX = c.x;
+  c.prevZ = c.z;
+
+  if (c.state === 'quieto') {
+    c.idleTicks--;
+    if (c.idleTicks <= 0) c.state = 'caminando';
+    return;
+  }
+
+  if (rng.chance(PAUSA_POR_TICK)) {
+    c.state = 'quieto';
+    c.idleTicks = rng.int(CITIZENS.idleMin * TICK_RATE, CITIZENS.idleMax * TICK_RATE);
+    return;
+  }
+
+  const paso = CITIZENS.walkSpeed * DT;
+  c.x += c.dirX * paso;
+  c.z += c.dirZ * paso;
+
+  // Rebote en los límites del mapa.
+  if (c.x < 1) { c.x = 1; c.dirX = 1; c.lastCrossing = -1; }
+  if (c.x > CITY_WIDTH - 1) { c.x = CITY_WIDTH - 1; c.dirX = -1; c.lastCrossing = -1; }
+  if (c.z < 1) { c.z = 1; c.dirZ = 1; c.lastCrossing = -1; }
+  if (c.z > CITY_DEPTH - 1) { c.z = CITY_DEPTH - 1; c.dirZ = -1; c.lastCrossing = -1; }
+
+  // Decisión única por cruce.
+  const kx = corridorIndexAt(c.x);
+  const kz = corridorIndexAt(c.z);
+  if (kx >= 0 && kz >= 0) {
+    const idCruce = kx * 1000 + kz;
+    if (c.lastCrossing !== idCruce) {
+      c.lastCrossing = idCruce;
+      if (rng.chance(CRUCE_GIRO)) {
+        if (c.dirZ !== 0) {
+          // Iba en vertical → gira a horizontal por este cruce.
+          c.z = corridorCenter(kz) + c.laneOffset;
+          c.dirZ = 0;
+          c.dirX = rng.chance(0.5) ? 1 : -1;
+        } else {
+          // Iba en horizontal → gira a vertical.
+          c.x = corridorCenter(kx) + c.laneOffset;
+          c.dirX = 0;
+          c.dirZ = rng.chance(0.5) ? 1 : -1;
+        }
+      }
+    }
+  }
 }
