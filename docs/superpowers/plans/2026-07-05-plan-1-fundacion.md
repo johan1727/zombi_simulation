@@ -166,6 +166,22 @@ ciudad. Diseño completo: `docs/superpowers/specs/2026-07-05-pandemia-design.md`
 - Verificar antes de cada commit: `npm test` y `npx tsc --noEmit`.
 - Commits pequeños, mensajes en español (`feat:`, `test:`, `chore:`).
 - Planes de implementación: `docs/superpowers/plans/`.
+
+## Automejora (bucle de aprendizaje)
+
+Este archivo es un documento vivo. Al terminar cada tarea o plan:
+
+1. Si descubriste algo que a un futuro agente le ahorraría tiempo o errores
+   (un patrón que funcionó, una trampa de Three.js/Vitest/Windows, una regla
+   de balance del juego), agrégalo en «Lecciones aprendidas»: una línea.
+2. Si una regla de este documento resultó mal o incompleta, corrígela en el
+   momento y menciónalo en el mensaje de commit.
+3. Mantenlo corto: máximo ~10 lecciones. Si se llena, fusiona o borra las que
+   ya estén cubiertas por el código, los tests o los planes.
+
+## Lecciones aprendidas
+
+- (vacío — se llena al completar tareas)
 ```
 
 - [ ] **Step 8: Crear `tests/smoke.test.ts`**

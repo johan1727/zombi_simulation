@@ -32,6 +32,7 @@ Juego 3D de navegador, vista de director (arriba, con zoom continuo), estilo *Pr
 - Componente principal: % de población viva.
 - Bonus: estructuras clave en pie (hospital, comisaría, escuela).
 - Mayor Índice de Ciudad al final gana. Colapso antes del reloj = derrota inmediata.
+- **Desempates:** si ambas ciudades colapsan, gana la que cayó más tarde (por tick). Si el Índice empata al agotarse el reloj, gana quien tenga más población viva; si persiste el empate exacto, se declara empate y se ofrece revancha.
 
 **Pantalla de resultado:** comparación lado a lado, gráfica de ambas curvas de supervivencia, estadísticas con sabor ("salvaste 312", "sacrificaste 89 con el megáfono"), botón gigante de REVANCHA (misma semilla u otra) y botón de COMPARTIR DESAFÍO.
 
@@ -181,7 +182,14 @@ Gráficos placeholder: cajas = edificios, cápsulas = personas, colores = estado
 **Fase 2 (tras validar la diversión):** backend de matchmaking, códigos de sala, marcador en vivo real.
 **Fase 3 (futuro):** assets finales con dirección de arte, 4 jugadores, más mapas.
 
-## 8. Reparto de trabajo
+## 8. Huecos conocidos (registrados, con fase asignada)
+
+- **Sonido (deuda obligatoria, no opcional):** el ruido es mecánica central (gritos, sirenas, disparos atraen zombis); el jugador debe poder oírlo para leer el sistema. Audio mínimo al final de la Fase 1 o inicio de Fase 2.
+- **Móvil/táctil (Fase 2):** los links virales se abren sobre todo en teléfonos. El modo director debe funcionar con toques (tocar = seleccionar/mover, pellizcar = zoom). La posesión puede quedarse solo en escritorio.
+- **Anti-trampas (Fase 2):** los marcadores de desafío son falsificables en cliente. Solución vía determinismo: el servidor re-simula la partida con los inputs registrados del jugador y verifica el resultado.
+- **Muerte durante posesión:** si el agente poseído muere, la cámara vuelve al modo director con un efecto dramático breve; el agente muere con las reglas normales.
+
+## 9. Reparto de trabajo
 
 - **Fable (esta sesión):** diseño ✅, plan de implementación detallado, y verificación final (errores, determinismo, balance).
 - **Sonnet 5:** implementación del código siguiendo el plan.
