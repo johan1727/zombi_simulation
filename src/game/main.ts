@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import { World } from '../sim/world';
 import { createScene } from '../render/scene';
 import { buildCityView } from '../render/cityView';
+import { CitizensView } from '../render/citizensView';
+import { startLoop } from './loop';
+import { Hud } from '../ui/hud';
 
 const canvas = document.getElementById('app') as HTMLCanvasElement;
 const seed = new URLSearchParams(location.search).get('seed') ?? 'PANDEMIA';
@@ -9,6 +12,8 @@ const seed = new URLSearchParams(location.search).get('seed') ?? 'PANDEMIA';
 const world = new World(seed);
 const { renderer, scene } = createScene(canvas);
 buildCityView(scene, world.city);
+const citizensView = new CitizensView(scene, world.citizens.length);
+const hud = new Hud(seed);
 
 // Cámara provisional (Task 8 la reemplaza por CameraRig).
 const camera = new THREE.PerspectiveCamera(
@@ -26,4 +31,8 @@ window.addEventListener('resize', () => {
   camera.updateProjectionMatrix();
 });
 
-renderer.setAnimationLoop(() => renderer.render(scene, camera));
+startLoop(world, (alpha) => {
+  citizensView.update(world.citizens, alpha);
+  hud.update(world);
+  renderer.render(scene, camera);
+});
