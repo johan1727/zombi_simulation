@@ -42,4 +42,11 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
 
 ## Lecciones aprendidas
 
-- (vacío — se llena al completar tareas)
+- `hashState()` en `world.ts` trunca posiciones a 24 bits (tres bytes en `mix()`);
+  si el mapa crece mucho más allá de ~1677 m (a escala ×100), ampliar el mezclador.
+- `CameraRig` registra listeners en `window` (`pointerup`, `pointermove`, `resize`)
+  en el constructor sin `dispose()`: si algún día se reconstruye sin recargar la
+  página, añadir teardown para evitar fugas de listeners duplicados.
+- En Windows, usar las herramientas de preview (dev server + eval/screenshot) para
+  verificar consola, FPS y memoria de forma programática, pero dejar el juicio
+  visual fino (fluidez percibida, estética) a un humano.

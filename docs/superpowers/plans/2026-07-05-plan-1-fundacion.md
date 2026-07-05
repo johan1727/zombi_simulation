@@ -1,6 +1,6 @@
 # PANDEMIA — Plan 1 de 3: Fundación — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Ciudad 3D tipo Nueva York en el navegador con ~800 ciudadanos deambulando de forma determinista, cámara estilo Project Zomboid con zoom, y el test de determinismo (misma semilla = mismo estado) pasando.
 
@@ -32,7 +32,7 @@
 - Consumes: nada (proyecto vacío; ya existe `docs/` y git inicializado).
 - Produces: proyecto npm que compila (`npx tsc --noEmit`), prueba (`npm test`) y arranca (`npm run dev`).
 
-- [ ] **Step 1: Crear `.gitignore`**
+- [x] **Step 1: Crear `.gitignore`**
 
 ```gitignore
 node_modules/
@@ -40,7 +40,7 @@ dist/
 *.local
 ```
 
-- [ ] **Step 2: Crear `package.json`**
+- [x] **Step 2: Crear `package.json`**
 
 ```json
 {
@@ -67,7 +67,7 @@ dist/
 }
 ```
 
-- [ ] **Step 3: Crear `tsconfig.json`**
+- [x] **Step 3: Crear `tsconfig.json`**
 
 ```json
 {
@@ -87,7 +87,7 @@ dist/
 }
 ```
 
-- [ ] **Step 4: Crear `vite.config.ts`**
+- [x] **Step 4: Crear `vite.config.ts`**
 
 ```ts
 import { defineConfig } from 'vitest/config';
@@ -100,7 +100,7 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 5: Crear `index.html`**
+- [x] **Step 5: Crear `index.html`**
 
 ```html
 <!doctype html>
@@ -128,13 +128,13 @@ export default defineConfig({
 </html>
 ```
 
-- [ ] **Step 6: Crear `src/game/main.ts` (placeholder, se reemplaza en Task 6)**
+- [x] **Step 6: Crear `src/game/main.ts` (placeholder, se reemplaza en Task 6)**
 
 ```ts
 console.log('PANDEMIA — andamiaje listo');
 ```
 
-- [ ] **Step 7: Crear `CLAUDE.md`**
+- [x] **Step 7: Crear `CLAUDE.md`**
 
 ```markdown
 # PANDEMIA — Reglas del proyecto
@@ -184,7 +184,7 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
 - (vacío — se llena al completar tareas)
 ```
 
-- [ ] **Step 8: Crear `tests/smoke.test.ts`**
+- [x] **Step 8: Crear `tests/smoke.test.ts`**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -196,12 +196,12 @@ describe('humo', () => {
 });
 ```
 
-- [ ] **Step 9: Instalar dependencias**
+- [x] **Step 9: Instalar dependencias**
 
 Run: `npm install`
 Expected: termina sin errores; se crea `node_modules/` y `package-lock.json`.
 
-- [ ] **Step 10: Verificar test y compilación**
+- [x] **Step 10: Verificar test y compilación**
 
 Run: `npm test`
 Expected: `1 passed` (smoke.test.ts).
@@ -209,7 +209,7 @@ Expected: `1 passed` (smoke.test.ts).
 Run: `npx tsc --noEmit`
 Expected: sin salida (0 errores).
 
-- [ ] **Step 11: Commit**
+- [x] **Step 11: Commit**
 
 ```bash
 git add -A
@@ -231,7 +231,7 @@ git commit -m "chore: andamiaje Vite+TS+Three+Vitest y CLAUDE.md"
   - `createRng(seed: number | string): Rng` — mulberry32 sembrado.
   - `hashSeed(text: string): number` — FNV-1a 32 bits, sin signo.
 
-- [ ] **Step 1: Escribir el test que falla — `tests/rng.test.ts`**
+- [x] **Step 1: Escribir el test que falla — `tests/rng.test.ts`**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -280,12 +280,12 @@ describe('rng determinista', () => {
 });
 ```
 
-- [ ] **Step 2: Verificar que falla**
+- [x] **Step 2: Verificar que falla**
 
 Run: `npm test`
 Expected: FAIL — `Cannot find module '../src/sim/rng'` (o similar).
 
-- [ ] **Step 3: Implementar `src/sim/rng.ts`**
+- [x] **Step 3: Implementar `src/sim/rng.ts`**
 
 ```ts
 export type Rng = {
@@ -328,12 +328,12 @@ export function createRng(seed: number | string): Rng {
 }
 ```
 
-- [ ] **Step 4: Verificar que pasa**
+- [x] **Step 4: Verificar que pasa**
 
 Run: `npm test`
 Expected: PASS — todos los tests de `rng.test.ts` y el de humo.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/sim/rng.ts tests/rng.test.ts
@@ -356,7 +356,7 @@ git commit -m "feat: RNG determinista mulberry32 con semilla de texto"
 
 La ciudad es una cuadrícula Manhattan: calles de 8 m entre manzanas de 36 m. Coordenadas de suelo: `x` (ancho) y `z` (profundidad); `y` es altura solo en el render.
 
-- [ ] **Step 1: Escribir el test que falla — `tests/cityGen.test.ts`**
+- [x] **Step 1: Escribir el test que falla — `tests/cityGen.test.ts`**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -408,12 +408,12 @@ describe('generación de ciudad', () => {
 });
 ```
 
-- [ ] **Step 2: Verificar que falla**
+- [x] **Step 2: Verificar que falla**
 
 Run: `npm test`
 Expected: FAIL — no existen `config.ts` ni `cityGen.ts`.
 
-- [ ] **Step 3: Implementar `src/sim/config.ts`**
+- [x] **Step 3: Implementar `src/sim/config.ts`**
 
 ```ts
 /** Ticks de simulación por segundo. La sim SIEMPRE avanza a este paso fijo. */
@@ -441,7 +441,7 @@ export const CITIZENS = {
 } as const;
 ```
 
-- [ ] **Step 4: Implementar `src/sim/cityGen.ts`**
+- [x] **Step 4: Implementar `src/sim/cityGen.ts`**
 
 ```ts
 import type { Rng } from './rng';
@@ -510,12 +510,12 @@ export function generateCity(rng: Rng): CityLayout {
 }
 ```
 
-- [ ] **Step 5: Verificar que pasa**
+- [x] **Step 5: Verificar que pasa**
 
 Run: `npm test`
 Expected: PASS — todos los tests.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/sim/config.ts src/sim/cityGen.ts tests/cityGen.test.ts
@@ -538,7 +538,7 @@ git commit -m "feat: retícula Manhattan con edificios de fondo y jugables"
 
 Los ciudadanos caminan por corredores: si van en vertical, su `x` queda fijo en `corridorCenter(k) + laneOffset`; si van en horizontal, su `z` queda fijo igual. `laneOffset` los reparte por el ancho de la calle para que no caminen en fila india.
 
-- [ ] **Step 1: Escribir el test que falla — `tests/citizens.test.ts`**
+- [x] **Step 1: Escribir el test que falla — `tests/citizens.test.ts`**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -576,12 +576,12 @@ describe('ciudadanos', () => {
 });
 ```
 
-- [ ] **Step 2: Verificar que falla**
+- [x] **Step 2: Verificar que falla**
 
 Run: `npm test`
 Expected: FAIL — no existe `src/sim/citizens.ts`.
 
-- [ ] **Step 3: Implementar `src/sim/types.ts`**
+- [x] **Step 3: Implementar `src/sim/types.ts`**
 
 ```ts
 export type Personality =
@@ -616,7 +616,7 @@ export interface Citizen {
 }
 ```
 
-- [ ] **Step 4: Implementar `src/sim/citizens.ts`**
+- [x] **Step 4: Implementar `src/sim/citizens.ts`**
 
 ```ts
 import type { Rng } from './rng';
@@ -700,12 +700,12 @@ export function spawnCitizens(rng: Rng, count: number): Citizen[] {
 }
 ```
 
-- [ ] **Step 5: Verificar que pasa**
+- [x] **Step 5: Verificar que pasa**
 
 Run: `npm test`
 Expected: PASS. Nota: el test de spawn sobre calles pasa porque un caminante vertical siempre tiene `x` dentro de la banda de una calle vertical (cualquier `z` vale), y viceversa.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/sim/types.ts src/sim/citizens.ts tests/citizens.test.ts
@@ -729,7 +729,7 @@ git commit -m "feat: ciudadanos con nombre, personalidad y spawn en calles"
 
 Comportamiento: cada tick el ciudadano avanza sobre su eje; al entrar a un cruce (bandas vertical y horizontal a la vez) decide una sola vez si gira (45%); en los bordes del mapa rebota. A veces se detiene unos segundos (mirar vitrinas).
 
-- [ ] **Step 1: Escribir el test que falla — `tests/determinism.test.ts`**
+- [x] **Step 1: Escribir el test que falla — `tests/determinism.test.ts`**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -775,12 +775,12 @@ describe('determinismo del mundo', () => {
 });
 ```
 
-- [ ] **Step 2: Verificar que falla**
+- [x] **Step 2: Verificar que falla**
 
 Run: `npm test`
 Expected: FAIL — no existe `src/sim/world.ts`.
 
-- [ ] **Step 3: Agregar `updateCitizen` al final de `src/sim/citizens.ts`**
+- [x] **Step 3: Agregar `updateCitizen` al final de `src/sim/citizens.ts`**
 
 ```ts
 /** Probabilidad de girar al entrar a un cruce. */
@@ -848,7 +848,7 @@ import { corridorCenter, corridorIndexAt } from './cityGen';
 import { CITY, CITY_WIDTH, CITY_DEPTH, CITIZENS, DT, TICK_RATE } from './config';
 ```
 
-- [ ] **Step 4: Implementar `src/sim/world.ts`**
+- [x] **Step 4: Implementar `src/sim/world.ts`**
 
 ```ts
 import { createRng, type Rng } from './rng';
@@ -899,7 +899,7 @@ export class World {
 }
 ```
 
-- [ ] **Step 5: Verificar que pasa**
+- [x] **Step 5: Verificar que pasa**
 
 Run: `npm test`
 Expected: PASS — los 4 tests de determinismo y todos los anteriores.
@@ -907,12 +907,12 @@ Expected: PASS — los 4 tests de determinismo y todos los anteriores.
 Run: `npx tsc --noEmit`
 Expected: sin errores.
 
-- [ ] **Step 6: Verificar la prohibición de aleatoriedad no inyectada**
+- [x] **Step 6: Verificar la prohibición de aleatoriedad no inyectada**
 
 Run (PowerShell): `Select-String -Path src/sim/*.ts -Pattern "Math.random|Date.now|performance.now"`
 Expected: sin resultados.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add src/sim/citizens.ts src/sim/world.ts tests/determinism.test.ts
@@ -934,7 +934,7 @@ git commit -m "feat: mundo determinista con ciudadanos que caminan por las calle
   - `cityView.ts`: `buildCityView(scene: THREE.Scene, city: CityLayout): void`.
 - Sin tests unitarios (es render); la verificación es visual en el navegador.
 
-- [ ] **Step 1: Implementar `src/render/scene.ts`**
+- [x] **Step 1: Implementar `src/render/scene.ts`**
 
 ```ts
 import * as THREE from 'three';
@@ -963,7 +963,7 @@ export function createScene(canvas: HTMLCanvasElement): SceneParts {
 }
 ```
 
-- [ ] **Step 2: Implementar `src/render/cityView.ts`**
+- [x] **Step 2: Implementar `src/render/cityView.ts`**
 
 ```ts
 import * as THREE from 'three';
@@ -998,7 +998,7 @@ export function buildCityView(scene: THREE.Scene, city: CityLayout): void {
 }
 ```
 
-- [ ] **Step 3: Reemplazar `src/game/main.ts` (cámara fija provisional)**
+- [x] **Step 3: Reemplazar `src/game/main.ts` (cámara fija provisional)**
 
 ```ts
 import * as THREE from 'three';
@@ -1032,7 +1032,7 @@ window.addEventListener('resize', () => {
 renderer.setAnimationLoop(() => renderer.render(scene, camera));
 ```
 
-- [ ] **Step 4: Verificar compilación y en navegador**
+- [x] **Step 4: Verificar compilación y en navegador**
 
 Run: `npx tsc --noEmit`
 Expected: sin errores.
@@ -1040,7 +1040,7 @@ Expected: sin errores.
 Run: `npm run dev` y abrir la URL que imprime (por defecto `http://localhost:5173`).
 Expected: se ve la retícula de Manhattan — suelo gris oscuro, torres altas gris-azul (fondo) y edificios bajos más claros (jugables), con niebla al fondo. Sin errores en la consola del navegador.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/render/scene.ts src/render/cityView.ts src/game/main.ts
@@ -1063,7 +1063,7 @@ git commit -m "feat: escena Three.js con la ciudad visible"
   - `citizensView.ts`: `class CitizensView { constructor(scene: THREE.Scene, count: number); update(citizens: Citizen[], alpha: number): void }`.
   - `hud.ts`: `class Hud { constructor(seed: string); update(world: World): void }`.
 
-- [ ] **Step 1: Escribir el test que falla — `tests/loop.test.ts`**
+- [x] **Step 1: Escribir el test que falla — `tests/loop.test.ts`**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -1104,12 +1104,12 @@ describe('bucle de paso fijo', () => {
 });
 ```
 
-- [ ] **Step 2: Verificar que falla**
+- [x] **Step 2: Verificar que falla**
 
 Run: `npm test`
 Expected: FAIL — no existe `src/game/loop.ts`.
 
-- [ ] **Step 3: Implementar `src/game/loop.ts`**
+- [x] **Step 3: Implementar `src/game/loop.ts`**
 
 ```ts
 import { DT } from '../sim/config';
@@ -1143,12 +1143,12 @@ export function startLoop(world: World, render: (alpha: number) => void): void {
 }
 ```
 
-- [ ] **Step 4: Verificar que pasa**
+- [x] **Step 4: Verificar que pasa**
 
 Run: `npm test`
 Expected: PASS.
 
-- [ ] **Step 5: Implementar `src/render/citizensView.ts`**
+- [x] **Step 5: Implementar `src/render/citizensView.ts`**
 
 ```ts
 import * as THREE from 'three';
@@ -1188,7 +1188,7 @@ export class CitizensView {
 }
 ```
 
-- [ ] **Step 6: Implementar `src/ui/hud.ts`**
+- [x] **Step 6: Implementar `src/ui/hud.ts`**
 
 ```ts
 import type { World } from '../sim/world';
@@ -1212,7 +1212,7 @@ export class Hud {
 }
 ```
 
-- [ ] **Step 7: Actualizar `src/game/main.ts` (reemplazar completo)**
+- [x] **Step 7: Actualizar `src/game/main.ts` (reemplazar completo)**
 
 ```ts
 import * as THREE from 'three';
@@ -1255,13 +1255,13 @@ startLoop(world, (alpha) => {
 });
 ```
 
-- [ ] **Step 8: Verificar en navegador**
+- [x] **Step 8: Verificar en navegador**
 
 Run: `npx tsc --noEmit` — sin errores.
 Run: `npm run dev` y abrir la URL.
 Expected: 800 cápsulas celestes caminando por las calles con movimiento fluido, girando en los cruces, algunas detenidas. El HUD muestra "Población: 800 · Tiempo: 0:NN · Semilla: PANDEMIA" y el tiempo avanza. Abrir con `?seed=otra` genera otra distribución. Sin errores en consola; el movimiento no debe verse a saltos (la interpolación con alpha funciona).
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add src/game/loop.ts src/render/citizensView.ts src/ui/hud.ts src/game/main.ts tests/loop.test.ts
@@ -1282,7 +1282,7 @@ git commit -m "feat: bucle de paso fijo, ciudadanos animados e interpolados, HUD
 
 Cámara con inclinación fija (52°) y yaw diagonal fijo (45°) — la vista íntima de Project Zomboid. Zoom con rueda (16–130 m), paneo arrastrando con el puntero y por bordes de pantalla.
 
-- [ ] **Step 1: Implementar `src/render/cameraRig.ts`**
+- [x] **Step 1: Implementar `src/render/cameraRig.ts`**
 
 ```ts
 import * as THREE from 'three';
@@ -1382,7 +1382,7 @@ export class CameraRig {
 }
 ```
 
-- [ ] **Step 2: Actualizar `src/game/main.ts` (reemplazar completo)**
+- [x] **Step 2: Actualizar `src/game/main.ts` (reemplazar completo)**
 
 ```ts
 import { World } from '../sim/world';
@@ -1415,7 +1415,7 @@ startLoop(world, (alpha) => {
 });
 ```
 
-- [ ] **Step 3: Verificar en navegador**
+- [x] **Step 3: Verificar en navegador**
 
 Run: `npx tsc --noEmit` — sin errores.
 Run: `npm run dev` y abrir la URL. Comprobar:
@@ -1425,7 +1425,7 @@ Run: `npm run dev` y abrir la URL. Comprobar:
 - Llevar el puntero a un borde de la ventana desplaza la vista hacia ese lado.
 - El foco no puede salirse de la ciudad (clamp).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/render/cameraRig.ts src/game/main.ts
@@ -1443,7 +1443,7 @@ git commit -m "feat: cámara estilo Project Zomboid con zoom, arrastre y bordes"
 - Consumes: todo el plan.
 - Produces: fundación verificada, lista para el Plan 2 (El brote).
 
-- [ ] **Step 1: Suite completa y compilación**
+- [x] **Step 1: Suite completa y compilación**
 
 Run: `npm test`
 Expected: PASS — smoke, rng, cityGen, citizens, determinism y loop (6 archivos, todos verdes).
@@ -1451,21 +1451,21 @@ Expected: PASS — smoke, rng, cityGen, citizens, determinism y loop (6 archivos
 Run: `npx tsc --noEmit`
 Expected: sin errores.
 
-- [ ] **Step 2: Verificar las prohibiciones de arquitectura**
+- [x] **Step 2: Verificar las prohibiciones de arquitectura**
 
 Run (PowerShell): `Select-String -Path src/sim/*.ts -Pattern "from 'three'|Math.random|Date.now|performance.now"`
 Expected: sin resultados. Si aparece algo, es una violación de CLAUDE.md: corregir antes de seguir.
 
-- [ ] **Step 3: Verificación de rendimiento en navegador**
+- [x] **Step 3: Verificación de rendimiento en navegador**
 
 Run: `npm run dev`, abrir la URL y dejar correr 2 minutos.
 Expected: movimiento fluido sostenido (~60 fps en una máquina normal; sin caída progresiva), memoria estable (sin crecimiento continuo en la pestaña Rendimiento/Memoria de las DevTools), consola sin errores ni warnings de Three.js.
 
-- [ ] **Step 4: Verificación de semillas**
+- [x] **Step 4: Verificación de semillas**
 
 Abrir `http://localhost:5173/?seed=alfa` dos veces (recargar): la disposición inicial de ciudadanos y edificios debe ser idéntica entre recargas. Abrir `?seed=beta`: debe ser distinta.
 
-- [ ] **Step 5: Commit final (si hubo arreglos) y marcar el plan**
+- [x] **Step 5: Commit final (si hubo arreglos) y marcar el plan**
 
 ```bash
 git add -A
