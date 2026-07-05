@@ -46,6 +46,7 @@ Juego 3D de navegador, vista de director (arriba, con zoom continuo), estilo *Pr
 - **Decisión por utilidad:** cada ciudadano evalúa opciones (huir, esconderse, ayudar, buscar familia, armarse, atrincherarse) ponderadas por personalidad, percepción y memoria.
 - **Memoria:** recuerdan zonas de muerte (las evitan) y edificios seguros.
 - **Vínculos:** familias/parejas que se buscan si se separan.
+- **Combate en grupo:** valientes y líderes pueden reunir ciudadanos cercanos para atacar zombis aislados. 3+ humanos vs 1 zombi = victoria probable; 1 vs 1 = casi suicidio. Ciudadanos con armas conseguidas disparan, pero el ruido atrae más zombis. **Regla de diseño: toda acción tiene pro y contra.**
 - **LOD de IA:** IA completa cerca de la acción/cámara; versión ligera (máquina de estados simple) para ciudadanos lejanos y tranquilos. Objetivo: 1,000 agentes a 30 ticks/seg en navegador.
 
 ### 3.2 Infección
@@ -60,8 +61,12 @@ Juego 3D de navegador, vista de director (arriba, con zoom continuo), estilo *Pr
 - Forman hordas que se mueven como marea.
 - Presionan barricadas: la barricada aguanta según cuántos empujen (tensión de "presa a punto de reventar").
 
-### 3.4 Edificios
+### 3.4 Edificios y mapa (estilo Nueva York)
 
+- **Dos tipos de edificio (presupuesto de rendimiento):**
+  - **Rascacielos de fondo:** dan la silueta de Manhattan; NO se entra. Geometría barata (cajas instanciadas).
+  - **Edificios jugables (cantidad limitada, ~15–25):** tiendas, apartamentos bajos, hospital, comisaría, escuela. Se entra y se ve el interior con **vista recortada estilo Project Zomboid**: techo y paredes que estorban se desvanecen cuando la cámara mira dentro o hay unidades dentro.
+- **Interiores:** planta baja + un piso superior con **escaleras**; azoteas accesibles (refugio de doble filo: seguro pero sin escapatoria).
 - Refugio para ciudadanos. Un infectado dentro = bomba de tiempo.
 - Estructuras clave dan puntos al Índice y ventajas: comisaría en pie = 1 agente extra.
 
@@ -99,7 +104,8 @@ Juego 3D de navegador, vista de director (arriba, con zoom continuo), estilo *Pr
 
 ### 4.4 Cámara
 
-- Vista de director con **zoom continuo** (rueda): de Manhattan completo a nivel de calle (ver transformaciones de cerca).
+- **Perspectiva estilo Project Zomboid:** cámara alta pero cercana, ligeramente inclinada; personajes pequeños en pantalla, escala íntima de calle. NO vista satelital gigante por defecto.
+- **Zoom continuo** (rueda): desde vista de distrito hasta nivel de calle (ver transformaciones de cerca).
 - Paneo con arrastre / bordes de pantalla.
 - Alertas de borde de pantalla ("¡brote en el distrito norte!").
 
@@ -142,9 +148,9 @@ src/
 
 Gráficos placeholder: cajas = edificios, cápsulas = personas, colores = estado (sano/incubando/zombi/agente). Cada paso deja el juego jugable.
 
-1. Ciudad + ciudadanos deambulando (cuadrícula, ~800 cápsulas, cámara con zoom).
+1. Ciudad + ciudadanos deambulando (cuadrícula tipo Manhattan, rascacielos de fondo, ~800 cápsulas, cámara PZ con zoom).
 2. Infección: paciente cero, contagio, incubación, transformación, hordas, salpicaduras de pintura.
-3. Pánico, personalidades y refugio (comportamiento emergente).
+3. Pánico, personalidades, refugio y combate en grupo (comportamiento emergente). Edificios jugables con interiores, escaleras y vista recortada.
 4. Los 4 agentes con órdenes y habilidades (modo director completo).
 5. Posesión (tercera persona, WASD + ratón).
 6. Partida completa: reloj, Índice de Ciudad, rival fantasma, resultado, revancha.
