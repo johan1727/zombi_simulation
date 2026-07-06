@@ -2,7 +2,9 @@ import { createRng, type Rng } from './rng';
 import { generateCity, type CityLayout } from './cityGen';
 import { spawnCitizens, updateCitizen } from './citizens';
 import type { Citizen, Ruido, Splat } from './types';
-import { CITIZENS } from './config';
+import { CITIZENS, INFECCION } from './config';
+import { SpatialGrid } from './spatialGrid';
+import { actualizarIncubacion, elegirPacienteCero, infectar } from './infeccion';
 
 export class World {
   readonly seed: string;
@@ -21,6 +23,7 @@ export class World {
   readonly ruidos: Ruido[] = [];
   readonly ocupantes: number[];
   readonly brecha: boolean[];
+  readonly grid = new SpatialGrid<Citizen>();
 
   constructor(seed: string, citizenCount: number = CITIZENS.count) {
     this.seed = seed;
@@ -47,7 +50,15 @@ export class World {
   }
 
   tick(): void {
-    for (const c of this.citizens) updateCitizen(c, this.rngCiudadanos);
+    if (this.tickCount === INFECCION.pacienteCeroTick) {
+      infectar(this.citizens[elegirPacienteCero(this.citizens, this.rngInfeccion)], this.rngInfeccion);
+    }
+    this.grid.rebuild(this.citizens, (c) => c.salud !== 'eliminado' && c.dentroDe < 0);
+    for (const c of this.citizens) {
+      if (c.salud === 'eliminado') { c.prevX = c.x; c.prevZ = c.z; continue; }
+      updateCitizen(c, this.rngCiudadanos, c.salud === 'incubando' ? INFECCION.velocidadIncubando : 1);
+      actualizarIncubacion(c, this);
+    }
     this.tickCount++;
   }
 
