@@ -61,3 +61,11 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
   así que escenarios de caza con ventanas de tiempo cortas (~10s) pueden
   necesitar más margen. Revisar tests de sistemas anteriores tras cambios de
   velocidad/comportamiento, no solo los tests nuevos.
+- Trampa de `THREE.InstancedMesh` (Task 9, `SplatsView`): si la malla nace con
+  `count = 0` y se llena con instancias más tarde, el primer render calcula
+  `boundingSphere` con el conjunto vacío y lo deja inválido (radio `-1`) para
+  siempre — las instancias futuras se recortan del frustum aunque la cámara
+  las mire de frente (invisibles, pero `mesh.count` y las matrices/colores
+  están bien). Si una `InstancedMesh` crece con el tiempo desde vacía, poner
+  `mesh.frustumCulled = false` o recalcular `computeBoundingSphere()` tras
+  cada `update()`.
