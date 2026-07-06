@@ -73,6 +73,12 @@ export function spawnCitizens(rng: Rng, count: number): Citizen[] {
       state: 'caminando',
       idleTicks: 0,
       lastCrossing: -1,
+      salud: 'sano',
+      incubacionTicks: 0,
+      animo: 'tranquilo',
+      animoTicks: 0,
+      dentroDe: -1,
+      cdMordida: 0,
     });
   }
   return citizens;
@@ -83,7 +89,7 @@ const CRUCE_GIRO = 0.45;
 /** Probabilidad por tick de pararse a mirar (≈2.4%/seg). */
 const PAUSA_POR_TICK = 0.0008;
 
-export function updateCitizen(c: Citizen, rng: Rng): void {
+export function updateCitizen(c: Citizen, rng: Rng, factorVelocidad = 1): void {
   c.prevX = c.x;
   c.prevZ = c.z;
 
@@ -99,7 +105,7 @@ export function updateCitizen(c: Citizen, rng: Rng): void {
     return;
   }
 
-  const paso = CITIZENS.walkSpeed * DT;
+  const paso = CITIZENS.walkSpeed * DT * factorVelocidad;
   c.x += c.dirX * paso;
   c.z += c.dirZ * paso;
 

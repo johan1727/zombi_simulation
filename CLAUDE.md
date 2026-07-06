@@ -20,6 +20,11 @@ ciudad. Diseño completo: `docs/superpowers/specs/2026-07-05-pandemia-design.md`
 - No iterar `Set`/`Map` en la sim cuando el orden afecte el resultado.
 - `tests/determinism.test.ts` es el test más importante del proyecto:
   si falla, no se hace commit.
+- Streams de RNG por subsistema (`pandemia:<seed>:<sistema>`): cada sistema
+  usa SOLO su stream; nunca mezclar.
+- `SpatialGrid.queryCircle` reusa un scratch interno: NUNCA anidar consultas.
+- Todo teletransporte (entrar/salir de edificios, re-enganche a la calle)
+  resetea `prevX/prevZ` para no dejar estelas en el render.
 
 ## Flujo de trabajo
 

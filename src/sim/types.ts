@@ -27,4 +27,33 @@ export interface Citizen {
   idleTicks: number;
   /** id del último cruce donde ya decidió girar o seguir. */
   lastCrossing: number;
+  salud: Salud;
+  /** Ticks restantes de incubación (si salud === 'incubando'). */
+  incubacionTicks: number;
+  animo: Animo;
+  /** Ticks sin ver zombis (para calmarse). */
+  animoTicks: number;
+  /** id del edificio en el que se refugia, o -1. */
+  dentroDe: number;
+  /** Enfriamiento de mordida (solo zombis). */
+  cdMordida: number;
+}
+
+export type Salud = 'sano' | 'incubando' | 'zombi' | 'eliminado';
+export type Animo = 'tranquilo' | 'panico';
+
+/** Mancha de pintura en el suelo (la "sangre" del juego). */
+export interface Splat {
+  x: number;
+  z: number;
+  /** 0..1: elige color de la paleta, rotación y tamaño. */
+  tono: number;
+}
+
+/** Fuente de ruido temporal (gritos, brechas). Atrae zombis y contagia pánico. */
+export interface Ruido {
+  x: number;
+  z: number;
+  radio: number;
+  ticks: number;
 }
