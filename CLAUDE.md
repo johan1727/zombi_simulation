@@ -74,3 +74,6 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
   dentro nunca revienta. Con asedio + los 6 knobs de balance al extremo
   autorizado el colapso pasó de "nunca" a real (~610-616 s) pero sigue fuera
   de la ventana 1:30-8:00 pedida — la tasa de mordida sigue siendo el techo.
+- (Task 10c) La causa raíz del búnker eterno era de mecánica (faltaba asedio),
+  no de ajuste; y el gate de balance debe medir la curva (devastación a un
+  punto fijo del reloj), no la cola larga de la epidemia (colapso total tardío).

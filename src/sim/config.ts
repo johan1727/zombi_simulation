@@ -72,10 +72,10 @@ export const REFUGIO = {
 export const GRID_CELDA = 4; // m por celda de la rejilla espacial
 
 export const ASEDIO = {
-  radio: 8, // m alrededor del edificio donde los zombis presionan
+  radio: 10, // m alrededor del edificio donde los zombis presionan
   presionPorZombi: 1, // presión por zombi por tick
   alivioPorTick: 2, // la presión decae sin zombis
-  resistencia: 300, // presión para brecha (≈20 s con 1 zombi, ≈4 s con 5)
+  resistencia: 110, // presión para brecha
   ruidoCadaTicks: 90, // los refugiados hacen ruido periódico
   ruidoRadio: 10,
   ruidoTicks: 30,

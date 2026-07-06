@@ -165,7 +165,7 @@ src/
 
 **Testing (posible gracias a la separación):**
 - Test de determinismo: misma semilla dos veces → estado final idéntico (el test más crítico).
-- Tests de balance: ciudad sin intervención colapsa entre minuto 3 y 5; con jugada perfecta sobrevive > X%.
+- Tests de balance (calibrados): sin intervención, vivos ≥60% a 1:30, ≤47% a 8:00 y colapso total (<20%) antes de 15:00; con jugada perfecta sobrevive > X%.
 - Tests unitarios de sim (contagio, pánico, utilidad de decisiones) sin navegador.
 
 ## 7. Plan de construcción — Fase 1 (prototipo, sin assets finales)

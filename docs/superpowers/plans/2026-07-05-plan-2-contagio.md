@@ -1669,7 +1669,7 @@ git commit -m "feat: render del brote — estados por color, pintura, anti-oclus
 
 **Reglas de ajuste (ÚNICA tarea autorizada a tocar balance):** si el test de colapso falla, ajustar SOLO estos valores, en este orden de preferencia, re-ejecutando el test tras cada cambio y documentando los valores finales en el reporte: `ZOMBIS.velocidad` (±0.4), `ZOMBIS.radioVision` (±5), `PANICO.velocidadHuida` (±0.3), `PROB_PANICO_POR_GRITO` (×0.5 a ×2), `INFECCION.incubacionMin/MaxTicks` (±5 s), `REFUGIO.capacidad` (±20).
 
-- [ ] **Step 1: Test que falla (o pasa a la primera) — `tests/balance.test.ts`**
+- [x] **Step 1: Test que falla (o pasa a la primera) — `tests/balance.test.ts`**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -1717,18 +1717,18 @@ describe('balance del brote (sin intervención del jugador)', () => {
 });
 ```
 
-- [ ] **Step 2: Correr y ajustar si hace falta**
+- [x] **Step 2: Correr y ajustar si hace falta**
 
 Run: `npm test` (el balance puede tardar — hasta ~3 min por test). Si falla: aplicar las reglas de ajuste de arriba, re-correr, documentar. Si pasa a la primera: perfecto, no tocar nada.
 
-- [ ] **Step 3: Verificación completa**
+- [x] **Step 3: Verificación completa**
 
 - `npm test` → TODO verde (suite completa, incluidos los 24 del Plan 1 adaptados).
 - `npx tsc --noEmit` → limpio.
 - PowerShell: `Select-String -Path src/sim/*.ts -Pattern "from 'three'|Math.random|Date.now|performance.now"` → vacío.
 - Navegador: 2 minutos de brote con FPS estables y consola limpia; verificar con `?seed=alfa` recargado dos veces que el brote es idéntico (mismo paciente cero, mismas primeras transformaciones).
 
-- [ ] **Step 4: Lecciones y commit final**
+- [x] **Step 4: Lecciones y commit final**
 
 Añadir a `CLAUDE.md` («Lecciones aprendidas») 1–2 líneas reales de esta fase (p. ej., valores de balance que funcionaron y por qué). Luego:
 
@@ -1769,7 +1769,7 @@ export const ASEDIO = {
 - `asedio.ts`: `resolverAsedios(world: World): void`.
 - `world.ts`: `readonly presion: number[]` (inicializado a 0 por edificio, como `ocupantes`); llamada `resolverAsedios(this)` inmediatamente DESPUÉS de `resolverCombates(this)` y antes del decaimiento de ruidos.
 
-- [ ] **Step 1: Test que falla — `tests/asedio.test.ts`**
+- [x] **Step 1: Test que falla — `tests/asedio.test.ts`**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -1840,9 +1840,9 @@ describe('asedio a refugios', () => {
 });
 ```
 
-- [ ] **Step 2: Verificar que falla** — `npm test` → FAIL (módulo no existe).
+- [x] **Step 2: Verificar que falla** — `npm test` → FAIL (módulo no existe).
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 **(a)** Añadir la constante `ASEDIO` a `src/sim/config.ts` (código de arriba, al final del archivo).
 
@@ -1898,13 +1898,13 @@ export function resolverAsedios(world: World): void {
 
 y el bucle de transformación a `for (let t = 0; t < INFECCION.incubacionMaxTicks + 5; t++) w.tick();`, importando `INFECCION` desde `../src/sim/config` (ajustar el import existente de `TICK_RATE`).
 
-- [ ] **Step 4: Verificar unidad** — `npx vitest run tests/asedio.test.ts tests/infeccion.test.ts tests/determinism.test.ts` → PASS. Luego `npm test` sin los de balance debe seguir verde.
+- [x] **Step 4: Verificar unidad** — `npx vitest run tests/asedio.test.ts tests/infeccion.test.ts tests/determinism.test.ts` → PASS. Luego `npm test` sin los de balance debe seguir verde.
 
-- [ ] **Step 5: Balance definitivo**
+- [x] **Step 5: Balance definitivo**
 
 Correr `npx vitest run tests/balance.test.ts` con los valores por defecto (config revertido + ASEDIO nuevo). Si el colapso cae fuera de la ventana 1:30–8:00, ajustar con las mismas reglas de la Task 10 MÁS estas dos perillas nuevas (preferirlas primero): `ASEDIO.resistencia` (±300), `ASEDIO.radio` (±2). Documentar cada intento (valor → tick de colapso).
 
-- [ ] **Step 6: Verificación final y cierre** (idéntica a la Task 10 original)
+- [x] **Step 6: Verificación final y cierre** (idéntica a la Task 10 original)
 
 `npm test` completo verde; `npx tsc --noEmit`; grep de prohibiciones en `src/sim/*.ts`; navegador ~2 min (FPS estable, consola limpia, `?seed=alfa` reproducible — ahora se debería VER cómo los zombis rodean refugios y los revientan). Añadir a CLAUDE.md UNA lección condensada (2 líneas máx.) con la causa raíz del búnker eterno y los valores de balance finales. Commit `chore: asedio a refugios y brote balanceado (Plan 2 completo)` y `git push -u origin fase-2-contagio`. Marcar checkboxes.
 
@@ -1923,11 +1923,11 @@ Correr `npx vitest run tests/balance.test.ts` con los valores por defecto (confi
 **Files:**
 - Modify: `tests/balance.test.ts` (reemplazar completo), `src/sim/config.ts` (SOLO si el ajuste lo exige), `CLAUDE.md` (lección final), `docs/superpowers/specs/2026-07-05-pandemia-design.md` (línea de testing §6: sustituir "una ciudad sin intervención colapsa entre el minuto 3 y 5" por "sin intervención: vivos ≥60% a 1:30, ≤40% a 8:00, colapso total <15:00").
 
-- [ ] **Step 1: Volver a los valores por defecto**
+- [x] **Step 1: Volver a los valores por defecto**
 
 Revertir las 6 perillas originales a los valores del plan (Task 1): `ZOMBIS.velocidad: 3.4`, `ZOMBIS.radioVision: 20`, `PANICO.velocidadHuida: 2.8`, `INFECCION.incubacionMinTicks: 10 * TICK_RATE`, `incubacionMaxTicks: 20 * TICK_RATE`, `REFUGIO.capacidad: 40`, `PROB_PANICO_POR_GRITO` por defecto. Conservar `ASEDIO` como esté commiteado. La medición arranca desde la línea base limpia.
 
-- [ ] **Step 2: Reemplazar `tests/balance.test.ts` completo**
+- [x] **Step 2: Reemplazar `tests/balance.test.ts` completo**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -1972,8 +1972,8 @@ describe('balance del brote (sin intervención del jugador)', () => {
 });
 ```
 
-- [ ] **Step 3: Medir y ajustar solo si hace falta**
+- [x] **Step 3: Medir y ajustar solo si hace falta**
 
 Correr `npx vitest run tests/balance.test.ts` con los defaults. Si falla alguna condición, ajustar con las reglas conocidas — perillas y rangos de las Tasks 10/10b (preferir `ASEDIO.resistencia` ±300 y `ASEDIO.radio` ±2 primero; `ZOMBIS.velocidad` nunca por encima de 3.8) — un cambio a la vez, documentando valor → (vivos@90, vivos@480, colapso). Si aún así no se cumple, BLOCKED con la tabla.
 
-- [ ] **Step 4: Verificación final y cierre** (idéntica a la 10b: suite completa, tsc, grep, navegador 2 min con semilla reproducible). Actualizar la línea de testing del spec §6 (arriba). Lección condensada en CLAUDE.md (2 líneas máx.: búnker eterno → asedio; meta calibrada por curva, no por cola). Commit `chore: brote balanceado con meta calibrada (Plan 2 completo)` y push. Marcar checkboxes de 10b y 10c.
+- [x] **Step 4: Verificación final y cierre** (idéntica a la 10b: suite completa, tsc, grep, navegador 2 min con semilla reproducible). Actualizar la línea de testing del spec §6 (arriba). Lección condensada en CLAUDE.md (2 líneas máx.: búnker eterno → asedio; meta calibrada por curva, no por cola). Commit `chore: brote balanceado con meta calibrada (Plan 2 completo)` y push. Marcar checkboxes de 10b y 10c.
