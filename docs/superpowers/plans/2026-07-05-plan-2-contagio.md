@@ -1739,3 +1739,171 @@ git push
 ```
 
 Marcar todos los checkboxes de este documento y avisar que el Plan 2 está listo para la revisión final de rama.
+
+---
+
+### Task 10b (adenda): Asedio a los refugios — y balance definitivo
+
+**Contexto:** la Task 10 quedó BLOCKED con datos: los refugios llenos sin infectado dentro son "puerto seguro" permanente y el colapso nunca baja del ~20% de vivos (mejor intento: 9:08). La causa es un recorte de este plan, no del diseño — el diseño aprobado (§3.3) dice que los zombis PRESIONAN los refugios. Esta adenda restaura esa mecánica en versión simple y repite el cierre de la Task 10.
+
+**Files:**
+- Create: `src/sim/asedio.ts`
+- Modify: `src/sim/config.ts` (constante `ASEDIO`), `src/sim/world.ts` (campo `presion` + llamada), `tests/infeccion.test.ts` (usar constantes en vez de literales 10–20 s)
+- Test: `tests/asedio.test.ts` (+ re-ejecutar `tests/balance.test.ts`, que ya existe sin commitear — consérvalo tal cual)
+
+**Interfaces:**
+- `config.ts` suma:
+
+```ts
+export const ASEDIO = {
+  radio: 6, // m alrededor del edificio donde los zombis presionan
+  presionPorZombi: 1, // presión por zombi por tick
+  alivioPorTick: 2, // la presión decae sin zombis
+  resistencia: 600, // presión para brecha (≈20 s con 1 zombi, ≈4 s con 5)
+  ruidoCadaTicks: 90, // los refugiados hacen ruido periódico
+  ruidoRadio: 10,
+  ruidoTicks: 30,
+} as const;
+```
+
+- `asedio.ts`: `resolverAsedios(world: World): void`.
+- `world.ts`: `readonly presion: number[]` (inicializado a 0 por edificio, como `ocupantes`); llamada `resolverAsedios(this)` inmediatamente DESPUÉS de `resolverCombates(this)` y antes del decaimiento de ruidos.
+
+- [ ] **Step 1: Test que falla — `tests/asedio.test.ts`**
+
+```ts
+import { describe, expect, it } from 'vitest';
+import { World } from '../src/sim/world';
+import { resolverAsedios } from '../src/sim/asedio';
+import { ASEDIO } from '../src/sim/config';
+import { buildingAt } from '../src/sim/collision';
+
+/** Prepara un refugio ocupado con `nZombis` pegados a la pared. */
+function sitiado(seed: string, nZombis: number): { w: World; id: number } {
+  const w = new World(seed, nZombis + 3);
+  const b = w.city.buildings.find((x) => x.kind === 'jugable')!;
+  // 3 refugiados dentro
+  for (let i = 0; i < 3; i++) {
+    w.citizens[i].dentroDe = b.id;
+  }
+  w.ocupantes[b.id] = 3;
+  // zombis pegados a la pared oeste
+  for (let i = 3; i < 3 + nZombis; i++) {
+    const z = w.citizens[i];
+    z.salud = 'zombi';
+    z.x = b.x - 1;
+    z.z = b.z + 4 + i;
+    z.prevX = z.x;
+    z.prevZ = z.z;
+  }
+  w.grid.rebuild(w.citizens, (c) => c.salud !== 'eliminado' && c.dentroDe < 0);
+  return { w, id: b.id };
+}
+
+describe('asedio a refugios', () => {
+  it('cinco zombis pegados revientan un refugio ocupado', () => {
+    const { w, id } = sitiado('asedio-1', 5);
+    const ticksNecesarios = Math.ceil(ASEDIO.resistencia / (5 * ASEDIO.presionPorZombi));
+    for (let t = 0; t < ticksNecesarios + 2; t++) resolverAsedios(w);
+    expect(w.brecha[id]).toBe(true);
+    // los refugiados salieron a la acera, en pánico
+    for (let i = 0; i < 3; i++) {
+      expect(w.citizens[i].dentroDe).toBe(-1);
+      expect(w.citizens[i].animo).toBe('panico');
+      expect(buildingAt(w.city, w.citizens[i].x, w.citizens[i].z)).toBeNull();
+    }
+  });
+
+  it('sin zombis, la presión decae y no hay brecha', () => {
+    const { w, id } = sitiado('asedio-2', 0);
+    for (let t = 0; t < 200; t++) resolverAsedios(w);
+    expect(w.brecha[id]).toBe(false);
+    expect(w.presion[id]).toBe(0);
+  });
+
+  it('un edificio vacío no acumula presión ni hace ruido', () => {
+    const { w, id } = sitiado('asedio-3', 4);
+    // vaciar el refugio
+    for (let i = 0; i < 3; i++) w.citizens[i].dentroDe = -1;
+    w.ocupantes[id] = 0;
+    for (let t = 0; t < 100; t++) resolverAsedios(w);
+    expect(w.brecha[id]).toBe(false);
+    expect(w.presion[id]).toBe(0);
+  });
+
+  it('los refugios ocupados emiten ruido periódico (atrae zombis)', () => {
+    const { w } = sitiado('asedio-4', 0);
+    w.tickCount = ASEDIO.ruidoCadaTicks; // tick múltiplo exacto
+    resolverAsedios(w);
+    expect(w.ruidos.length).toBeGreaterThanOrEqual(1);
+  });
+});
+```
+
+- [ ] **Step 2: Verificar que falla** — `npm test` → FAIL (módulo no existe).
+
+- [ ] **Step 3: Implementar**
+
+**(a)** Añadir la constante `ASEDIO` a `src/sim/config.ts` (código de arriba, al final del archivo).
+
+**(b)** Crear `src/sim/asedio.ts`:
+
+```ts
+import type { World } from './world';
+import { ASEDIO } from './config';
+import { romperEdificio } from './refugio';
+
+/**
+ * Los zombis presionan los refugios ocupados desde fuera (diseño §3.3):
+ * la presión se acumula por zombi pegado y decae sin ellos. Al superar la
+ * resistencia, el refugio revienta. Los refugiados además hacen ruido
+ * periódico que atrae zombis errantes — no existe el búnker eterno.
+ */
+export function resolverAsedios(world: World): void {
+  for (const b of world.city.buildings) {
+    if (b.kind !== 'jugable' || world.brecha[b.id] || world.ocupantes[b.id] === 0) {
+      world.presion[b.id] = 0;
+      continue;
+    }
+    const cx = b.x + b.width / 2;
+    const cz = b.z + b.depth / 2;
+    if (world.tickCount % ASEDIO.ruidoCadaTicks === 0) {
+      world.ruidos.push({ x: cx, z: cz, radio: ASEDIO.ruidoRadio, ticks: ASEDIO.ruidoTicks });
+    }
+    const alcance = b.width / 2 + ASEDIO.radio;
+    let zombis = 0;
+    for (const i of world.grid.queryCircle(cx, cz, alcance)) {
+      if (world.citizens[i].salud === 'zombi') zombis++;
+    }
+    if (zombis > 0) {
+      world.presion[b.id] += zombis * ASEDIO.presionPorZombi;
+    } else {
+      world.presion[b.id] = Math.max(0, world.presion[b.id] - ASEDIO.alivioPorTick);
+    }
+    if (world.presion[b.id] >= ASEDIO.resistencia) {
+      romperEdificio(world, b.id);
+    }
+  }
+}
+```
+
+**(c)** En `src/sim/world.ts`: importar `resolverAsedios`; añadir campo `readonly presion: number[];` junto a `ocupantes` e inicializarlo en el constructor con `this.presion = this.city.buildings.map(() => 0);`; y en `tick()` llamar `resolverAsedios(this);` en la línea siguiente a `resolverCombates(this);`.
+
+**(d)** En `tests/infeccion.test.ts`: reemplazar los literales de incubación por las constantes (arregla el acoplamiento que detectó la Task 10). Cambiar las dos aserciones del segundo test a:
+
+```ts
+    expect(c.incubacionTicks).toBeGreaterThanOrEqual(INFECCION.incubacionMinTicks - 1);
+    expect(c.incubacionTicks).toBeLessThanOrEqual(INFECCION.incubacionMaxTicks);
+```
+
+y el bucle de transformación a `for (let t = 0; t < INFECCION.incubacionMaxTicks + 5; t++) w.tick();`, importando `INFECCION` desde `../src/sim/config` (ajustar el import existente de `TICK_RATE`).
+
+- [ ] **Step 4: Verificar unidad** — `npx vitest run tests/asedio.test.ts tests/infeccion.test.ts tests/determinism.test.ts` → PASS. Luego `npm test` sin los de balance debe seguir verde.
+
+- [ ] **Step 5: Balance definitivo**
+
+Correr `npx vitest run tests/balance.test.ts` con los valores por defecto (config revertido + ASEDIO nuevo). Si el colapso cae fuera de la ventana 1:30–8:00, ajustar con las mismas reglas de la Task 10 MÁS estas dos perillas nuevas (preferirlas primero): `ASEDIO.resistencia` (±300), `ASEDIO.radio` (±2). Documentar cada intento (valor → tick de colapso).
+
+- [ ] **Step 6: Verificación final y cierre** (idéntica a la Task 10 original)
+
+`npm test` completo verde; `npx tsc --noEmit`; grep de prohibiciones en `src/sim/*.ts`; navegador ~2 min (FPS estable, consola limpia, `?seed=alfa` reproducible — ahora se debería VER cómo los zombis rodean refugios y los revientan). Añadir a CLAUDE.md UNA lección condensada (2 líneas máx.) con la causa raíz del búnker eterno y los valores de balance finales. Commit `chore: asedio a refugios y brote balanceado (Plan 2 completo)` y `git push -u origin fase-2-contagio`. Marcar checkboxes.
