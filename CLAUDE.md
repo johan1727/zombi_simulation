@@ -55,3 +55,9 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
 - En Windows, usar las herramientas de preview (dev server + eval/screenshot) para
   verificar consola, FPS y memoria de forma programática, pero dejar el juicio
   visual fino (fluidez percibida, estética) a un humano.
+- Al añadir pánico/huida (Task 6), tests previos que asumían presas "lentas"
+  (velocidad de caminar, 1.4 m/s) dejaron de cumplirse: en pánico huyen a
+  `PANICO.velocidadHuida` (2.8 m/s), casi tan rápido como el zombi (3.4 m/s),
+  así que escenarios de caza con ventanas de tiempo cortas (~10s) pueden
+  necesitar más margen. Revisar tests de sistemas anteriores tras cambios de
+  velocidad/comportamiento, no solo los tests nuevos.
