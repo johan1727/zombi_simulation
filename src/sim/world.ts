@@ -59,6 +59,12 @@ export class World {
     this.grid.rebuild(this.citizens, (c) => c.salud !== 'eliminado' && c.dentroDe < 0);
     for (const c of this.citizens) {
       if (c.salud === 'eliminado') { c.prevX = c.x; c.prevZ = c.z; continue; }
+      if (c.dentroDe >= 0) {
+        c.prevX = c.x;
+        c.prevZ = c.z;
+        actualizarIncubacion(c, this);
+        continue;
+      }
       if (c.salud === 'zombi') {
         updateZombi(c, this);
       } else {

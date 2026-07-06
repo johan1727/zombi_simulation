@@ -7,6 +7,7 @@ import {
 import { corridorCenter } from './cityGen';
 import { moveWithSlide } from './collision';
 import { updateCitizen } from './citizens';
+import { intentarRefugio } from './refugio';
 
 /** A qué distancia de un zombi reacciona cada personalidad. */
 const UMBRAL_VER: Record<string, number> = {
@@ -69,6 +70,7 @@ export function updateHumano(c: Citizen, world: World): void {
     }
     const vel = PANICO.velocidadHuida * (c.salud === 'incubando' ? INFECCION.velocidadIncubando : 1);
     moveWithSlide(world.city, c, c.x + c.dirX * vel * DT, c.z + c.dirZ * vel * DT);
+    intentarRefugio(c, world);
   } else {
     updateCitizen(c, world.rngCiudadanos, c.salud === 'incubando' ? INFECCION.velocidadIncubando : 1);
   }
