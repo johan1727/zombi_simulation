@@ -142,6 +142,7 @@ Juego 3D de navegador, vista de director (arriba, con zoom continuo), estilo *Pr
 
 - Modo 4 jugadores (último en pie), repeticiones descargables, más mapas, personalización.
 - Perro rastreador (detecta infectados, ladra; nunca muere), zombis especiales por semilla (Gritón, Tanque), contador moral (salvados vs sacrificados), rangos con copas y arenas (Brooklyn → Queens → Manhattan), colores de pintura desbloqueables.
+- Sabor Project Zomboid: coches con alarma como señuelo (pro: desvía la horda; contra: bloquea la calle), apagones por distrito, edificios con rol (farmacia cura incubados, armería arma valientes, supermercado atrae multitudes), horda migratoria tipo marea al 60% de infección, modo drama (seguir historias individuales con <50 vivos).
 - **Steam (Fase 3):** empaquetar con Electron/Tauri; el código web se reutiliza al 100%. Logros y tablas vía Steamworks. Registro Steam Direct: 100 USD.
 
 ## 6. Arquitectura técnica
