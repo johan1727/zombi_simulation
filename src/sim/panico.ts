@@ -1,4 +1,4 @@
-import type { Citizen } from './types';
+import type { Citizen, Personality } from './types';
 import type { World } from './world';
 import {
   CITY, CITY_PERIOD, CITY_WIDTH, CITY_DEPTH, DT,
@@ -10,7 +10,7 @@ import { updateCitizen } from './citizens';
 import { intentarRefugio } from './refugio';
 
 /** A qué distancia de un zombi reacciona cada personalidad. */
-const UMBRAL_VER: Record<string, number> = {
+const UMBRAL_VER: Record<Personality, number> = {
   cobarde: 15,
   protector: 12,
   egoista: 12,

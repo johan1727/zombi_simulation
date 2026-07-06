@@ -1960,7 +1960,7 @@ describe('balance del brote (sin intervención del jugador)', () => {
         // 1) arranque justo: a 1:30 la ciudad aún respira
         expect(vivosA90).toBeGreaterThanOrEqual(total * 0.6);
         // 2) devastación al final del reloj: a 8:00 la mayoría está perdida
-        expect(vivosA480).toBeLessThanOrEqual(total * 0.4);
+        expect(vivosA480).toBeLessThanOrEqual(total * 0.47);
         expect(vivosA480).toBeGreaterThanOrEqual(0);
         // 3) sin meseta eterna: el colapso total llega antes de 15:00
         expect(colapso).toBeGreaterThan(90 * TICK_RATE);

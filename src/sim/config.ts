@@ -1,3 +1,5 @@
+import type { Personality } from './types';
+
 /** Ticks de simulación por segundo. La sim SIEMPRE avanza a este paso fijo. */
 export const TICK_RATE = 30;
 export const DT = 1 / TICK_RATE;
@@ -49,7 +51,7 @@ export const PANICO = {
 } as const;
 
 /** Probabilidad POR TICK de entrar en pánico al oír un grito, por personalidad. */
-export const PROB_PANICO_POR_GRITO: Record<string, number> = {
+export const PROB_PANICO_POR_GRITO: Record<Personality, number> = {
   cobarde: 0.08,
   protector: 0.04,
   egoista: 0.04,
@@ -75,6 +77,10 @@ export const ASEDIO = {
   radio: 10, // m alrededor del edificio donde los zombis presionan
   presionPorZombi: 1, // presión por zombi por tick
   alivioPorTick: 2, // la presión decae sin zombis
+  // ADVERTENCIA: valor de filo de navaja, NO monotónico (barrido Task 10c:
+  // 108→425/373 vivos, 110→345/361, 111→491/309, 115→559/602). Cualquier
+  // cambio aquí exige re-correr tests/balance.test.ts completo. Metodología
+  // del barrido: docs/superpowers/reports/2026-07-06-balance-brote.md
   resistencia: 110, // presión para brecha
   ruidoCadaTicks: 90, // los refugiados hacen ruido periódico
   ruidoRadio: 10,

@@ -13,7 +13,7 @@ describe('infección', () => {
     expect(infA).toBe(infB);
   });
 
-  it('la incubación dura entre 10 y 20 segundos y termina en zombi con salpicadura', () => {
+  it('la incubación dura lo configurado y termina en zombi con salpicadura', () => {
     const w = new World('brote-2', 300);
     for (let t = 0; t <= INFECCION.pacienteCeroTick; t++) w.tick();
     const c = w.citizens.find((x) => x.salud === 'incubando')!;
