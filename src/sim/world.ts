@@ -7,6 +7,7 @@ import { SpatialGrid } from './spatialGrid';
 import { actualizarIncubacion, elegirPacienteCero, infectar } from './infeccion';
 import { updateZombi } from './zombis';
 import { updateHumano } from './panico';
+import { resolverCombates } from './combate';
 
 export class World {
   readonly seed: string;
@@ -65,6 +66,7 @@ export class World {
         actualizarIncubacion(c, this);
       }
     }
+    resolverCombates(this);
     // decaimiento de ruidos (compactación estable, sin filter para no asignar)
     let w = 0;
     for (const r of this.ruidos) {
