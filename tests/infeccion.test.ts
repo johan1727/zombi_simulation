@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { World } from '../src/sim/world';
-import { INFECCION, TICK_RATE } from '../src/sim/config';
+import { INFECCION } from '../src/sim/config';
 
 describe('infección', () => {
   it('el paciente cero aparece en el tick configurado y es determinista', () => {
@@ -17,9 +17,9 @@ describe('infección', () => {
     const w = new World('brote-2', 300);
     for (let t = 0; t <= INFECCION.pacienteCeroTick; t++) w.tick();
     const c = w.citizens.find((x) => x.salud === 'incubando')!;
-    expect(c.incubacionTicks).toBeGreaterThanOrEqual(10 * TICK_RATE - 1);
-    expect(c.incubacionTicks).toBeLessThanOrEqual(20 * TICK_RATE);
-    for (let t = 0; t < 20 * TICK_RATE + 5; t++) w.tick();
+    expect(c.incubacionTicks).toBeGreaterThanOrEqual(INFECCION.incubacionMinTicks - 1);
+    expect(c.incubacionTicks).toBeLessThanOrEqual(INFECCION.incubacionMaxTicks);
+    for (let t = 0; t < INFECCION.incubacionMaxTicks + 5; t++) w.tick();
     expect(c.salud).toBe('zombi');
     expect(w.splats.length).toBeGreaterThanOrEqual(1);
     expect(w.stats.zombis).toBeGreaterThanOrEqual(1);

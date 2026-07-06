@@ -27,15 +27,15 @@ export const CITIZENS = {
 export const INFECCION = {
   pacienteCeroTick: 5 * TICK_RATE, // el brote empieza a los 5 segundos
   radioMordida: 1.2, // m
-  incubacionMinTicks: 10 * TICK_RATE,
-  incubacionMaxTicks: 20 * TICK_RATE,
+  incubacionMinTicks: 5 * TICK_RATE,
+  incubacionMaxTicks: 15 * TICK_RATE,
   velocidadIncubando: 0.8, // multiplicador al caminar
 } as const;
 
 export const ZOMBIS = {
-  velocidad: 3.4, // m/s persiguiendo (estilo Guerra Mundial Z)
+  velocidad: 3.8, // m/s persiguiendo (estilo Guerra Mundial Z)
   velocidadErrante: 0.9,
-  radioVision: 20,
+  radioVision: 15,
   enfriamientoMordidaTicks: 12,
   probCambiarRumbo: 0.02, // por tick, errando sin presa
 } as const;
@@ -44,7 +44,7 @@ export const PANICO = {
   radioVerZombi: 15,
   radioGrito: 12,
   duracionGritoTicks: TICK_RATE,
-  velocidadHuida: 2.8, // m/s (más lento que un zombi cazando)
+  velocidadHuida: 2.5, // m/s (más lento que un zombi cazando)
   ticksCalmarse: 10 * TICK_RATE,
 } as const;
 
@@ -70,3 +70,13 @@ export const REFUGIO = {
 } as const;
 
 export const GRID_CELDA = 4; // m por celda de la rejilla espacial
+
+export const ASEDIO = {
+  radio: 8, // m alrededor del edificio donde los zombis presionan
+  presionPorZombi: 1, // presión por zombi por tick
+  alivioPorTick: 2, // la presión decae sin zombis
+  resistencia: 300, // presión para brecha (≈20 s con 1 zombi, ≈4 s con 5)
+  ruidoCadaTicks: 90, // los refugiados hacen ruido periódico
+  ruidoRadio: 10,
+  ruidoTicks: 30,
+} as const;

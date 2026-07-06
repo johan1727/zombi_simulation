@@ -69,3 +69,8 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
   están bien). Si una `InstancedMesh` crece con el tiempo desde vacía, poner
   `mesh.frustumCulled = false` o recalcular `computeBoundingSphere()` tras
   cada `update()`.
+- El "búnker eterno" (Task 10, BLOCKED) era un recorte de mecánica, no un mal
+  ajuste: sin presión externa (`asedio.ts`) un refugio lleno sin infectado
+  dentro nunca revienta. Con asedio + los 6 knobs de balance al extremo
+  autorizado el colapso pasó de "nunca" a real (~610-616 s) pero sigue fuera
+  de la ventana 1:30-8:00 pedida — la tasa de mordida sigue siendo el techo.

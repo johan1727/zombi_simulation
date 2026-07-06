@@ -8,6 +8,7 @@ import { actualizarIncubacion, elegirPacienteCero, infectar } from './infeccion'
 import { updateZombi } from './zombis';
 import { updateHumano } from './panico';
 import { resolverCombates } from './combate';
+import { resolverAsedios } from './asedio';
 
 export class World {
   readonly seed: string;
@@ -26,6 +27,7 @@ export class World {
   readonly ruidos: Ruido[] = [];
   readonly ocupantes: number[];
   readonly brecha: boolean[];
+  readonly presion: number[];
   readonly grid = new SpatialGrid<Citizen>();
 
   constructor(seed: string, citizenCount: number = CITIZENS.count) {
@@ -40,6 +42,7 @@ export class World {
     this.citizens = spawnCitizens(this.rngCiudadanos, citizenCount);
     this.ocupantes = this.city.buildings.map(() => 0);
     this.brecha = this.city.buildings.map(() => false);
+    this.presion = this.city.buildings.map(() => 0);
   }
 
   get stats(): { vivos: number; zombis: number } {
@@ -73,6 +76,7 @@ export class World {
       }
     }
     resolverCombates(this);
+    resolverAsedios(this);
     // decaimiento de ruidos (compactación estable, sin filter para no asignar)
     let w = 0;
     for (const r of this.ruidos) {
