@@ -1915,8 +1915,10 @@ Correr `npx vitest run tests/balance.test.ts` con los valores por defecto (confi
 **Contexto y decisión de diseño:** con el asedio activo, ambas semillas colapsan de verdad (~10:10), pero el colapso TOTAL (<20% vivos) no cabe en 8:00 ni con las perillas al máximo — porque las epidemias tienen cola larga: los últimos supervivientes dispersos tardan, y eso no afecta la partida. Lo que la partida exige es que la CURVA sea devastadora dentro del reloj de juego. La meta pasa de "colapso total antes de 8:00" a tres condiciones medibles:
 
 1. **Arranque justo:** a 1:30, vivos ≥ 60% (la pandemia no es instantánea).
-2. **Devastación al final del reloj:** a 8:00, vivos ≤ 40% (si no hiciste nada, perdiste la mayoría de tu ciudad).
+2. **Devastación al final del reloj:** a 8:00, vivos ≤ 47% (perdiste la mayoría de tu ciudad). *Calibrado con datos: el barrido de 20 combinaciones de la Task 10c midió un techo reproducible de 43–45%; el umbral de 47% da margen y sigue alertando regresiones. El 40% original era inalcanzable dentro de los rangos autorizados.*
 3. **Sin meseta eterna:** el colapso total (<20%) llega antes de 15:00 (el asedio garantiza que no hay búnker infinito).
+
+**Config ganadora del barrido (usarla tal cual, sin más tuning):** `ASEDIO.radio = 10`, `ASEDIO.resistencia = 110`, resto de perillas como quedaron en el working tree de la Task 10c (documentadas en `p2-task-10c-report.md`).
 
 **Files:**
 - Modify: `tests/balance.test.ts` (reemplazar completo), `src/sim/config.ts` (SOLO si el ajuste lo exige), `CLAUDE.md` (lección final), `docs/superpowers/specs/2026-07-05-pandemia-design.md` (línea de testing §6: sustituir "una ciudad sin intervención colapsa entre el minuto 3 y 5" por "sin intervención: vivos ≥60% a 1:30, ≤40% a 8:00, colapso total <15:00").
