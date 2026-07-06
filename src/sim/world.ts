@@ -1,11 +1,12 @@
 import { createRng, type Rng } from './rng';
 import { generateCity, type CityLayout } from './cityGen';
-import { spawnCitizens, updateCitizen } from './citizens';
+import { spawnCitizens } from './citizens';
 import type { Citizen, Ruido, Splat } from './types';
 import { CITIZENS, INFECCION } from './config';
 import { SpatialGrid } from './spatialGrid';
 import { actualizarIncubacion, elegirPacienteCero, infectar } from './infeccion';
 import { updateZombi } from './zombis';
+import { updateHumano } from './panico';
 
 export class World {
   readonly seed: string;
@@ -60,7 +61,7 @@ export class World {
       if (c.salud === 'zombi') {
         updateZombi(c, this);
       } else {
-        updateCitizen(c, this.rngCiudadanos, c.salud === 'incubando' ? INFECCION.velocidadIncubando : 1);
+        updateHumano(c, this);
         actualizarIncubacion(c, this);
       }
     }

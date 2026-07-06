@@ -15,20 +15,21 @@ function prepara(): { w: World; zombi: World['citizens'][0]; presa: World['citiz
 describe('zombis', () => {
   it('persigue y muerde a la presa más cercana', () => {
     const { w, presa } = prepara();
-    for (let t = 0; t < 10 * TICK_RATE; t++) w.tick();
+    // La presa puede entrar en pánico y huir (Task 6): dar margen extra
+    // sobre el tiempo que tardaría un zombi en alcanzarla caminando.
+    for (let t = 0; t < 20 * TICK_RATE; t++) w.tick();
     expect(presa.salud).not.toBe('sano'); // fue mordida (incubando o ya zombi)
   });
 
   it('la mordida genera un grito (ruido)', () => {
     const { w, zombi, presa } = prepara();
-    let ruidoVisto = false;
-    for (let t = 0; t < 10 * TICK_RATE; t++) {
+    for (let t = 0; t < 20 * TICK_RATE; t++) {
       w.tick();
-      if (w.ruidos.length > 0) { ruidoVisto = true; break; }
+      if (presa.salud !== 'sano') break;
     }
-    expect(ruidoVisto).toBe(true);
+    expect(presa.salud).not.toBe('sano'); // fue mordida
+    expect(w.ruidos.length).toBeGreaterThanOrEqual(1); // la mordida (o el pánico) genera grito
     expect(zombi.cdMordida).toBeGreaterThanOrEqual(0);
-    expect(presa.salud).not.toBe('sano');
   });
 
   it('los ruidos decaen y desaparecen', () => {

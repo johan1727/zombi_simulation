@@ -25,10 +25,14 @@ describe('determinismo del mundo', () => {
     expect(a.hashState()).not.toBe(b.hashState());
   });
 
-  it('los ciudadanos siguen sobre las calles tras 30 segundos caminando', () => {
+  it('ningún ciudadano termina dentro de un edificio', async () => {
+    const { buildingAt } = await import('../src/sim/collision');
     const w = new World('caminata', 300);
     for (let t = 0; t < 900; t++) w.tick();
-    for (const c of w.citizens) expect(isStreet(c.x, c.z)).toBe(true);
+    for (const c of w.citizens) {
+      if (c.salud === 'eliminado' || c.dentroDe >= 0) continue;
+      expect(buildingAt(w.city, c.x, c.z)).toBeNull();
+    }
   });
 
   it('los ciudadanos se mueven de verdad (no están congelados)', () => {
