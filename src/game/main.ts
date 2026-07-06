@@ -1,7 +1,8 @@
 import { World } from '../sim/world';
 import { createScene } from '../render/scene';
-import { buildCityView } from '../render/cityView';
+import { CityView } from '../render/cityView';
 import { CitizensView } from '../render/citizensView';
+import { SplatsView } from '../render/splatsView';
 import { CameraRig } from '../render/cameraRig';
 import { startLoop } from './loop';
 import { Hud } from '../ui/hud';
@@ -11,8 +12,9 @@ const seed = new URLSearchParams(location.search).get('seed') ?? 'PANDEMIA';
 
 const world = new World(seed);
 const { renderer, scene } = createScene(canvas);
-buildCityView(scene, world.city);
+const cityView = new CityView(scene, world.city);
 const citizensView = new CitizensView(scene, world.citizens.length);
+const splatsView = new SplatsView(scene);
 const rig = new CameraRig(canvas, { w: world.city.width, d: world.city.depth });
 const hud = new Hud(seed);
 
@@ -21,8 +23,11 @@ window.addEventListener('resize', () => {
 });
 
 startLoop(world, (alpha) => {
-  citizensView.update(world.citizens, alpha);
   rig.update();
+  const foco = rig.focusPoint;
+  cityView.updateOcclusion(rig.camera.position.x, rig.camera.position.z, foco.x, foco.z);
+  citizensView.update(world.citizens, alpha);
+  splatsView.update(world.splats);
   hud.update(world);
   renderer.render(scene, rig.camera);
 });

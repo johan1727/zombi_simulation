@@ -74,6 +74,10 @@ export class CameraRig {
     this.focus.z = THREE.MathUtils.clamp(this.focus.z, 0, this.bounds.d);
   }
 
+  get focusPoint(): { x: number; z: number } {
+    return { x: this.focus.x, z: this.focus.z };
+  }
+
   update(): void {
     // Paneo por bordes (solo si el puntero ya entró a la ventana y no se arrastra).
     if (!this.dragging && this.pointer.x >= 0) {
