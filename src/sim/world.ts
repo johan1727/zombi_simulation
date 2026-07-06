@@ -5,6 +5,7 @@ import type { Citizen, Ruido, Splat } from './types';
 import { CITIZENS, INFECCION } from './config';
 import { SpatialGrid } from './spatialGrid';
 import { actualizarIncubacion, elegirPacienteCero, infectar } from './infeccion';
+import { updateZombi } from './zombis';
 
 export class World {
   readonly seed: string;
@@ -56,9 +57,20 @@ export class World {
     this.grid.rebuild(this.citizens, (c) => c.salud !== 'eliminado' && c.dentroDe < 0);
     for (const c of this.citizens) {
       if (c.salud === 'eliminado') { c.prevX = c.x; c.prevZ = c.z; continue; }
-      updateCitizen(c, this.rngCiudadanos, c.salud === 'incubando' ? INFECCION.velocidadIncubando : 1);
-      actualizarIncubacion(c, this);
+      if (c.salud === 'zombi') {
+        updateZombi(c, this);
+      } else {
+        updateCitizen(c, this.rngCiudadanos, c.salud === 'incubando' ? INFECCION.velocidadIncubando : 1);
+        actualizarIncubacion(c, this);
+      }
     }
+    // decaimiento de ruidos (compactación estable, sin filter para no asignar)
+    let w = 0;
+    for (const r of this.ruidos) {
+      r.ticks--;
+      if (r.ticks > 0) this.ruidos[w++] = r;
+    }
+    this.ruidos.length = w;
     this.tickCount++;
   }
 
