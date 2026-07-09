@@ -157,8 +157,6 @@ En `generateCity`, tras crear cada edificio jugable (consume 1 draw extra de `rn
 ```ts
       if (kind === 'jugable') {
         const lado = rng.int(0, 3) as 0 | 1 | 2 | 3;
-        const w = CITY.blockSize - margin * 2;
-        const x0 = /* esquina del edificio ya calculada */;
         const b = buildings[buildings.length - 1];
         const PUERTAS: ReadonlyArray<readonly [number, number]> = [
           [b.x, b.z + b.depth / 2], // oeste
@@ -459,6 +457,12 @@ export function updateInterior(c: Citizen, world: World): void {
     return;
   }
 
+  // escondido: si aún quiere cambiar de piso, sigue hacia la escalera
+  if (c.pisoObjetivo !== c.piso) {
+    haciaEscalera(b, c);
+    moverInterior(b, c, c.x + c.dirX * 0.9 * DT, c.z + c.dirZ * 0.9 * DT);
+    return;
+  }
   // escondido: deambula lento por su piso
   if (world.rngCiudadanos.chance(0.01)) {
     const [dx0, dz0] = DIRECCIONES[world.rngCiudadanos.int(0, DIRECCIONES.length - 1)];
