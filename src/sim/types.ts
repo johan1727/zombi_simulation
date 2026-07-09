@@ -43,6 +43,12 @@ export interface Citizen {
   escaleraTicks: number;
   /** Enfriamiento de mordida (solo zombis). */
   cdMordida: number;
+  /** id de familia (−1 = sin familia; va solo). */
+  familia: number;
+  /** id (menor) del miembro que hace de cabeza; él mismo si va solo. */
+  cabezaFamilia: number;
+  /** ids de los demás miembros de la familia (estático, llenado al nacer). */
+  familiares: number[];
 }
 
 export type Salud = 'sano' | 'incubando' | 'zombi' | 'eliminado';

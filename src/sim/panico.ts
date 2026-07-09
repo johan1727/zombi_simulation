@@ -1,7 +1,7 @@
 import type { Citizen, Personality } from './types';
 import type { World } from './world';
 import {
-  CITY, CITY_PERIOD, CITY_WIDTH, CITY_DEPTH, DT,
+  CITY, CITY_PERIOD, CITY_WIDTH, CITY_DEPTH, CITIZENS, DT,
   INFECCION, PANICO, PROB_PANICO_POR_GRITO,
 } from './config';
 import { corridorCenter } from './cityGen';
@@ -68,10 +68,45 @@ export function updateHumano(c: Citizen, world: World): void {
         return;
       }
     }
+
+    if (c.personality === 'protector' && c.familia >= 0 && (n === 0 || mejorD2 > 36)) {
+      let f: Citizen | null = null;
+      let mdf = Infinity;
+      for (const j of c.familiares) {
+        const o = world.citizens[j];
+        if (o.salud === 'eliminado' || o.salud === 'zombi' || o.dentroDe >= 0) continue;
+        const d2 = (o.x - c.x) ** 2 + (o.z - c.z) ** 2;
+        if (d2 < mdf) { mdf = d2; f = o; }
+      }
+      if (f && mdf > 16 && mdf < 900) {
+        const dxf = f.x - c.x;
+        const dzf = f.z - c.z;
+        const df = Math.sqrt(dxf * dxf + dzf * dzf);
+        c.dirX = dxf / df;
+        c.dirZ = dzf / df; // vuelve por los suyos
+      }
+    }
+
     const vel = PANICO.velocidadHuida * (c.salud === 'incubando' ? INFECCION.velocidadIncubando : 1);
     moveWithSlide(world.city, c, c.x + c.dirX * vel * DT, c.z + c.dirZ * vel * DT);
     intentarRefugio(c, world);
   } else {
+    if (c.familia >= 0 && c.cabezaFamilia !== c.id) {
+      const cabeza = world.citizens[c.cabezaFamilia];
+      if (cabeza.salud !== 'eliminado' && cabeza.dentroDe < 0) {
+        const dxf = cabeza.x - c.x;
+        const dzf = cabeza.z - c.z;
+        const df = Math.sqrt(dxf * dxf + dzf * dzf);
+        if (df > 3) {
+          c.prevX = c.x;
+          c.prevZ = c.z;
+          c.dirX = dxf / df;
+          c.dirZ = dzf / df;
+          moveWithSlide(world.city, c, c.x + c.dirX * CITIZENS.walkSpeed * DT, c.z + c.dirZ * CITIZENS.walkSpeed * DT);
+          return;
+        }
+      }
+    }
     updateCitizen(c, world.rngCiudadanos, c.salud === 'incubando' ? INFECCION.velocidadIncubando : 1);
   }
 }

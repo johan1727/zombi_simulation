@@ -41,27 +41,56 @@ const LANE_MARGIN = 1.2;
 
 export function spawnCitizens(rng: Rng, count: number): Citizen[] {
   const citizens: Citizen[] = [];
+  let grupoRestante = 0;
+  let apellidoGrupo = '';
+  let familiaId = -1;
+  let siguienteFamilia = 0;
+  let cabezaActual = -1;
+
   for (let i = 0; i < count; i++) {
-    const vertical = rng.chance(0.5);
-    const laneOffset = (rng.next() - 0.5) * (CITY.streetWidth - LANE_MARGIN * 2);
+    if (grupoRestante === 0) {
+      const r = rng.next();
+      grupoRestante = r < 0.45 ? 1 : r < 0.7 ? 2 : r < 0.9 ? 3 : 4;
+      apellidoGrupo = rng.pick(APELLIDOS);
+      familiaId = grupoRestante > 1 ? siguienteFamilia++ : -1;
+      cabezaActual = i;
+    }
+
     let x: number;
     let z: number;
     let dirX = 0;
     let dirZ = 0;
-    if (vertical) {
-      const k = rng.int(0, CITY.blocksX); // calles verticales: 0..blocksX
-      x = corridorCenter(k) + laneOffset;
-      z = 1 + rng.next() * (CITY_DEPTH - 2);
-      dirZ = rng.chance(0.5) ? 1 : -1;
+    let laneOffset: number;
+
+    if (i === cabezaActual) {
+      // la cabeza elige calle como siempre
+      const vertical = rng.chance(0.5);
+      laneOffset = (rng.next() - 0.5) * (CITY.streetWidth - LANE_MARGIN * 2);
+      if (vertical) {
+        const k = rng.int(0, CITY.blocksX); // calles verticales: 0..blocksX
+        x = corridorCenter(k) + laneOffset;
+        z = 1 + rng.next() * (CITY_DEPTH - 2);
+        dirZ = rng.chance(0.5) ? 1 : -1;
+      } else {
+        const k = rng.int(0, CITY.blocksY); // calles horizontales: 0..blocksY
+        z = corridorCenter(k) + laneOffset;
+        x = 1 + rng.next() * (CITY_WIDTH - 2);
+        dirX = rng.chance(0.5) ? 1 : -1;
+      }
     } else {
-      const k = rng.int(0, CITY.blocksY); // calles horizontales: 0..blocksY
-      z = corridorCenter(k) + laneOffset;
-      x = 1 + rng.next() * (CITY_WIDTH - 2);
-      dirX = rng.chance(0.5) ? 1 : -1;
+      // los familiares nacen pegados a la cabeza, sobre su misma calle
+      const cabeza = citizens[cabezaActual];
+      const paso = (i - cabezaActual) * 1.5;
+      laneOffset = cabeza.laneOffset;
+      x = Math.min(Math.max(cabeza.x + cabeza.dirX * paso, 1), CITY_WIDTH - 1);
+      z = Math.min(Math.max(cabeza.z + cabeza.dirZ * paso, 1), CITY_DEPTH - 1);
+      dirX = cabeza.dirX;
+      dirZ = cabeza.dirZ;
     }
+
     citizens.push({
       id: i,
-      name: `${rng.pick(NOMBRES)} ${rng.pick(APELLIDOS)}`,
+      name: `${rng.pick(NOMBRES)} ${apellidoGrupo}`,
       personality: pickPersonality(rng),
       x,
       z,
@@ -82,7 +111,30 @@ export function spawnCitizens(rng: Rng, count: number): Citizen[] {
       pisoObjetivo: 0,
       escaleraTicks: 0,
       cdMordida: 0,
+      familia: familiaId,
+      cabezaFamilia: cabezaActual,
+      familiares: [],
     });
+    grupoRestante--;
+  }
+
+  // llenar familiares (dos bucles por índice; nada de Map)
+  for (let i = 0; i < citizens.length; i++) {
+    const c = citizens[i];
+    if (c.familia < 0) continue;
+    for (let j = 0; j < citizens.length; j++) {
+      if (j !== i && citizens[j].familia === c.familia) c.familiares.push(j);
+    }
+  }
+  // el último grupo del array puede quedar cortado por el límite `count`
+  // (p. ej. arranca en el penúltimo índice con tamaño 4 pero solo cabe 1):
+  // esos huérfanos sin familiares reales vuelven a ser "solo".
+  for (let i = 0; i < citizens.length; i++) {
+    const c = citizens[i];
+    if (c.familia >= 0 && c.familiares.length === 0) {
+      c.familia = -1;
+      c.cabezaFamilia = c.id;
+    }
   }
   return citizens;
 }
