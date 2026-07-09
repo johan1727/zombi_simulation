@@ -49,9 +49,11 @@ export class CameraRig {
       this.pointer = { x: e.clientX, y: e.clientY };
       if (!this.dragging) return;
       const escala = (this.dist / window.innerHeight) * 1.6;
+      // Convención "agarrar la cámara": arrastrar a la derecha mira a la derecha.
+      // (La convención anterior de "agarrar el suelo" se sentía invertida al jugar.)
       this.panScreen(
-        (this.last.x - e.clientX) * escala,
-        (e.clientY - this.last.y) * escala
+        (e.clientX - this.last.x) * escala,
+        (this.last.y - e.clientY) * escala
       );
       this.last = { x: e.clientX, y: e.clientY };
     });

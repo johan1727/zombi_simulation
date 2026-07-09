@@ -9,7 +9,16 @@ import { startLoop } from './loop';
 import { Hud } from '../ui/hud';
 
 const canvas = document.getElementById('app') as HTMLCanvasElement;
-const seed = new URLSearchParams(location.search).get('seed') ?? 'PANDEMIA';
+
+/**
+ * Semilla: sin `?seed=` en la URL, cada carga genera una pandemia NUEVA
+ * (estilo Dwarf Fortress). Math.random está permitido aquí (src/game):
+ * la semilla es una ENTRADA de la sim; dentro de src/sim sigue prohibido.
+ * Para duelos y desafíos, `?seed=lo-que-sea` fija la misma pandemia exacta.
+ */
+const seed =
+  new URLSearchParams(location.search).get('seed') ??
+  Math.random().toString(36).slice(2, 8);
 
 const world = new World(seed);
 const { renderer, scene } = createScene(canvas);
