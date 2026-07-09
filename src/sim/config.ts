@@ -114,3 +114,11 @@ export const INTERIOR = {
 } as const;
 
 export const INTERIOR_VISION = 12; // m de vista dentro (sin paredes internas)
+
+export const LIDER = {
+  radio: 8, // m para detectar líder/pánicos cercanos
+  factorCalma: 0.5, // multiplicador a la probabilidad de contagio de pánico
+  divisorCalmarse: 4, // divide ticksCalmarse cuando hay líder cerca
+  panicosParaGuiar: 2, // pánicos cercanos mínimos para que el líder guíe
+  alcanceGuia: 50, // m máximos para buscar puerta al guiar
+} as const;
