@@ -143,6 +143,10 @@ Juego 3D de navegador, vista de director (arriba, con zoom continuo), estilo *Pr
 - Modo 4 jugadores (último en pie), repeticiones descargables, más mapas, personalización.
 - Perro rastreador (detecta infectados, ladra; nunca muere), zombis especiales por semilla (Gritón, Tanque), contador moral (salvados vs sacrificados), rangos con copas y arenas (Brooklyn → Queens → Manhattan), colores de pintura desbloqueables.
 - Sabor Project Zomboid: coches con alarma como señuelo (pro: desvía la horda; contra: bloquea la calle), apagones por distrito, edificios con rol (farmacia cura incubados, armería arma valientes, supermercado atrae multitudes), horda migratoria tipo marea al 60% de infección, modo drama (seguir historias individuales con <50 vivos).
+- **Heridas localizadas (estilo PZ, feedback 2026-07-09):** la mordida tiene lugar — pierna: cojera (velocidad ×0.6, presa fácil); brazo: ventana de 5 s en la que el PARAMÉDICO puede amputar y detener la infección (pro: se salva; contra: grito + más lento para siempre); torso: incubación normal. Fatiga: correr en pánico agota; agotado = velocidad de caminar. Todo alimenta las historias de la pantalla final ("Marcos perdió el brazo pero llegó a la azotea").
+- **Vida ambiental (feedback 2026-07-09):** coches y camiones estacionados (obstáculos + alarmas), parques como plazas abiertas (peligrosas: sin refugio), props urbanos. Parte de ciudadanos empieza DENTRO de sus casas (no todos en la calle) — la ciudad se ve viva y los refugios tienen historia.
+- **Diálogos flotantes (barks):** frases cortas sobre las cabezas según personalidad/situación ("¡CORRE!", "¡A la azotea!", "¿Y mi hija?") — texto flotante barato, vida enorme.
+- **Indicador de ocupación:** contador flotante sobre edificios con refugiados (👥 12) para que el director sepa dónde está su gente — candidato a Plan 4 (HUD del jugador).
 - **Steam (Fase 3):** empaquetar con Electron/Tauri; el código web se reutiliza al 100%. Logros y tablas vía Steamworks. Registro Steam Direct: 100 USD.
 
 ## 6. Arquitectura técnica
