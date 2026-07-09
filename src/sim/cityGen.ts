@@ -1,5 +1,5 @@
 import type { Rng } from './rng';
-import { CITY, CITY_PERIOD, CITY_WIDTH, CITY_DEPTH, MARGEN_ACERA } from './config';
+import { CITY, CITY_PERIOD, CITY_WIDTH, CITY_DEPTH, MARGEN_ACERA, INTERIOR } from './config';
 
 export type BuildingKind = 'fondo' | 'jugable';
 
@@ -12,6 +12,10 @@ export interface Building {
   width: number;
   depth: number;
   height: number;
+  /** Solo jugables: hueco de entrada en el centro de una pared (lado 0=oeste, 1=norte, 2=este, 3=sur). */
+  puerta?: { x: number; z: number; lado: 0 | 1 | 2 | 3 };
+  /** Solo jugables: cuadro de escalera, SIEMPRE en la esquina sureste (nunca pisa la puerta: las puertas van al centro de pared). */
+  escalera?: { x: number; z: number; width: number; depth: number };
 }
 
 export interface CityLayout {
@@ -49,7 +53,7 @@ export function generateCity(rng: Rng): CityLayout {
       const z0 = CITY.streetWidth + bz * CITY_PERIOD;
       const kind: BuildingKind = rng.chance(0.4) ? 'jugable' : 'fondo';
       const height = kind === 'jugable' ? rng.int(8, 12) : rng.int(30, 120);
-      buildings.push({
+      const b: Building = {
         id: id++,
         kind,
         x: x0 + margin,
@@ -57,7 +61,24 @@ export function generateCity(rng: Rng): CityLayout {
         width: CITY.blockSize - margin * 2,
         depth: CITY.blockSize - margin * 2,
         height,
-      });
+      };
+      if (kind === 'jugable') {
+        const lado = rng.int(0, 3) as 0 | 1 | 2 | 3;
+        const PUERTAS: ReadonlyArray<readonly [number, number]> = [
+          [b.x, b.z + b.depth / 2], // oeste
+          [b.x + b.width / 2, b.z], // norte
+          [b.x + b.width, b.z + b.depth / 2], // este
+          [b.x + b.width / 2, b.z + b.depth], // sur
+        ];
+        b.puerta = { x: PUERTAS[lado][0], z: PUERTAS[lado][1], lado };
+        b.escalera = {
+          x: b.x + b.width - INTERIOR.escaleraLado,
+          z: b.z + b.depth - INTERIOR.escaleraLado,
+          width: INTERIOR.escaleraLado,
+          depth: INTERIOR.escaleraLado,
+        };
+      }
+      buildings.push(b);
     }
   }
   return { width: CITY_WIDTH, depth: CITY_DEPTH, buildings };

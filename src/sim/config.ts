@@ -101,3 +101,13 @@ export const ASEDIO = {
   ruidoRadio: 10,
   ruidoTicks: 30,
 } as const;
+
+// ——— Plan 3: refugio y sociedad ———
+
+export const INTERIOR = {
+  alturaPiso: 3, // m por piso (render y = piso * alturaPiso)
+  azotea: 2, // índice del piso azotea (0 = planta baja, 1 = piso, 2 = azotea)
+  escaleraLado: 5, // m del cuadro de escalera
+  anchoPuerta: 3, // m del hueco de la puerta
+  escaleraTicks: 45, // ticks para cambiar de piso (1.5 s)
+} as const;
