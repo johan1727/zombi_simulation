@@ -114,6 +114,7 @@ export function updateInterior(c: Citizen, world: World): void {
       c.pisoObjetivo = 0;
     } else if (c.piso < INTERIOR.azotea) {
       c.pisoObjetivo = c.piso + 1;
+      haciaEscalera(b, c);
     } else {
       // azotea: huir del zombi dentro del rect — última resistencia
       const dx = c.x - amenaza.x;
@@ -155,6 +156,7 @@ export function updateInterior(c: Citizen, world: World): void {
 }
 
 function updateInteriorZombi(c: Citizen, world: World, b: Building): void {
+  if (c.cdMordida > 0) c.cdMordida--;
   if (avanzarEscalera(b, c)) return;
 
   let presa: Citizen | null = null;
@@ -165,7 +167,7 @@ function updateInteriorZombi(c: Citizen, world: World, b: Building): void {
     const o = world.citizens[i];
     if (o.salud === 'zombi') continue;
     const distPiso = Math.abs(o.piso - c.piso);
-    if (distPiso < mejorDistPiso) {
+    if (distPiso < mejorDistPiso || (distPiso === mejorDistPiso && (pisoConHumanos === -1 || o.piso < pisoConHumanos))) {
       mejorDistPiso = distPiso;
       pisoConHumanos = o.piso;
     }
@@ -183,7 +185,6 @@ function updateInteriorZombi(c: Citizen, world: World, b: Building): void {
     const len = Math.sqrt(dx * dx + dz * dz);
     if (len > 0.001) { c.dirX = dx / len; c.dirZ = dz / len; }
     moverInterior(b, c, c.x + c.dirX * ZOMBIS.velocidad * 0.8 * DT, c.z + c.dirZ * ZOMBIS.velocidad * 0.8 * DT);
-    if (c.cdMordida > 0) c.cdMordida--;
     if (mejorD2 <= INFECCION.radioMordida ** 2 && c.cdMordida === 0) {
       infectar(presa, world.rngInfeccion);
       presa.animo = 'panico';
