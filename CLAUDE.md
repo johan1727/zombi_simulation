@@ -80,3 +80,8 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
 - (Task 10c) La causa raíz del búnker eterno era de mecánica (faltaba asedio),
   no de ajuste; y el gate de balance debe medir la curva (devastación a un
   punto fijo del reloj), no la cola larga de la epidemia (colapso total tardío).
+- (Plan 3 Task 3, vida interior) `tsconfig.json` tiene `noUnusedParameters`:
+  un stub de función con parámetros sin usar (p. ej. `updateInteriorZombi` a
+  la espera de la Task 4) necesita `void param;` para CADA parámetro no
+  leído, no solo los "extra" — si el brief trae código literal, revisar que
+  cubra todos los parámetros antes de copiarlo tal cual.

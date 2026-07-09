@@ -35,6 +35,12 @@ export interface Citizen {
   animoTicks: number;
   /** id del edificio en el que se refugia, o -1. */
   dentroDe: number;
+  /** Piso actual dentro del edificio (0 = planta baja). Solo válido si dentroDe >= 0. */
+  piso: number;
+  /** Piso al que quiere llegar (instinto de esconderse arriba). */
+  pisoObjetivo: number;
+  /** Ticks acumulados subiendo/bajando la escalera. */
+  escaleraTicks: number;
   /** Enfriamiento de mordida (solo zombis). */
   cdMordida: number;
 }

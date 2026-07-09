@@ -9,6 +9,7 @@ import { updateZombi } from './zombis';
 import { updateHumano } from './panico';
 import { resolverCombates } from './combate';
 import { resolverAsedios } from './asedio';
+import { updateInterior } from './interior';
 
 export class World {
   readonly seed: string;
@@ -29,6 +30,8 @@ export class World {
   readonly brecha: boolean[];
   readonly presion: number[];
   readonly grid = new SpatialGrid<Citizen>();
+  /** Un array de índices de citizens por edificio, reconstruido cada tick en orden de índice. */
+  readonly dentroPorEdificio: number[][];
 
   constructor(seed: string, citizenCount: number = CITIZENS.count) {
     this.seed = seed;
@@ -43,6 +46,7 @@ export class World {
     this.ocupantes = this.city.buildings.map(() => 0);
     this.brecha = this.city.buildings.map(() => false);
     this.presion = this.city.buildings.map(() => 0);
+    this.dentroPorEdificio = this.city.buildings.map(() => []);
   }
 
   get stats(): { vivos: number; zombis: number } {
@@ -60,11 +64,22 @@ export class World {
       infectar(this.citizens[elegirPacienteCero(this.citizens, this.rngInfeccion)], this.rngInfeccion);
     }
     this.grid.rebuild(this.citizens, (c) => c.salud !== 'eliminado' && c.dentroDe < 0);
+    for (const lista of this.dentroPorEdificio) lista.length = 0;
+    for (let i = 0; i < this.citizens.length; i++) {
+      const c = this.citizens[i];
+      if (c.dentroDe >= 0 && c.salud !== 'eliminado') this.dentroPorEdificio[c.dentroDe].push(i);
+    }
+    for (let bId = 0; bId < this.ocupantes.length; bId++) {
+      let humanos = 0;
+      for (const i of this.dentroPorEdificio[bId]) {
+        if (this.citizens[i].salud !== 'zombi') humanos++;
+      }
+      this.ocupantes[bId] = humanos;
+    }
     for (const c of this.citizens) {
       if (c.salud === 'eliminado') { c.prevX = c.x; c.prevZ = c.z; continue; }
       if (c.dentroDe >= 0) {
-        c.prevX = c.x;
-        c.prevZ = c.z;
+        updateInterior(c, this);
         actualizarIncubacion(c, this);
         continue;
       }
@@ -109,6 +124,7 @@ export class World {
       mix(SALUD[c.salud]);
       mix(c.animo === 'panico' ? 2 : 1);
       mix(c.dentroDe + 1);
+      mix(c.piso);
     }
     return h >>> 0;
   }

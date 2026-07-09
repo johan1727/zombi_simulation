@@ -2,7 +2,6 @@ import type { Rng } from './rng';
 import type { Citizen } from './types';
 import type { World } from './world';
 import { INFECCION } from './config';
-import { romperEdificio } from './refugio';
 
 export function elegirPacienteCero(citizens: readonly Citizen[], rng: Rng): number {
   return rng.int(0, citizens.length - 1);
@@ -22,5 +21,4 @@ export function actualizarIncubacion(c: Citizen, world: World): void {
   c.animo = 'tranquilo';
   c.cdMordida = 0;
   world.splats.push({ x: c.x, z: c.z, tono: world.rngInfeccion.next() });
-  if (c.dentroDe >= 0) romperEdificio(world, c.dentroDe);
 }

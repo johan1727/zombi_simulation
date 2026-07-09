@@ -78,6 +78,9 @@ export function spawnCitizens(rng: Rng, count: number): Citizen[] {
       animo: 'tranquilo',
       animoTicks: 0,
       dentroDe: -1,
+      piso: 0,
+      pisoObjetivo: 0,
+      escaleraTicks: 0,
       cdMordida: 0,
     });
   }

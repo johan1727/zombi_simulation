@@ -1,6 +1,5 @@
 import type { World } from './world';
-import { ASEDIO } from './config';
-import { romperEdificio } from './refugio';
+import { ASEDIO, PANICO } from './config';
 
 /**
  * Los zombis presionan los refugios ocupados desde fuera (diseño §3.3):
@@ -30,7 +29,17 @@ export function resolverAsedios(world: World): void {
       world.presion[b.id] = Math.max(0, world.presion[b.id] - ASEDIO.alivioPorTick);
     }
     if (world.presion[b.id] >= ASEDIO.resistencia) {
-      romperEdificio(world, b.id);
+      // Brecha física completa en la Task 5; por ahora solo se abre el paso
+      // y se avisa a la ciudad — nadie es expulsado.
+      world.brecha[b.id] = true;
+      const p = b.puerta!;
+      world.ruidos.push({
+        x: p.x,
+        z: p.z,
+        radio: PANICO.radioGrito * 2,
+        ticks: PANICO.duracionGritoTicks * 2,
+      });
+      world.splats.push({ x: p.x, z: p.z, tono: world.rngInfeccion.next() });
     }
   }
 }

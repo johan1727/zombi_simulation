@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { World } from '../src/sim/world';
 import { resolverAsedios } from '../src/sim/asedio';
 import { ASEDIO } from '../src/sim/config';
-import { buildingAt } from '../src/sim/collision';
 
 /** Prepara un refugio ocupado con `nZombis` pegados a la pared. */
 function sitiado(seed: string, nZombis: number): { w: World; id: number } {
@@ -32,11 +31,9 @@ describe('asedio a refugios', () => {
     const ticksNecesarios = Math.ceil(ASEDIO.resistencia / (5 * ASEDIO.presionPorZombi));
     for (let t = 0; t < ticksNecesarios + 2; t++) resolverAsedios(w);
     expect(w.brecha[id]).toBe(true);
-    // los refugiados salieron a la acera, en pánico
+    // Task 3: la brecha se abre pero nadie es expulsado (la física llega en la Task 5)
     for (let i = 0; i < 3; i++) {
-      expect(w.citizens[i].dentroDe).toBe(-1);
-      expect(w.citizens[i].animo).toBe('panico');
-      expect(buildingAt(w.city, w.citizens[i].x, w.citizens[i].z)).toBeNull();
+      expect(w.citizens[i].dentroDe).toBe(id);
     }
   });
 
