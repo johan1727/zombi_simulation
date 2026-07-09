@@ -1,5 +1,5 @@
 import type { Rng } from './rng';
-import { CITY, CITY_PERIOD, CITY_WIDTH, CITY_DEPTH } from './config';
+import { CITY, CITY_PERIOD, CITY_WIDTH, CITY_DEPTH, MARGEN_ACERA } from './config';
 
 export type BuildingKind = 'fondo' | 'jugable';
 
@@ -41,7 +41,7 @@ export function corridorIndexAt(v: number): number {
 
 export function generateCity(rng: Rng): CityLayout {
   const buildings: Building[] = [];
-  const margin = 2; // acera dentro de la manzana
+  const margin = MARGEN_ACERA;
   let id = 0;
   for (let bx = 0; bx < CITY.blocksX; bx++) {
     for (let bz = 0; bz < CITY.blocksY; bz++) {

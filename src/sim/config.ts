@@ -11,6 +11,21 @@ export const CITY = {
   streetWidth: 8, // metros de calle
 } as const;
 
+/** Acera dentro de la manzana (única fuente de verdad; cityGen y collision la importan). */
+export const MARGEN_ACERA = 2;
+
+/**
+ * 16 direcciones unitarias precalculadas como LITERALES.
+ * Las funciones trigonométricas (coseno, seno) no son idénticas bit a bit
+ * entre motores JS; esta tabla sí.
+ */
+export const DIRECCIONES: ReadonlyArray<readonly [number, number]> = [
+  [1, 0], [0.9239, 0.3827], [0.7071, 0.7071], [0.3827, 0.9239],
+  [0, 1], [-0.3827, 0.9239], [-0.7071, 0.7071], [-0.9239, 0.3827],
+  [-1, 0], [-0.9239, -0.3827], [-0.7071, -0.7071], [-0.3827, -0.9239],
+  [0, -1], [0.3827, -0.9239], [0.7071, -0.7071], [0.9239, -0.3827],
+];
+
 /** Periodo de la retícula: manzana + calle. */
 export const CITY_PERIOD = CITY.blockSize + CITY.streetWidth;
 /** El mapa termina en calle por ambos lados. */

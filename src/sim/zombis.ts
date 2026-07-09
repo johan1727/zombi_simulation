@@ -1,6 +1,6 @@
 import type { Citizen } from './types';
 import type { World } from './world';
-import { DT, INFECCION, PANICO, ZOMBIS } from './config';
+import { DIRECCIONES, DT, INFECCION, PANICO, ZOMBIS } from './config';
 import { moveWithSlide } from './collision';
 import { infectar } from './infeccion';
 
@@ -43,13 +43,13 @@ export function updateZombi(c: Citizen, world: World): void {
     if (mejorR2 < Infinity) {
       vel = ZOMBIS.velocidad * 0.8;
     } else if (world.rngZombis.chance(ZOMBIS.probCambiarRumbo) || (c.dirX === 0 && c.dirZ === 0)) {
-      const ang = world.rngZombis.next() * Math.PI * 2;
-      c.dirX = Math.cos(ang);
-      c.dirZ = Math.sin(ang);
+      const [dx0, dz0] = DIRECCIONES[world.rngZombis.int(0, DIRECCIONES.length - 1)];
+      c.dirX = dx0;
+      c.dirZ = dz0;
     }
   }
 
-  const len = Math.hypot(dx, dz);
+  const len = Math.sqrt(dx * dx + dz * dz);
   if (len > 0.001) {
     c.dirX = dx / len;
     c.dirZ = dz / len;

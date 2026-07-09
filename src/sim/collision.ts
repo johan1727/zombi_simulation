@@ -1,7 +1,5 @@
-import { CITY, CITY_PERIOD, CITY_WIDTH, CITY_DEPTH } from './config';
+import { CITY, CITY_PERIOD, CITY_WIDTH, CITY_DEPTH, MARGEN_ACERA } from './config';
 import type { Building, CityLayout } from './cityGen';
-
-const MARGEN_ACERA = 2; // igual que el margin de generateCity
 
 /** Edificio cuyo interior contiene (x,z), o null si es calle/acera/fuera. */
 export function buildingAt(city: CityLayout, x: number, z: number): Building | null {

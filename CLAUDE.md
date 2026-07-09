@@ -25,6 +25,9 @@ ciudad. Diseño completo: `docs/superpowers/specs/2026-07-05-pandemia-design.md`
 - `SpatialGrid.queryCircle` reusa un scratch interno: NUNCA anidar consultas.
 - Todo teletransporte (entrar/salir de edificios, re-enganche a la calle)
   resetea `prevX/prevZ` para no dejar estelas en el render.
+- PROHIBIDOS también en `src/sim/`: `Math.hypot/cos/sin/tan/atan2` (no portables
+  entre motores JS). Distancias con `sqrt(dx*dx+dz*dz)`; direcciones desde la
+  tabla `DIRECCIONES` de config. Lo vigila `tests/portabilidad.test.ts`.
 
 ## Flujo de trabajo
 

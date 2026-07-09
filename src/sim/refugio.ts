@@ -1,6 +1,6 @@
 import type { Citizen } from './types';
 import type { World } from './world';
-import { CITY, CITY_PERIOD, PANICO, REFUGIO } from './config';
+import { CITY, CITY_PERIOD, DIRECCIONES, PANICO, REFUGIO } from './config';
 
 /** Si hay un edificio jugable pegado (bloque propio o vecinos), entra a refugiarse. */
 export function intentarRefugio(c: Citizen, world: World): void {
@@ -16,7 +16,7 @@ export function intentarRefugio(c: Citizen, world: World): void {
     if (world.ocupantes[b.id] >= REFUGIO.capacidad) continue;
     const dx = Math.max(b.x - c.x, 0, c.x - (b.x + b.width));
     const dz = Math.max(b.z - c.z, 0, c.z - (b.z + b.depth));
-    if (Math.hypot(dx, dz) <= REFUGIO.radioEntrar) {
+    if (Math.sqrt(dx * dx + dz * dz) <= REFUGIO.radioEntrar) {
       c.dentroDe = b.id;
       world.ocupantes[b.id]++;
       c.prevX = c.x;
@@ -34,9 +34,7 @@ export function romperEdificio(world: World, idEdificio: number): void {
   const cx = b.x + b.width / 2;
   const cz = b.z + b.depth / 2;
   dentro.forEach((o, k) => {
-    const ang = (k / Math.max(dentro.length, 1)) * Math.PI * 2;
-    const dx = Math.cos(ang);
-    const dz = Math.sin(ang);
+    const [dx, dz] = DIRECCIONES[k % DIRECCIONES.length];
     // proyectar al perímetro CUADRADO (+1 m): en las diagonales un anillo
     // circular caería dentro del propio edificio
     const esc = (b.width / 2 + 1) / Math.max(Math.abs(dx), Math.abs(dz));

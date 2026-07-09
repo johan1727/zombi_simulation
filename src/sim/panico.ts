@@ -55,7 +55,7 @@ export function updateHumano(c: Citizen, world: World): void {
     if (n > 0) {
       const dx = c.x - cx / n;
       const dz = c.z - cz / n;
-      const len = Math.hypot(dx, dz);
+      const len = Math.sqrt(dx * dx + dz * dz);
       if (len > 0.001) {
         c.dirX = dx / len;
         c.dirZ = dz / len;
