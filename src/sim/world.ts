@@ -2,7 +2,7 @@ import { createRng, type Rng } from './rng';
 import { generateCity, type CityLayout } from './cityGen';
 import { spawnCitizens } from './citizens';
 import type { Citizen, Ruido, Splat } from './types';
-import { CITIZENS, INFECCION } from './config';
+import { CITIZENS, CITY_WIDTH, CITY_DEPTH, INFECCION, PELIGRO } from './config';
 import { SpatialGrid } from './spatialGrid';
 import { actualizarIncubacion, elegirPacienteCero, infectar } from './infeccion';
 import { updateZombi } from './zombis';
@@ -33,6 +33,12 @@ export class World {
   /** Un array de índices de citizens por edificio, reconstruido cada tick en orden de índice. */
   readonly dentroPorEdificio: number[][];
 
+  /** Memoria colectiva: rejilla gruesa de "peligro" (dónde ha muerto/roto gente). */
+  readonly peligro: number[];
+  private readonly peligroCols = Math.ceil(CITY_WIDTH / PELIGRO.celda);
+  /** Cerrado ligado a esta instancia; se pasa a updateCitizen sin reconstruirse cada tick. */
+  readonly peligroFn = (x: number, z: number): number => this.peligroEn(x, z);
+
   constructor(seed: string, citizenCount: number = CITIZENS.count) {
     this.seed = seed;
     const rngCiudad = createRng(`pandemia:${seed}:ciudad`);
@@ -47,6 +53,23 @@ export class World {
     this.brecha = this.city.buildings.map(() => false);
     this.presion = this.city.buildings.map(() => 0);
     this.dentroPorEdificio = this.city.buildings.map(() => []);
+    this.peligro = new Array(this.peligroCols * Math.ceil(CITY_DEPTH / PELIGRO.celda)).fill(0);
+  }
+
+  registrarPeligro(x: number, z: number): void {
+    const cx = Math.min(this.peligroCols - 1, Math.max(0, Math.floor(x / PELIGRO.celda)));
+    const cz = Math.max(0, Math.floor(z / PELIGRO.celda));
+    const idx = cz * this.peligroCols + cx;
+    if (idx < this.peligro.length) {
+      this.peligro[idx] = Math.min(PELIGRO.maximo, this.peligro[idx] + PELIGRO.porMuerte);
+    }
+  }
+
+  peligroEn(x: number, z: number): number {
+    if (x < 0 || z < 0 || x >= CITY_WIDTH || z >= CITY_DEPTH) return PELIGRO.maximo;
+    const cx = Math.floor(x / PELIGRO.celda);
+    const cz = Math.floor(z / PELIGRO.celda);
+    return this.peligro[cz * this.peligroCols + cx] ?? 0;
   }
 
   get stats(): { vivos: number; zombis: number } {
@@ -99,6 +122,11 @@ export class World {
       if (r.ticks > 0) this.ruidos[w++] = r;
     }
     this.ruidos.length = w;
+    if (this.tickCount % PELIGRO.decaimientoCadaTicks === 0 && this.tickCount > 0) {
+      for (let k = 0; k < this.peligro.length; k++) {
+        this.peligro[k] = Math.floor((this.peligro[k] * 9) / 10);
+      }
+    }
     this.tickCount++;
   }
 

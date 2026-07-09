@@ -28,6 +28,7 @@ export function resolverAsedios(world: World): void {
       world.brecha[b.id] = true;
       world.ruidos.push({ x: p.x, z: p.z, radio: PANICO.radioGrito * 2, ticks: PANICO.duracionGritoTicks * 2 });
       world.splats.push({ x: p.x, z: p.z, tono: world.rngInfeccion.next() });
+      world.registrarPeligro(p.x, p.z);
     }
   }
 }

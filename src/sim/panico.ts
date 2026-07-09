@@ -162,7 +162,12 @@ export function updateHumano(c: Citizen, world: World): void {
         }
       }
     }
-    updateCitizen(c, world.rngCiudadanos, c.salud === 'incubando' ? INFECCION.velocidadIncubando : 1);
+    updateCitizen(
+      c,
+      world.rngCiudadanos,
+      c.salud === 'incubando' ? INFECCION.velocidadIncubando : 1,
+      world.peligroFn
+    );
   }
 }
 

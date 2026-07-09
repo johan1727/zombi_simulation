@@ -25,6 +25,7 @@ export function resolverCombates(world: World): void {
     ) {
       z.salud = 'eliminado';
       world.splats.push({ x: z.x, z: z.z, tono: world.rngCombate.next() });
+      world.registrarPeligro(z.x, z.z);
       if (world.rngCombate.chance(COMBATE.probInfeccionAlGanar)) {
         infectar(world.rngCombate.pick(luchadores), world.rngCombate);
       }

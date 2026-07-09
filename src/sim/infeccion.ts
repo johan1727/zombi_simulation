@@ -21,4 +21,5 @@ export function actualizarIncubacion(c: Citizen, world: World): void {
   c.animo = 'tranquilo';
   c.cdMordida = 0;
   world.splats.push({ x: c.x, z: c.z, tono: world.rngInfeccion.next() });
+  world.registrarPeligro(c.x, c.z);
 }

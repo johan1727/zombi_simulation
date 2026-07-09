@@ -1,7 +1,7 @@
 import type { Rng } from './rng';
 import type { Citizen, Personality } from './types';
 import { corridorCenter, corridorIndexAt } from './cityGen';
-import { CITY, CITY_WIDTH, CITY_DEPTH, CITIZENS, DT, TICK_RATE } from './config';
+import { CITY, CITY_WIDTH, CITY_DEPTH, CITY_PERIOD, CITIZENS, DT, TICK_RATE } from './config';
 
 const NOMBRES = [
   'María', 'José', 'Carmen', 'Luis', 'Ana', 'Miguel', 'Sofía', 'Carlos',
@@ -144,7 +144,12 @@ const CRUCE_GIRO = 0.45;
 /** Probabilidad por tick de pararse a mirar (≈2.4%/seg). */
 const PAUSA_POR_TICK = 0.0008;
 
-export function updateCitizen(c: Citizen, rng: Rng, factorVelocidad = 1): void {
+export function updateCitizen(
+  c: Citizen,
+  rng: Rng,
+  factorVelocidad = 1,
+  peligroEn?: (x: number, z: number) => number
+): void {
   c.prevX = c.x;
   c.prevZ = c.z;
 
@@ -177,17 +182,26 @@ export function updateCitizen(c: Citizen, rng: Rng, factorVelocidad = 1): void {
     const idCruce = kx * 1000 + kz;
     if (c.lastCrossing !== idCruce) {
       c.lastCrossing = idCruce;
-      if (rng.chance(CRUCE_GIRO)) {
+      const quiereGirar = rng.chance(CRUCE_GIRO);
+      let giroForzado = 0; // 0 = no; ±1 = sentido forzado por peligro
+      if (peligroEn) {
+        const pFrente = peligroEn(c.x + c.dirX * CITY_PERIOD, c.z + c.dirZ * CITY_PERIOD);
+        // las dos perpendiculares al eje de marcha
+        const pA = c.dirZ !== 0 ? peligroEn(c.x - CITY_PERIOD, c.z) : peligroEn(c.x, c.z - CITY_PERIOD);
+        const pB = c.dirZ !== 0 ? peligroEn(c.x + CITY_PERIOD, c.z) : peligroEn(c.x, c.z + CITY_PERIOD);
+        if (Math.min(pA, pB) + 20 < pFrente) giroForzado = pA <= pB ? -1 : 1;
+      }
+      if (giroForzado !== 0 || quiereGirar) {
         if (c.dirZ !== 0) {
           // Iba en vertical → gira a horizontal por este cruce.
           c.z = corridorCenter(kz) + c.laneOffset;
           c.dirZ = 0;
-          c.dirX = rng.chance(0.5) ? 1 : -1;
+          c.dirX = giroForzado !== 0 ? giroForzado : rng.chance(0.5) ? 1 : -1;
         } else {
           // Iba en horizontal → gira a vertical.
           c.x = corridorCenter(kx) + c.laneOffset;
           c.dirX = 0;
-          c.dirZ = rng.chance(0.5) ? 1 : -1;
+          c.dirZ = giroForzado !== 0 ? giroForzado : rng.chance(0.5) ? 1 : -1;
         }
       }
     }

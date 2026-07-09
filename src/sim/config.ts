@@ -115,6 +115,13 @@ export const INTERIOR = {
 
 export const INTERIOR_VISION = 12; // m de vista dentro (sin paredes internas)
 
+export const PELIGRO = {
+  celda: 16, // m por celda de la rejilla gruesa de memoria colectiva
+  porMuerte: 30,
+  maximo: 250,
+  decaimientoCadaTicks: 300,
+} as const;
+
 export const LIDER = {
   radio: 8, // m para detectar líder/pánicos cercanos
   factorCalma: 0.5, // multiplicador a la probabilidad de contagio de pánico
