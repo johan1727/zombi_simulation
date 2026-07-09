@@ -28,12 +28,12 @@ function segmentoCruzaRect(x1: number, z1: number, x2: number, z2: number, b: Bu
 
 export class CityView {
   private readonly mesh: THREE.InstancedMesh;
-  private readonly city: CityLayout;
+  private readonly fondos: Building[];
   private readonly m = new THREE.Matrix4();
   private readonly aplanados = new Set<number>();
 
   constructor(scene: THREE.Scene, city: CityLayout) {
-    this.city = city;
+    this.fondos = city.buildings.filter((b) => b.kind === 'fondo');
 
     const suelo = new THREE.Mesh(
       new THREE.PlaneGeometry(city.width, city.depth),
@@ -45,12 +45,11 @@ export class CityView {
 
     const geo = new THREE.BoxGeometry(1, 1, 1);
     const mat = new THREE.MeshLambertMaterial();
-    this.mesh = new THREE.InstancedMesh(geo, mat, city.buildings.length);
+    this.mesh = new THREE.InstancedMesh(geo, mat, this.fondos.length);
     const colorFondo = new THREE.Color(0x3a4150);
-    const colorJugable = new THREE.Color(0x5a6b7d);
-    city.buildings.forEach((b, i) => {
-      this.setAltura(i, b.height);
-      this.mesh.setColorAt(i, b.kind === 'jugable' ? colorJugable : colorFondo);
+    this.fondos.forEach((_b, i) => {
+      this.setAltura(i, this.fondos[i].height);
+      this.mesh.setColorAt(i, colorFondo);
     });
     this.mesh.instanceMatrix.needsUpdate = true;
     if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
@@ -58,7 +57,7 @@ export class CityView {
   }
 
   private setAltura(i: number, h: number): void {
-    const b = this.city.buildings[i];
+    const b = this.fondos[i];
     this.m.makeScale(b.width, h, b.depth);
     this.m.setPosition(b.x + b.width / 2, h / 2, b.z + b.depth / 2);
     this.mesh.setMatrixAt(i, this.m);
@@ -67,7 +66,7 @@ export class CityView {
   /** Aplana a 3 m los edificios altos que cruzan la línea cámara→foco. */
   updateOcclusion(camX: number, camZ: number, focoX: number, focoZ: number): void {
     let sucio = false;
-    this.city.buildings.forEach((b, i) => {
+    this.fondos.forEach((b, i) => {
       const debe = b.height > 6 && segmentoCruzaRect(camX, camZ, focoX, focoZ, b);
       const estaba = this.aplanados.has(i);
       if (debe === estaba) return;

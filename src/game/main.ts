@@ -1,6 +1,7 @@
 import { World } from '../sim/world';
 import { createScene } from '../render/scene';
 import { CityView } from '../render/cityView';
+import { JugablesView } from '../render/jugablesView';
 import { CitizensView } from '../render/citizensView';
 import { SplatsView } from '../render/splatsView';
 import { CameraRig } from '../render/cameraRig';
@@ -13,6 +14,7 @@ const seed = new URLSearchParams(location.search).get('seed') ?? 'PANDEMIA';
 const world = new World(seed);
 const { renderer, scene } = createScene(canvas);
 const cityView = new CityView(scene, world.city);
+const jugablesView = new JugablesView(scene, world.city);
 const citizensView = new CitizensView(scene, world.citizens.length);
 const splatsView = new SplatsView(scene);
 const rig = new CameraRig(canvas, { w: world.city.width, d: world.city.depth });
@@ -26,6 +28,7 @@ startLoop(world, (alpha) => {
   rig.update();
   const foco = rig.focusPoint;
   cityView.updateOcclusion(rig.camera.position.x, rig.camera.position.z, foco.x, foco.z);
+  jugablesView.update(world, foco.x, foco.z);
   citizensView.update(world.citizens, alpha);
   splatsView.update(world.splats);
   hud.update(world);

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import type { Citizen, Salud } from '../sim/types';
+import { INTERIOR } from '../sim/config';
 
 const COLORES: Record<Salud, number> = {
   sano: 0x9fd8ff,
@@ -26,10 +27,10 @@ export class CitizensView {
     let colorSucio = false;
     for (let i = 0; i < citizens.length; i++) {
       const c = citizens[i];
-      const oculto = c.salud === 'eliminado' || c.dentroDe >= 0;
+      const oculto = c.salud === 'eliminado';
       const x = c.prevX + (c.x - c.prevX) * alpha;
       const z = c.prevZ + (c.z - c.prevZ) * alpha;
-      this.dummy.position.set(x, 0.85, z);
+      this.dummy.position.set(x, 0.85 + c.piso * INTERIOR.alturaPiso, z);
       this.dummy.scale.setScalar(oculto ? 0.0001 : 1);
       this.dummy.updateMatrix();
       this.mesh.setMatrixAt(i, this.dummy.matrix);
