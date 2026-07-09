@@ -84,4 +84,26 @@ describe('vida interior', () => {
     for (let t = 0; t < 900; t++) { a.tick(); b.tick(); }
     expect(a.hashState()).toBe(b.hashState());
   });
+
+  it('la salida por la puerta deja al ciudadano fuera de verdad (banda de 0.3 m)', async () => {
+    const { buildingAt } = await import('../src/sim/collision');
+    const w = new World('puerta-6', 2);
+    const b = w.city.buildings.find((x) => x.kind === 'jugable')!;
+    const p = b.puerta!;
+    const c = w.citizens[0];
+    c.dentroDe = b.id;
+    c.piso = 0;
+    c.pisoObjetivo = 0;
+    // parado a 10 cm DENTRO del muro real, en el hueco de la puerta
+    const dentro: ReadonlyArray<readonly [number, number]> = [[0.1, 0], [0, 0.1], [-0.1, 0], [0, -0.1]];
+    c.x = p.x + dentro[p.lado][0];
+    c.z = p.z + dentro[p.lado][1];
+    c.prevX = c.x;
+    c.prevZ = c.z;
+    // paso diminuto hacia fuera (como un tick real), cae dentro de la banda ambigua
+    const paso: ReadonlyArray<readonly [number, number]> = [[-0.09, 0], [0, -0.09], [0.09, 0], [0, 0.09]];
+    moverInterior(b, c, c.x + paso[p.lado][0], c.z + paso[p.lado][1]);
+    expect(c.dentroDe).toBe(-1);
+    expect(buildingAt(w.city, c.x, c.z)).toBeNull(); // fuera DE VERDAD
+  });
 });

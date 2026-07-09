@@ -35,8 +35,17 @@ export function moverInterior(b: Building, c: Citizen, nx: number, nz: number): 
   const maxZ = b.z + b.depth - MARGEN_PARED;
   const saldria = nx < minX || nx > maxX || nz < minZ || nz > maxZ;
   if (saldria && c.piso === 0 && enPuerta(b, nx, nz)) {
-    c.x = nx;
-    c.z = nz;
+    const p = b.puerta!;
+    const [inx, inz] = NORMAL_INTERIOR[p.lado];
+    // salir SIEMPRE claramente fuera del muro real (la franja de 0.3 m de
+    // MARGEN_PARED sigue siendo "dentro" para buildingAt): 0.5 m a la calle
+    if (p.lado === 0 || p.lado === 2) {
+      c.x = p.x - inx * 0.5;
+      c.z = nz;
+    } else {
+      c.x = nx;
+      c.z = p.z - inz * 0.5;
+    }
     c.dentroDe = -1;
     c.pisoObjetivo = 0;
     return;
