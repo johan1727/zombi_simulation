@@ -90,6 +90,7 @@ export const GRID_CELDA = 4; // m por celda de la rejilla espacial
 
 export const ASEDIO = {
   radio: 10, // m alrededor del edificio donde los zombis presionan
+  radioPuerta: 4, // m alrededor de la puerta donde los zombis presionan
   presionPorZombi: 1, // presión por zombi por tick
   alivioPorTick: 2, // la presión decae sin zombis
   // ADVERTENCIA: valor de filo de navaja, NO monotónico (barrido Task 10c:

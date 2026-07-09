@@ -1,8 +1,9 @@
 import type { Citizen } from './types';
 import type { World } from './world';
-import { DIRECCIONES, DT, INFECCION, PANICO, ZOMBIS } from './config';
+import { CITY, CITY_PERIOD, DIRECCIONES, DT, INFECCION, PANICO, ZOMBIS } from './config';
 import { moveWithSlide } from './collision';
 import { infectar } from './infeccion';
+import { NORMAL_INTERIOR } from './interior';
 
 export function updateZombi(c: Citizen, world: World): void {
   c.prevX = c.x;
@@ -70,6 +71,34 @@ export function updateZombi(c: Citizen, world: World): void {
         ticks: PANICO.duracionGritoTicks,
       });
       c.cdMordida = ZOMBIS.enfriamientoMordidaTicks;
+    }
+  }
+
+  // puerta rota cerca y sin presa a la vista: entrar a cazar
+  if (!objetivo) {
+    const bx = Math.floor(c.x / CITY_PERIOD);
+    const bz = Math.floor(c.z / CITY_PERIOD);
+    const candidatos: ReadonlyArray<readonly [number, number]> = [
+      [bx, bz], [bx - 1, bz], [bx, bz - 1], [bx - 1, bz - 1],
+    ];
+    for (const [ix, iz] of candidatos) {
+      if (ix < 0 || iz < 0 || ix >= CITY.blocksX || iz >= CITY.blocksY) continue;
+      const b = world.city.buildings[ix * CITY.blocksY + iz];
+      if (b.kind !== 'jugable' || !world.brecha[b.id] || world.ocupantes[b.id] === 0) continue;
+      const p = b.puerta!;
+      const dx = p.x - c.x;
+      const dz = p.z - c.z;
+      if (Math.sqrt(dx * dx + dz * dz) <= 2) {
+        const [nx, nz] = NORMAL_INTERIOR[p.lado];
+        c.dentroDe = b.id;
+        c.piso = 0;
+        c.pisoObjetivo = 0;
+        c.x = p.x + nx * 1.2;
+        c.z = p.z + nz * 1.2;
+        c.prevX = c.x;
+        c.prevZ = c.z;
+        return;
+      }
     }
   }
 }
