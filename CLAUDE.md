@@ -85,3 +85,17 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
   la espera de la Task 4) necesita `void param;` para CADA parámetro no
   leído, no solo los "extra" — si el brief trae código literal, revisar que
   cubra todos los parámetros antes de copiarlo tal cual.
+- (Plan 3 Task 4, caza interior) Al activar IA de zombi donde antes había un
+  stub, un test previo (`interior.test.ts`, seed `puerta-3`) se rompió porque
+  `citizens[0]` resultaba ser el paciente cero de esa semilla (Plan 2): al
+  convertirse en zombi solitario, la nueva lógica lo hacía salir del edificio
+  en vez de quedarse quieto en el piso al que había subido. No era un bug de
+  la Task 4; se corrigió cambiando la seed del test a una donde el paciente
+  cero no coincide con el ciudadano bajo prueba. Tests con seeds fijas y pocos
+  ciudadanos son frágiles a la selección aleatoria del paciente cero — al
+  tocar comportamiento de zombi/infección, revisar si algún test antiguo
+  depende implícitamente de que un ciudadano concreto se mantenga sano.
+- `if (c.salud !== 'zombi')` inmediatamente después de un `if (c.salud ===
+  'zombi') { ...; return; }` no compila: TS ya estrechó el tipo y descarta la
+  comparación como imposible (TS2367). Si un brief trae ese patrón literal,
+  quitar el `if` redundante (el cuerpo ya solo se alcanza para no-zombis).
