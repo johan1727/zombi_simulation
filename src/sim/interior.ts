@@ -1,7 +1,8 @@
 import type { Building } from './cityGen';
 import type { Citizen } from './types';
 import type { World } from './world';
-import { DIRECCIONES, DT, INTERIOR, PANICO } from './config';
+import { DIRECCIONES, DT, INFECCION, INTERIOR, INTERIOR_VISION, PANICO, ZOMBIS } from './config';
+import { infectar } from './infeccion';
 
 /** Normal hacia dentro del edificio, por lado de la puerta. */
 export const NORMAL_INTERIOR: ReadonlyArray<readonly [number, number]> = [
@@ -89,6 +90,42 @@ export function updateInterior(c: Citizen, world: World): void {
     return;
   }
 
+  let amenaza: Citizen | null = null;
+  let mejorD2 = INTERIOR_VISION * INTERIOR_VISION;
+  for (const i of world.dentroPorEdificio[b.id]) {
+    const o = world.citizens[i];
+    if (o.salud !== 'zombi' || o.piso !== c.piso) continue;
+    const d2 = (o.x - c.x) ** 2 + (o.z - c.z) ** 2;
+    if (d2 < mejorD2) {
+      mejorD2 = d2;
+      amenaza = o;
+    }
+  }
+  if (amenaza) {
+    c.animo = 'panico';
+    c.animoTicks = 0;
+    if (c.piso === 0) {
+      // huir por la puerta
+      const p = b.puerta!;
+      const dx = p.x - c.x;
+      const dz = p.z - c.z;
+      const len = Math.sqrt(dx * dx + dz * dz);
+      if (len > 0.001) { c.dirX = dx / len; c.dirZ = dz / len; }
+      c.pisoObjetivo = 0;
+    } else if (c.piso < INTERIOR.azotea) {
+      c.pisoObjetivo = c.piso + 1;
+    } else {
+      // azotea: huir del zombi dentro del rect — última resistencia
+      const dx = c.x - amenaza.x;
+      const dz = c.z - amenaza.z;
+      const len = Math.sqrt(dx * dx + dz * dz);
+      if (len > 0.001) { c.dirX = dx / len; c.dirZ = dz / len; }
+      c.pisoObjetivo = c.piso;
+    }
+    moverInterior(b, c, c.x + c.dirX * PANICO.velocidadHuida * DT, c.z + c.dirZ * PANICO.velocidadHuida * DT);
+    return;
+  }
+
   if (avanzarEscalera(b, c)) return;
 
   if (c.animo === 'panico') {
@@ -117,9 +154,59 @@ export function updateInterior(c: Citizen, world: World): void {
   moverInterior(b, c, c.x + c.dirX * 0.5 * DT, c.z + c.dirZ * 0.5 * DT);
 }
 
-/** Task 3: el zombi interior aún no caza (lo hace la Task 4). */
 function updateInteriorZombi(c: Citizen, world: World, b: Building): void {
-  void c;
-  void world;
-  void b;
+  if (avanzarEscalera(b, c)) return;
+
+  let presa: Citizen | null = null;
+  let mejorD2 = Infinity;
+  let pisoConHumanos = -1;
+  let mejorDistPiso = Infinity;
+  for (const i of world.dentroPorEdificio[b.id]) {
+    const o = world.citizens[i];
+    if (o.salud === 'zombi') continue;
+    const distPiso = Math.abs(o.piso - c.piso);
+    if (distPiso < mejorDistPiso) {
+      mejorDistPiso = distPiso;
+      pisoConHumanos = o.piso;
+    }
+    if (o.piso !== c.piso) continue;
+    const d2 = (o.x - c.x) ** 2 + (o.z - c.z) ** 2;
+    if (d2 < mejorD2) {
+      mejorD2 = d2;
+      presa = o;
+    }
+  }
+
+  if (presa) {
+    const dx = presa.x - c.x;
+    const dz = presa.z - c.z;
+    const len = Math.sqrt(dx * dx + dz * dz);
+    if (len > 0.001) { c.dirX = dx / len; c.dirZ = dz / len; }
+    moverInterior(b, c, c.x + c.dirX * ZOMBIS.velocidad * 0.8 * DT, c.z + c.dirZ * ZOMBIS.velocidad * 0.8 * DT);
+    if (c.cdMordida > 0) c.cdMordida--;
+    if (mejorD2 <= INFECCION.radioMordida ** 2 && c.cdMordida === 0) {
+      infectar(presa, world.rngInfeccion);
+      presa.animo = 'panico';
+      presa.animoTicks = 0;
+      world.ruidos.push({ x: presa.x, z: presa.z, radio: PANICO.radioGrito / 2, ticks: PANICO.duracionGritoTicks });
+      c.cdMordida = ZOMBIS.enfriamientoMordidaTicks;
+    }
+    return;
+  }
+
+  if (pisoConHumanos >= 0) {
+    c.pisoObjetivo = pisoConHumanos;
+    haciaEscalera(b, c);
+  } else if (c.piso === 0) {
+    // edificio sin humanos: salir a la calle
+    const p = b.puerta!;
+    const dx = p.x - c.x;
+    const dz = p.z - c.z;
+    const len = Math.sqrt(dx * dx + dz * dz);
+    if (len > 0.001) { c.dirX = dx / len; c.dirZ = dz / len; }
+  } else {
+    c.pisoObjetivo = 0;
+    haciaEscalera(b, c);
+  }
+  moverInterior(b, c, c.x + c.dirX * ZOMBIS.velocidad * 0.8 * DT, c.z + c.dirZ * ZOMBIS.velocidad * 0.8 * DT);
 }

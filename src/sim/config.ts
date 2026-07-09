@@ -111,3 +111,5 @@ export const INTERIOR = {
   anchoPuerta: 3, // m del hueco de la puerta
   escaleraTicks: 45, // ticks para cambiar de piso (1.5 s)
 } as const;
+
+export const INTERIOR_VISION = 12; // m de vista dentro (sin paredes internas)

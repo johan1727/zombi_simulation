@@ -57,7 +57,11 @@ describe('vida interior', () => {
   });
 
   it('sube por la escalera al piso 1 y el hash registra el piso', () => {
-    const w = new World('puerta-3', 3);
+    // seed elegida para que el paciente cero (Plan 2) NO sea citizens[0]:
+    // con 'puerta-3' este ciudadano se infectaba a los 5s y (desde la Task 4
+    // de caza interior) el zombi solitario abandonaba el edificio, tirando
+    // abajo la premisa original del test (que se quedaría quieto en piso 1).
+    const w = new World('escalera-t4', 3);
     const c = w.citizens[0];
     juntoAPuerta(w, c);
     c.animo = 'panico';
