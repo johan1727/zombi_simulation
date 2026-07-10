@@ -92,10 +92,10 @@ export const ASEDIO = {
   radioPuerta: 4, // m alrededor de la puerta donde los zombis presionan
   presionPorZombi: 2, // presión por zombi por tick
   alivioPorTick: 2, // la presión decae sin zombis
-  // ADVERTENCIA: valor de filo de navaja, NO monotónico (barrido Task 10c:
-  // 108→425/373 vivos, 110→345/361, 111→491/309, 115→559/602). Cualquier
-  // cambio aquí exige re-correr tests/balance.test.ts completo. Metodología
-  // del barrido: docs/superpowers/reports/2026-07-06-balance-brote.md
+  // ADVERTENCIA: el paisaje de balance es NO monotónico (caótico). Cualquier
+  // cambio aquí — o en enfriamientoMordidaTicks / presionPorZombi — exige
+  // re-correr tests/balance.test.ts completo. Datos vigentes (régimen de
+  // asedio a la puerta): docs/superpowers/reports/2026-07-09-recalibracion-plan3-task10.md
   resistencia: 50, // presión para brecha
   ruidoCadaTicks: 90, // los refugiados hacen ruido periódico
   ruidoRadio: 10,
