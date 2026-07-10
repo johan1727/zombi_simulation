@@ -1607,3 +1607,26 @@ Interiores + asedio físico + familias + líder + memoria mueven el balance con 
 - [ ] **Step 2:** `npx vitest run tests/balance.test.ts` con la config actual. Si pasa: no tocar nada. Si falla: ajustar UN valor a la vez, documentando (valor → vivos@90 / vivos@480 / colapso), con estas perillas: `ASEDIO.resistencia` (50–600, recordar el filo de navaja), `ASEDIO.radioPuerta` (3–6), `ZOMBIS.velocidad` (3.0–3.8), `ZOMBIS.radioVision` (15–25), `PANICO.velocidadHuida` (2.5–3.1), `INTERIOR_VISION` (8–16), `REFUGIO.capacidad` (20–60), `LIDER.factorCalma` (0.3–0.8). Si tras ~15 intentos razonados no se alcanza: BLOCKED con la tabla (el orquestador decide) — nunca fabricar el resultado.
 - [ ] **Step 3: Verificación completa** — `npm test` TODO verde (incluido balance); `npx tsc --noEmit`; `tests/portabilidad.test.ts` verde (es parte de la suite); navegador ~2 min: brote completo visible, cutaway funcionando, asedio a puertas visible, FPS estable, consola limpia, `?seed=alfa` reproducible entre recargas.
 - [ ] **Step 4: Cierre** — Lección(es) condensada(s) en CLAUDE.md (máx. 2 líneas c/u; si la lista pasa de ~10, fusionar las viejas). Marcar TODOS los checkboxes de este plan (usar Edit o `sed` de Git Bash — PowerShell `Set-Content` corrompe UTF-8). Commit `chore: refugio y sociedad verificados (Plan 3 completo)` y `git push -u origin fase-3-refugio-sociedad`. Avisar que el Plan 3 está listo para la revisión final de rama.
+
+---
+
+### Task 10b (adenda): El virus pelea de vuelta — palancas de mecánica autorizadas
+
+**Contexto:** la Task 10 quedó BLOCKED con datos (reporte `docs/superpowers/reports/2026-07-09-recalibracion-plan3-task10.md`): las 8 perillas de comportamiento no bajan vivos@8:00 de ~70% porque las mecánicas de refugio del Plan 3 hacen su trabajo — la ciudad se salva sola. Decisión de diseño del orquestador: la letalidad estructural del virus es ahora palanca legítima. Hipótesis principal (probar PRIMERO): la incubación corta (5–15 s, herencia del balance del Plan 2 SIN interiores) hace que los infectados se transformen ANTES de llegar a los refugios, dejándolos limpios; una incubación más larga mete bombas de tiempo dentro (el mordido que se esconde con los demás — Guerra Mundial Z puro).
+
+**Palancas nuevas autorizadas (en este orden de preferencia, UNA por intento):**
+
+1. `INFECCION.incubacionMinTicks` / `incubacionMaxTicks` — rango total 5–30 s (probar primero 10–20 s, luego 15–25 s, luego 15–30 s).
+2. `INFECCION.radioMordida` (1.0–1.6).
+3. `ZOMBIS.enfriamientoMordidaTicks` (6–18).
+4. `ASEDIO.presionPorZombi` (1–3).
+
+Las 8 perillas de la Task 10 siguen disponibles. Tras documentar los intentos de una palanca, se permiten hasta 5 intentos de COMBINACIÓN razonada (máx. ~20 corridas nuevas en total, documentadas igual: valor → vivos@90 / vivos@480 / colapso por semilla).
+
+**Regla de cierre determinista (para no volver a BLOCKED):**
+
+- Si ambas semillas cumplen el gate actual (≤47% @ 8:00): cerrar con esos valores.
+- Si el MEJOR resultado honesto deja ambas semillas con vivos@480 ≤ 55% Y colapso total < 12:00 en ambas: AUTORIZADO ajustar el gate a esos umbrales (condición 2 → 0.55; condición 3 → `12 * 60 * TICK_RATE`), actualizar la línea de testing del spec §6 igual que hizo el Plan 2, y cerrar documentando el porqué (la sociedad del Plan 3 salva gente POR DISEÑO; el jugador sigue teniendo que superar a una ciudad que pierde la mayoría… un poco más tarde).
+- Si ni eso se alcanza: BLOCKED con la tabla (última palabra del orquestador).
+
+**Al cerrar:** todo lo de la Task 10 original (borrar `tests/medicion.tmp.test.ts`, housekeeping de `ASEDIO.radio` muerto y comentario de `peligroEn`, lecciones condensadas en CLAUDE.md, checkboxes, commit `chore: refugio y sociedad verificados (Plan 3 completo)`, push). Commitear también el reporte de recalibración BLOCKED (ya está en docs/) y añadirle una sección final con el desenlace.
