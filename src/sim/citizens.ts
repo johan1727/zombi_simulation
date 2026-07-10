@@ -114,6 +114,16 @@ export function spawnCitizens(rng: Rng, count: number): Citizen[] {
       familia: familiaId,
       cabezaFamilia: cabezaActual,
       familiares: [],
+      esAgente: false,
+      rolAgente: '',
+      ordenX: NaN,
+      ordenZ: NaN,
+      caidoTicks: 0,
+      cdHabilidad: 0,
+      diagnosticadoTicks: 0,
+      forzadoX: NaN,
+      forzadoZ: NaN,
+      forzadoTicks: 0,
     });
     grupoRestante--;
   }

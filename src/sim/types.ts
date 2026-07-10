@@ -8,6 +8,26 @@ export type Personality =
 
 export type CitizenState = 'quieto' | 'caminando';
 
+/** Rol de un agente del jugador; '' para civiles (no agentes). */
+export type RolAgente = '' | 'policia' | 'paramedico' | 'megafono' | 'obrero';
+
+/** Orden del jugador; entra SOLO por world.encolarOrden. */
+export interface OrdenJugador {
+  /** Índice del agente en world.citizens. */
+  agente: number;
+  tipo: 'mover' | 'habilidad' | 'control';
+  x: number;
+  z: number;
+}
+
+/** Evento notable para historias/audio/HUD. El texto lo compone la UI. */
+export interface Hito {
+  tick: number;
+  tipo: 'disparo' | 'rescate' | 'megafono' | 'refuerzo' | 'caida_agente' | 'brecha' | 'transformacion_cabeza';
+  a: number; // índice del protagonista
+  b: number; // índice/edificio secundario, -1 si no aplica
+}
+
 export interface Citizen {
   id: number;
   name: string;
@@ -49,9 +69,27 @@ export interface Citizen {
   cabezaFamilia: number;
   /** ids de los demás miembros de la familia (estático, llenado al nacer). */
   familiares: number[];
+  /** true si este citizen es un agente del jugador (no civil). */
+  esAgente: boolean;
+  /** rol del agente; '' si no es agente. */
+  rolAgente: RolAgente;
+  /** Destino de la orden de mover activa; NaN = sin orden. */
+  ordenX: number;
+  ordenZ: number;
+  /** Ticks restantes antes de que un agente caído se transforme en zombi. */
+  caidoTicks: number;
+  /** Enfriamiento de habilidad (solo agentes). */
+  cdHabilidad: number;
+  /** Ticks restantes en los que este incubando aparece marcado (paramédico). */
+  diagnosticadoTicks: number;
+  /** Punto al que el megáfono obliga a caminar; NaN = sin orden forzada. */
+  forzadoX: number;
+  forzadoZ: number;
+  /** Ticks restantes bajo el efecto del megáfono. */
+  forzadoTicks: number;
 }
 
-export type Salud = 'sano' | 'incubando' | 'zombi' | 'eliminado';
+export type Salud = 'sano' | 'incubando' | 'zombi' | 'eliminado' | 'caido';
 export type Animo = 'tranquilo' | 'panico';
 
 /** Mancha de pintura en el suelo (la "sangre" del juego). */

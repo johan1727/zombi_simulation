@@ -1,8 +1,8 @@
 import { createRng, type Rng } from './rng';
-import { generateCity, type CityLayout } from './cityGen';
+import { corridorCenter, generateCity, type CityLayout } from './cityGen';
 import { spawnCitizens } from './citizens';
-import type { Citizen, Ruido, Splat } from './types';
-import { CITIZENS, CITY_WIDTH, CITY_DEPTH, INFECCION, PELIGRO } from './config';
+import type { Citizen, Hito, OrdenJugador, Ruido, Splat } from './types';
+import { CITIZENS, CITY_WIDTH, CITY_DEPTH, INFECCION, OBRERO, PELIGRO } from './config';
 import { SpatialGrid } from './spatialGrid';
 import { actualizarIncubacion, elegirPacienteCero, infectar } from './infeccion';
 import { updateZombi } from './zombis';
@@ -10,6 +10,7 @@ import { updateHumano } from './panico';
 import { resolverCombates } from './combate';
 import { resolverAsedios } from './asedio';
 import { updateInterior } from './interior';
+import { aplicarOrden, crearAgente, updateAgente } from './agentes';
 
 export class World {
   readonly seed: string;
@@ -23,12 +24,21 @@ export class World {
   readonly rngZombis: Rng;
   readonly rngPanico: Rng;
   readonly rngCombate: Rng;
+  /** Reservado para habilidades de agente; ninguna de este plan consume rng todavía. */
+  readonly rngAgentes: Rng;
 
   readonly splats: Splat[] = [];
   readonly ruidos: Ruido[] = [];
   readonly ocupantes: number[];
   readonly brecha: boolean[];
   readonly presion: number[];
+  /** Presión extra que aguanta cada puerta reforzada por el obrero (por edificio). */
+  readonly refuerzoPuerta: number[];
+  /** Usos restantes de la habilidad del obrero (compartidos entre todas las puertas). */
+  usosObrero = OBRERO.usos;
+  /** Eventos notables para historias/audio/HUD; tope 300 salvo hitos de agente. */
+  readonly hitos: Hito[] = [];
+  private readonly colaOrdenes: OrdenJugador[] = [];
   readonly grid = new SpatialGrid<Citizen>();
   /** Un array de índices de citizens por edificio, reconstruido cada tick en orden de índice. */
   readonly dentroPorEdificio: number[][];
@@ -47,13 +57,32 @@ export class World {
     this.rngZombis = createRng(`pandemia:${seed}:zombis`);
     this.rngPanico = createRng(`pandemia:${seed}:panico`);
     this.rngCombate = createRng(`pandemia:${seed}:combate`);
+    this.rngAgentes = createRng(`pandemia:${seed}:agentes`);
     this.city = generateCity(rngCiudad);
     this.citizens = spawnCitizens(this.rngCiudadanos, citizenCount);
+    // 4 agentes deterministas, DISPERSOS en cuatro cruces del centro: evita
+    // el imán degenerado de un cúmulo inmóvil y que una sola horda barra al
+    // equipo entero (decisión de diseño, resolución del bloqueo de la Task 1).
+    this.citizens.push(crearAgente('policia', corridorCenter(2), corridorCenter(3), this.citizens.length));
+    this.citizens.push(crearAgente('paramedico', corridorCenter(4), corridorCenter(3), this.citizens.length));
+    this.citizens.push(crearAgente('megafono', corridorCenter(2), corridorCenter(5), this.citizens.length));
+    this.citizens.push(crearAgente('obrero', corridorCenter(4), corridorCenter(5), this.citizens.length));
     this.ocupantes = this.city.buildings.map(() => 0);
     this.brecha = this.city.buildings.map(() => false);
     this.presion = this.city.buildings.map(() => 0);
+    this.refuerzoPuerta = this.city.buildings.map(() => 0);
     this.dentroPorEdificio = this.city.buildings.map(() => []);
     this.peligro = new Array(this.peligroCols * Math.ceil(CITY_DEPTH / PELIGRO.celda)).fill(0);
+  }
+
+  /** Solo para conveniencia del game layer; la sim itera por índice. */
+  get agentes(): Citizen[] {
+    return this.citizens.filter((c) => c.esAgente);
+  }
+
+  /** Encola una orden del jugador; se aplica al INICIO del siguiente tick. */
+  encolarOrden(o: OrdenJugador): void {
+    this.colaOrdenes.push(o);
   }
 
   registrarPeligro(x: number, z: number): void {
@@ -85,6 +114,8 @@ export class World {
   }
 
   tick(): void {
+    for (const o of this.colaOrdenes) aplicarOrden(o, this);
+    this.colaOrdenes.length = 0;
     if (this.tickCount === INFECCION.pacienteCeroTick) {
       infectar(this.citizens[elegirPacienteCero(this.citizens, this.rngInfeccion)], this.rngInfeccion);
     }
@@ -111,7 +142,7 @@ export class World {
       if (c.salud === 'zombi') {
         updateZombi(c, this);
       } else {
-        updateHumano(c, this);
+        if (c.esAgente) updateAgente(c, this); else updateHumano(c, this);
         actualizarIncubacion(c, this);
       }
     }
@@ -146,7 +177,7 @@ export class World {
       h ^= (n >>> 16) & 0xff;
       h = Math.imul(h, 0x01000193);
     };
-    const SALUD = { sano: 1, incubando: 2, zombi: 3, eliminado: 4 } as const;
+    const SALUD = { sano: 1, incubando: 2, zombi: 3, eliminado: 4, caido: 5 } as const;
     mix(this.tickCount);
     for (const c of this.citizens) {
       mix(Math.round(c.x * 100));
@@ -155,6 +186,7 @@ export class World {
       mix(c.animo === 'panico' ? 2 : 1);
       mix(c.dentroDe + 1);
       mix(c.piso);
+      mix(c.caidoTicks);
     }
     return h >>> 0;
   }

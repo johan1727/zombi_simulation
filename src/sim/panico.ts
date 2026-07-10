@@ -2,7 +2,7 @@ import type { Citizen, Personality } from './types';
 import type { World } from './world';
 import {
   CITY, CITY_PERIOD, CITY_WIDTH, CITY_DEPTH, CITIZENS, DT,
-  INFECCION, LIDER, PANICO, PROB_PANICO_POR_GRITO, REFUGIO,
+  INFECCION, LIDER, MEGAFONO, PANICO, PROB_PANICO_POR_GRITO, REFUGIO,
 } from './config';
 import { corridorCenter } from './cityGen';
 import { moveWithSlide } from './collision';
@@ -20,6 +20,21 @@ const UMBRAL_VER: Record<Personality, number> = {
 };
 
 export function updateHumano(c: Citizen, world: World): void {
+  if (c.forzadoTicks > 0) {
+    c.forzadoTicks--;
+    c.prevX = c.x;
+    c.prevZ = c.z;
+    const dx = c.forzadoX - c.x;
+    const dz = c.forzadoZ - c.z;
+    const d = Math.sqrt(dx * dx + dz * dz);
+    if (d > 1) {
+      c.dirX = dx / d;
+      c.dirZ = dz / d;
+      moveWithSlide(world.city, c, c.x + c.dirX * CITIZENS.walkSpeed * MEGAFONO.factorPrisa * DT, c.z + c.dirZ * CITIZENS.walkSpeed * MEGAFONO.factorPrisa * DT);
+    }
+    return; // el megáfono manda: ni pánico ni familia esta ronda
+  }
+
   // 1) percepción directa de zombis y del entorno social (líder, pánicos cercanos)
   let n = 0;
   let cx = 0;

@@ -128,3 +128,36 @@ export const LIDER = {
   panicosParaGuiar: 2, // pánicos cercanos mínimos para que el líder guíe
   alcanceGuia: 50, // m máximos para buscar puerta al guiar
 } as const;
+
+// ——— Plan 4: la partida ———
+
+export const AGENTES = {
+  velocidad: 2.2, // m/s — más rápido que civil, más lento que zombi cazando
+  radioAutodefensa: 6, // huyen de zombis sin orden activa
+  ventanaCaidoTicks: 30 * 30, // 30 s para que el paramédico llegue
+  llegadaOrden: 0.6, // m para considerar cumplida una orden de mover
+} as const;
+
+export const POLICIA = {
+  alcance: 15, // m de disparo desde el agente
+  cooldownTicks: 90, // 3 s entre disparos
+  radioRuido: 25, // el disparo atrae a TODA la cuadra
+} as const;
+
+export const PARAMEDICO = {
+  radioDiagnostico: 8,
+  marcaTicks: 20 * 30, // los incubando marcados se ven 20 s
+  alcanceRevivir: 2.5,
+} as const;
+
+export const MEGAFONO = {
+  radio: 12, // civiles afectados alrededor DEL AGENTE
+  duracionTicks: 10 * 30, // caminan 10 s hacia el punto ordenado
+  factorPrisa: 1.3, // caminan a walkSpeed × esto
+} as const;
+
+export const OBRERO = {
+  refuerzo: 600, // presión extra que aguanta la puerta reforzada
+  usos: 3,
+  alcancePuerta: 3, // m a la puerta para reforzar
+} as const;

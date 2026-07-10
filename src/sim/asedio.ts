@@ -24,11 +24,14 @@ export function resolverAsedios(world: World): void {
     } else {
       world.presion[b.id] = Math.max(0, world.presion[b.id] - ASEDIO.alivioPorTick);
     }
-    if (world.presion[b.id] >= ASEDIO.resistencia) {
+    if (world.presion[b.id] >= ASEDIO.resistencia + world.refuerzoPuerta[b.id]) {
       world.brecha[b.id] = true;
       world.ruidos.push({ x: p.x, z: p.z, radio: PANICO.radioGrito * 2, ticks: PANICO.duracionGritoTicks * 2 });
       world.splats.push({ x: p.x, z: p.z, tono: world.rngInfeccion.next() });
       world.registrarPeligro(p.x, p.z);
+      if (world.hitos.length <= 300) {
+        world.hitos.push({ tick: world.tickCount, tipo: 'brecha', a: -1, b: b.id });
+      }
     }
   }
 }

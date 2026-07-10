@@ -11,7 +11,9 @@ describe('estado del brote (Task 1)', () => {
       expect(c.incubacionTicks).toBe(0);
       expect(c.cdMordida).toBe(0);
     }
-    expect(w.stats).toEqual({ vivos: 100, zombis: 0 });
+    // Plan 4: World añade 4 agentes del jugador (sanos) al final del array,
+    // sin importar citizenCount — 100 civiles + 4 agentes = 104 vivos.
+    expect(w.stats).toEqual({ vivos: 104, zombis: 0 });
     expect(w.splats).toEqual([]);
     expect(w.ruidos).toEqual([]);
     expect(w.ocupantes.length).toBe(w.city.buildings.length);

@@ -15,7 +15,9 @@ export function updateZombi(c: Citizen, world: World): void {
   let mejorD2 = ZOMBIS.radioVision * ZOMBIS.radioVision;
   for (const i of world.grid.queryCircle(c.x, c.z, ZOMBIS.radioVision)) {
     const o = world.citizens[i];
-    if (o.salud === 'zombi' || o.salud === 'eliminado' || o.dentroDe >= 0) continue;
+    // 'caido' no es presa: un cuerpo inmóvil no retiene a un zombi hambriento
+    // (diseño §3.3: persiguen MOVIMIENTO). Evita el imán degenerado de agentes.
+    if (o.salud === 'zombi' || o.salud === 'eliminado' || o.salud === 'caido' || o.dentroDe >= 0) continue;
     const d2 = (o.x - c.x) ** 2 + (o.z - c.z) ** 2;
     if (d2 < mejorD2) {
       mejorD2 = d2;

@@ -7,6 +7,7 @@ const COLORES: Record<Salud, number> = {
   incubando: 0xffc46b,
   zombi: 0x8bff5a,
   eliminado: 0x8bff5a,
+  caido: 0xffffff, // placeholder; Task 2 lo estiliza de verdad
 };
 
 export class CitizensView {
