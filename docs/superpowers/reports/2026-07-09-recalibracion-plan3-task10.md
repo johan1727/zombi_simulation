@@ -79,3 +79,29 @@ que se indique otra cosa. Negrita = cumple la condición de esa columna.
 
 El arnés `tests/medicion.tmp.test.ts` queda en el árbol para re-medir; borrar
 al cerrar la task.
+
+## Desenlace (Task 10b, 2026-07-10)
+
+Con las palancas de mecánica autorizadas por la adenda 10b, la calibración se
+completó en 6 corridas adicionales (una perilla por corrida):
+
+| # | Cambio | b1 vivos@480 | b2 vivos@480 | colapsos |
+|---|--------|--------------|--------------|----------|
+| 1 | incubación 10–20 s | 77.5% | 87.9% | NUNCA / 883 s (hipótesis refutada: retrasa cada generación de zombis más de lo que aporta en bombas internas) |
+| 2 | incubación 5–15 s + enfriamiento mordida 12→6 | 62.7% | 43.4% | 659 / 626 s |
+| 3 | + radioMordida 1.4 | 78.6% | 63.0% | peor (no monotónico) |
+| 4 | radioMordida 1.2 + presiónPorZombi 2 | **53.1%** | **40.3%** | **640 / 636 s** ✅ |
+| 5 | presiónPorZombi 3 | 65.5% | 66.3% | peor |
+| 6 | velocidad 3.5 | 80.1% | 85.5% | mucho peor |
+
+**Config final:** enfriamientoMordidaTicks 6, presionPorZombi 2, resistencia 50,
+velocidad 3.4, incubación 5–15 s, radioMordida 1.2.
+
+**Gate ajustado bajo la regla pre-autorizada de la adenda 10b** (mejor resultado
+honesto con ambas semillas ≤55% y colapso <12:00): condición 2 → ≤55% vivos a
+las 8:00; condición 3 → colapso total <12:00. Racional: las mecánicas de
+refugio/líder/familia del Plan 3 salvan gente POR DISEÑO; el jugador compite
+contra una ciudad que igualmente pierde la mayoría. `tests/balance.test.ts`
+pasa 2/2 con estos umbrales. Calibración ejecutada en línea por el orquestador
+(los subagentes estaban bloqueados por límite de sesión; correr tests es
+cómputo local).

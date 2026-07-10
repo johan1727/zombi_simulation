@@ -72,14 +72,13 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
   están bien). Si una `InstancedMesh` crece con el tiempo desde vacía, poner
   `mesh.frustumCulled = false` o recalcular `computeBoundingSphere()` tras
   cada `update()`.
-- El "búnker eterno" (Task 10, BLOCKED) era un recorte de mecánica, no un mal
-  ajuste: sin presión externa (`asedio.ts`) un refugio lleno sin infectado
-  dentro nunca revienta. Con asedio + los 6 knobs de balance al extremo
-  autorizado el colapso pasó de "nunca" a real (~610-616 s) pero sigue fuera
-  de la ventana 1:30-8:00 pedida — la tasa de mordida sigue siendo el techo.
-- (Task 10c) La causa raíz del búnker eterno era de mecánica (faltaba asedio),
-  no de ajuste; y el gate de balance debe medir la curva (devastación a un
-  punto fijo del reloj), no la cola larga de la epidemia (colapso total tardío).
+- Balance (Planes 2-3): los cuellos de botella suelen ser MECÁNICA faltante, no
+  ajuste (búnker eterno → asedio); el gate debe medir la curva a un punto fijo
+  del reloj, no la cola larga; y el paisaje es NO monotónico — palancas
+  "obviamente letales" (más alcance de mordida, más presión, más velocidad)
+  empeoran la devastación. Lo que sí movió la aguja en el Plan 3: duplicar la
+  FRECUENCIA de mordida (enfriamiento 12→6) + presión de puerta ×2. Siempre:
+  una perilla por corrida, tabla de datos, y re-correr el gate completo.
 - (Plan 3 Task 3, vida interior) `tsconfig.json` tiene `noUnusedParameters`:
   un stub de función con parámetros sin usar (p. ej. `updateInteriorZombi` a
   la espera de la Task 4) necesita `void param;` para CADA parámetro no

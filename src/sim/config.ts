@@ -50,10 +50,10 @@ export const INFECCION = {
 } as const;
 
 export const ZOMBIS = {
-  velocidad: 3.8, // m/s persiguiendo (estilo Guerra Mundial Z)
+  velocidad: 3.4, // m/s persiguiendo (estilo Guerra Mundial Z)
   velocidadErrante: 0.9,
   radioVision: 15,
-  enfriamientoMordidaTicks: 12,
+  enfriamientoMordidaTicks: 6,
   probCambiarRumbo: 0.02, // por tick, errando sin presa
 } as const;
 
@@ -89,15 +89,14 @@ export const REFUGIO = {
 export const GRID_CELDA = 4; // m por celda de la rejilla espacial
 
 export const ASEDIO = {
-  radio: 10, // m alrededor del edificio donde los zombis presionan
   radioPuerta: 4, // m alrededor de la puerta donde los zombis presionan
-  presionPorZombi: 1, // presión por zombi por tick
+  presionPorZombi: 2, // presión por zombi por tick
   alivioPorTick: 2, // la presión decae sin zombis
   // ADVERTENCIA: valor de filo de navaja, NO monotónico (barrido Task 10c:
   // 108→425/373 vivos, 110→345/361, 111→491/309, 115→559/602). Cualquier
   // cambio aquí exige re-correr tests/balance.test.ts completo. Metodología
   // del barrido: docs/superpowers/reports/2026-07-06-balance-brote.md
-  resistencia: 110, // presión para brecha
+  resistencia: 50, // presión para brecha
   ruidoCadaTicks: 90, // los refugiados hacen ruido periódico
   ruidoRadio: 10,
   ruidoTicks: 30,

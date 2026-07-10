@@ -66,6 +66,8 @@ export class World {
   }
 
   peligroEn(x: number, z: number): number {
+    // Fuera del mapa devuelve el máximo A PROPÓSITO: en los cruces cercanos
+    // al borde, los caminantes prefieren girar hacia dentro de la ciudad.
     if (x < 0 || z < 0 || x >= CITY_WIDTH || z >= CITY_DEPTH) return PELIGRO.maximo;
     const cx = Math.floor(x / PELIGRO.celda);
     const cz = Math.floor(z / PELIGRO.celda);

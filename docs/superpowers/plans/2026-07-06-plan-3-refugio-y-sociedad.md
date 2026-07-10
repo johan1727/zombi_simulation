@@ -1,6 +1,6 @@
 # PANDEMIA — Plan 3 de 4: Refugio y Sociedad — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Interiores reales en los edificios jugables (paredes con puerta, escaleras, planta baja + piso 1 + azotea) con vista recortada estilo Project Zomboid; asedio físico a la puerta; y la sociedad viva: familias que se buscan, líderes que calman y guían, y memoria colectiva de zonas de muerte. Además: deuda de determinismo entre navegadores pagada (sin `Math.hypot/cos/sin` en la sim).
 
@@ -47,7 +47,7 @@ export const DIRECCIONES: ReadonlyArray<readonly [number, number]> = [
 ];
 ```
 
-- [ ] **Step 1: Test que falla — `tests/portabilidad.test.ts`** (hace ejecutable la prohibición)
+- [x] **Step 1: Test que falla — `tests/portabilidad.test.ts`** (hace ejecutable la prohibición)
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -73,9 +73,9 @@ describe('determinismo portable en src/sim', () => {
 });
 ```
 
-- [ ] **Step 2: Verificar que falla** — `npx vitest run tests/portabilidad.test.ts` → FAIL (zombis/panico/refugio usan hypot/cos/sin).
+- [x] **Step 2: Verificar que falla** — `npx vitest run tests/portabilidad.test.ts` → FAIL (zombis/panico/refugio usan hypot/cos/sin).
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 **(a)** Añadir `MARGEN_ACERA` y `DIRECCIONES` a `config.ts` (código de arriba).
 
@@ -113,9 +113,9 @@ describe('determinismo portable en src/sim', () => {
 
 **(h)** `CLAUDE.md`, sección Determinismo: añadir viñeta: `- PROHIBIDOS también en src/sim/: Math.hypot/cos/sin/tan/atan2 (no portables entre motores JS). Distancias con sqrt(dx*dx+dz*dz); direcciones desde la tabla DIRECCIONES de config. Lo vigila tests/portabilidad.test.ts.`
 
-- [ ] **Step 4: Verificar** — `npm test` → todo verde (el balance aparece como skipped); `npx tsc --noEmit` limpio.
+- [x] **Step 4: Verificar** — `npm test` → todo verde (el balance aparece como skipped); `npx tsc --noEmit` limpio.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -176,7 +176,7 @@ En `generateCity`, tras crear cada edificio jugable (consume 1 draw extra de `rn
 
 (Integrar limpio dentro del bucle existente: crear el objeto edificio primero en una variable, añadirle puerta/escalera si es jugable, y hacer un solo `buildings.push`.)
 
-- [ ] **Step 1: Test que falla — `tests/interiorGen.test.ts`**
+- [x] **Step 1: Test que falla — `tests/interiorGen.test.ts`**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -230,10 +230,10 @@ describe('interiores en la generación', () => {
 });
 ```
 
-- [ ] **Step 2: Verificar que falla** — FAIL (`puerta` undefined).
-- [ ] **Step 3: Implementar** (código de arriba en config + cityGen).
-- [ ] **Step 4: Verificar** — `npm test` verde (el hash de determinismo cambia de valor pero la igualdad gemela se mantiene); `npx tsc --noEmit` limpio.
-- [ ] **Step 5: Commit**
+- [x] **Step 2: Verificar que falla** — FAIL (`puerta` undefined).
+- [x] **Step 3: Implementar** (código de arriba en config + cityGen).
+- [x] **Step 4: Verificar** — `npm test` verde (el hash de determinismo cambia de valor pero la igualdad gemela se mantiene); `npx tsc --noEmit` limpio.
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/sim/config.ts src/sim/cityGen.ts tests/interiorGen.test.ts
@@ -265,7 +265,7 @@ git commit -m "feat: puertas y escaleras deterministas en los edificios jugables
 - Entra en pánico (ya venía así): va a la escalera (dirección hacia el centro del rect), sube hasta `pisoObjetivo = 1`; sin amenazas visibles, `animoTicks` corre y al calmarse se queda "escondido" (deambula lento por su piso con `rngCiudadanos`, cambia de rumbo con `chance(0.01)` usando `DIRECCIONES`).
 - La transformación dentro YA NO expulsa a nadie: el nuevo zombi queda dentro (la caza interior es la Task 4; mientras, su rama en `updateInterior` solo lo deja quieto).
 
-- [ ] **Step 1: Test que falla — `tests/interior.test.ts`**
+- [x] **Step 1: Test que falla — `tests/interior.test.ts`**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -357,9 +357,9 @@ describe('vida interior', () => {
 });
 ```
 
-- [ ] **Step 2: Verificar que falla** — FAIL (interior.ts no existe).
+- [x] **Step 2: Verificar que falla** — FAIL (interior.ts no existe).
 
-- [ ] **Step 3: Implementar `src/sim/interior.ts`**
+- [x] **Step 3: Implementar `src/sim/interior.ts`**
 
 ```ts
 import type { Building } from './cityGen';
@@ -602,9 +602,9 @@ describe('refugio por la puerta', () => {
 });
 ```
 
-- [ ] **Step 4: Verificar** — `npm test` verde (con `asedio.test.ts` posiblemente afectado: el asedio de la Task 5 de Plan 2 sigue llamando a `romperEdificio`… que ya no existe → ACTUALIZAR TAMBIÉN `src/sim/asedio.ts` MÍNIMAMENTE en esta task: sustituir `romperEdificio(world, b.id)` por `world.brecha[b.id] = true;` + el ruido/splat que ya hacía romperEdificio en la puerta — la física completa llega en la Task 5 — y ajustar `tests/asedio.test.ts` quitando las aserciones de expulsión: el test "cinco zombis..." pasa a esperar solo `brecha === true`). `npx tsc --noEmit` limpio.
+- [x] **Step 4: Verificar** — `npm test` verde (con `asedio.test.ts` posiblemente afectado: el asedio de la Task 5 de Plan 2 sigue llamando a `romperEdificio`… que ya no existe → ACTUALIZAR TAMBIÉN `src/sim/asedio.ts` MÍNIMAMENTE en esta task: sustituir `romperEdificio(world, b.id)` por `world.brecha[b.id] = true;` + el ruido/splat que ya hacía romperEdificio en la puerta — la física completa llega en la Task 5 — y ajustar `tests/asedio.test.ts` quitando las aserciones de expulsión: el test "cinco zombis..." pasa a esperar solo `brecha === true`). `npx tsc --noEmit` limpio.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -627,7 +627,7 @@ git commit -m "feat: vida interior — pisos, puerta, escaleras y refugio fisico
   - **azotea con zombi** → huir del zombi dentro del rect (dir opuesta), sin salida — la última resistencia.
 - `updateInteriorZombi` completo: presa = humano más cercano de MI edificio y MI piso (iterando `world.dentroPorEdificio[b.id]` en orden); la persigue a `ZOMBIS.velocidad * 0.8` (pasillos estrechos) con `moverInterior` y muerde igual que fuera (`infectar` + grito con `radioGrito / 2` — las paredes amortiguan). Sin presa en mi piso pero humanos en otro → a la escalera con `pisoObjetivo` hacia el piso MÁS CERCANO con humanos (empate: el de abajo). Edificio sin humanos → si `piso === 0`, salir por la puerta (dir a la puerta); si no, bajar.
 
-- [ ] **Step 1: Test que falla — `tests/cazaInterior.test.ts`**
+- [x] **Step 1: Test que falla — `tests/cazaInterior.test.ts`**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -689,9 +689,9 @@ describe('caza interior', () => {
 });
 ```
 
-- [ ] **Step 2: Verificar que falla** — FAIL (el zombi interior hoy no hace nada).
+- [x] **Step 2: Verificar que falla** — FAIL (el zombi interior hoy no hace nada).
 
-- [ ] **Step 3: Implementar** — reemplazar en `src/sim/interior.ts` la rama humana de percepción y `updateInteriorZombi`:
+- [x] **Step 3: Implementar** — reemplazar en `src/sim/interior.ts` la rama humana de percepción y `updateInteriorZombi`:
 
 En `updateInterior`, justo después de obtener `b` y antes de la rama zombi/escalera, añadir percepción humana:
 
@@ -800,8 +800,8 @@ function updateInteriorZombi(c: Citizen, world: World, b: Building): void {
 
 (Importar `infectar` de `./infeccion` — igual que zombis.ts, sin ciclo runtime problemático porque infeccion ya no importa refugio.)
 
-- [ ] **Step 4: Verificar** — `npm test` verde; tsc limpio.
-- [ ] **Step 5: Commit**
+- [x] **Step 4: Verificar** — `npm test` verde; tsc limpio.
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/sim/interior.ts src/sim/config.ts tests/cazaInterior.test.ts
@@ -821,7 +821,7 @@ git commit -m "feat: caza interior piso por piso, huida por la puerta y ultima r
 - `asedio.ts`: la presión se mide en un círculo alrededor de la PUERTA (no del centro); el ruido periódico de los refugiados también suena en la puerta; al superar `resistencia`: `brecha = true` (puerta rota) + ruido doble + splat en la puerta. **Nada de expulsiones**: ahora la brecha significa que los zombis PUEDEN ENTRAR.
 - `zombis.ts` (exterior): tras el movimiento, si el zombi NO tiene presa a la vista, probar entrar: iterar los 4 bloques candidatos (mismo patrón que `intentarRefugio`); si hay jugable con `brecha`, con humanos dentro (`world.ocupantes[b.id] > 0`) y la puerta a ≤2 m → entra (`dentroDe = b.id`, `piso = 0`, posición 1.2 m hacia dentro con `NORMAL_INTERIOR`, prev reset).
 
-- [ ] **Step 1: Reescribir `tests/asedio.test.ts` (test que falla)**
+- [x] **Step 1: Reescribir `tests/asedio.test.ts` (test que falla)**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -895,9 +895,9 @@ describe('asedio físico a la puerta', () => {
 });
 ```
 
-- [ ] **Step 2: Verificar que falla** — FAIL (presión aún en el centro; zombis no entran).
+- [x] **Step 2: Verificar que falla** — FAIL (presión aún en el centro; zombis no entran).
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 **(a)** Reemplazar `src/sim/asedio.ts` completo:
 
@@ -971,8 +971,8 @@ export function resolverAsedios(world: World): void {
 
 (Imports nuevos en zombis.ts: `CITY`, `CITY_PERIOD` de config y `NORMAL_INTERIOR` de `./interior`.)
 
-- [ ] **Step 4: Verificar** — `npm test` verde; tsc limpio; grep de portabilidad verde.
-- [ ] **Step 5: Commit**
+- [x] **Step 4: Verificar** — `npm test` verde; tsc limpio; grep de portabilidad verde.
+- [x] **Step 5: Commit**
 
 ```bash
 git add -A
@@ -993,7 +993,7 @@ git commit -m "feat: asedio fisico a la puerta — al romperse, los zombis entra
 - `CityView`: el InstancedMesh y `updateOcclusion` pasan a operar SOLO sobre edificios `fondo` (los jugables ya no son cajas).
 - `CitizensView.update`: `y = 0.85 + c.piso * INTERIOR.alturaPiso`; los de dentro SÍ se dibujan (el techo/paredes los ocultan naturalmente por profundidad); solo `eliminado` se esconde.
 
-- [ ] **Step 1: Implementar `src/render/jugablesView.ts`**
+- [x] **Step 1: Implementar `src/render/jugablesView.ts`**
 
 ```ts
 import * as THREE from 'three';
@@ -1113,20 +1113,20 @@ export class JugablesView {
 }
 ```
 
-- [ ] **Step 2: `src/render/cityView.ts`** — cambiar el constructor y `updateOcclusion` para operar solo sobre `fondo`: guardar `private readonly fondos: Building[]` (filtrado del city), crear el `InstancedMesh` con `fondos.length`, indexar matrices/colores/aplanado por posición en `fondos` (ya no por `buildings`). El color jugable y su rama desaparecen de esta clase.
+- [x] **Step 2: `src/render/cityView.ts`** — cambiar el constructor y `updateOcclusion` para operar solo sobre `fondo`: guardar `private readonly fondos: Building[]` (filtrado del city), crear el `InstancedMesh` con `fondos.length`, indexar matrices/colores/aplanado por posición en `fondos` (ya no por `buildings`). El color jugable y su rama desaparecen de esta clase.
 
-- [ ] **Step 3: `src/render/citizensView.ts`** — en `update`: `const oculto = c.salud === 'eliminado';` (los de dentro ya no se esconden) y la posición: `this.dummy.position.set(x, 0.85 + c.piso * INTERIOR.alturaPiso, z);` (importar `INTERIOR` de `../sim/config`).
+- [x] **Step 3: `src/render/citizensView.ts`** — en `update`: `const oculto = c.salud === 'eliminado';` (los de dentro ya no se esconden) y la posición: `this.dummy.position.set(x, 0.85 + c.piso * INTERIOR.alturaPiso, z);` (importar `INTERIOR` de `../sim/config`).
 
-- [ ] **Step 4: `src/game/main.ts`** — crear `const jugablesView = new JugablesView(scene, world.city);` tras `cityView`, y en el bucle de render, después de `updateOcclusion`: `jugablesView.update(world, foco.x, foco.z);`
+- [x] **Step 4: `src/game/main.ts`** — crear `const jugablesView = new JugablesView(scene, world.city);` tras `cityView`, y en el bucle de render, después de `updateOcclusion`: `jugablesView.update(world, foco.x, foco.z);`
 
-- [ ] **Step 5: Verificar en navegador** — `npx tsc --noEmit` limpio; `npm test` verde; `npm run dev`:
+- [x] **Step 5: Verificar en navegador** — `npx tsc --noEmit` limpio; `npm test` verde; `npm run dev`:
 - Los jugables se ven como edificios de 2 pisos con techo y hueco de puerta visible.
 - Acercar el foco a un jugable con gente dentro: techo y paredes oeste/norte desaparecen y se ve el interior con personas en planta baja y piso 1 (a distinta altura).
 - Si hay gente en la azotea, el techo se queda (están parados encima).
 - Un asedio completo visible: zombis apiñados en la puerta → splat → entran → la gente sube → drama en la azotea.
 - Consola limpia. Detener el servidor.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/render src/game/main.ts
@@ -1148,7 +1148,7 @@ git commit -m "feat: interiores visibles con vista recortada estilo Project Zomb
   - **Tranquilo, seguidor** (`cabezaFamilia !== c.id`): si la cabeza está viva, fuera y a >3 m → paso directo hacia ella con `moveWithSlide` a `walkSpeed` (la familia camina en grupito); si no, camina normal.
   - **Pánico, protector**: si tiene un familiar vivo fuera a entre 4 y 30 m y ningún zombi a <6 m → la dirección de huida se REEMPLAZA por "hacia el familiar" (el padre que vuelve). El resto de personalidades huye normal.
 
-- [ ] **Step 1: Test que falla — `tests/familias.test.ts`**
+- [x] **Step 1: Test que falla — `tests/familias.test.ts`**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -1215,9 +1215,9 @@ describe('familias', () => {
 });
 ```
 
-- [ ] **Step 2: Verificar que falla** — FAIL (`familia` no existe).
+- [x] **Step 2: Verificar que falla** — FAIL (`familia` no existe).
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 **(a)** `types.ts`: añadir a `Citizen`: `familia: number; cabezaFamilia: number; familiares: number[];`
 
@@ -1355,8 +1355,8 @@ export function spawnCitizens(rng: Rng, count: number): Citizen[] {
     }
 ```
 
-- [ ] **Step 4: Verificar** — `npm test` verde; tsc limpio.
-- [ ] **Step 5: Commit**
+- [x] **Step 4: Verificar** — `npm test` verde; tsc limpio.
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/sim tests/familias.test.ts
@@ -1379,7 +1379,7 @@ git commit -m "feat: familias que nacen, caminan y se buscan juntas; el protecto
   - **Pánico sin zombis a la vista y líder cerca:** la dirección de huida pasa a ser "hacia el líder" (lo siguen).
   - **El líder guía:** si es `lider`, tranquilo, fuera, con `panicosCerca >= panicosParaGuiar`: busca la puerta utilizable más cercana (jugable, sin brecha, con cupo, a ≤`alcanceGuia`); avanza hacia ella con `moveWithSlide` a `walkSpeed` e intenta `intentarRefugio` (el líder entra aunque esté tranquilo — es el único con permiso); si no hay puerta, sigue normal.
 
-- [ ] **Step 1: Test que falla — `tests/lider.test.ts`**
+- [x] **Step 1: Test que falla — `tests/lider.test.ts`**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -1433,10 +1433,10 @@ describe('líder', () => {
 });
 ```
 
-- [ ] **Step 2: Verificar que falla.**
-- [ ] **Step 3: Implementar** en `panico.ts`: extender el bucle de vecinos (donde ya filtra zombis, añadir rama `else` que detecte líder y pánicos con salud/dentro válidos); aplicar el factor a la probabilidad de contagio (`PROB_PANICO_POR_GRITO[c.personality] * (liderCerca ? LIDER.factorCalma : 1)`); el umbral efectivo de calma (`const umbralCalma = liderCerca ? PANICO.ticksCalmarse / LIDER.divisorCalmarse : PANICO.ticksCalmarse;`); en pánico con `n === 0` y `liderCerca`, fijar dir hacia el líder detectado (guardar su referencia en el bucle); y el bloque de guía del líder al inicio de la rama tranquila (antes de la cohesión familiar) con búsqueda lineal de puertas sobre `world.city.buildings` (orden de índice, determinista). Importar `LIDER` e `intentarRefugio`.
-- [ ] **Step 4: Verificar** — `npm test` verde; tsc limpio.
-- [ ] **Step 5: Commit**
+- [x] **Step 2: Verificar que falla.**
+- [x] **Step 3: Implementar** en `panico.ts`: extender el bucle de vecinos (donde ya filtra zombis, añadir rama `else` que detecte líder y pánicos con salud/dentro válidos); aplicar el factor a la probabilidad de contagio (`PROB_PANICO_POR_GRITO[c.personality] * (liderCerca ? LIDER.factorCalma : 1)`); el umbral efectivo de calma (`const umbralCalma = liderCerca ? PANICO.ticksCalmarse / LIDER.divisorCalmarse : PANICO.ticksCalmarse;`); en pánico con `n === 0` y `liderCerca`, fijar dir hacia el líder detectado (guardar su referencia en el bucle); y el bloque de guía del líder al inicio de la rama tranquila (antes de la cohesión familiar) con búsqueda lineal de puertas sobre `world.city.buildings` (orden de índice, determinista). Importar `LIDER` e `intentarRefugio`.
+- [x] **Step 4: Verificar** — `npm test` verde; tsc limpio.
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/sim tests/lider.test.ts
@@ -1457,7 +1457,7 @@ git commit -m "feat: el lider calma el panico cercano y guia a la gente al refug
 - Los tres registradores llaman `world.registrarPeligro(x, z)` justo donde ya empujan su splat (transformación, combate, brecha).
 - `citizens.ts`: `updateCitizen(c, rng, factorVelocidad = 1, peligroEn?: (x: number, z: number) => number)` — en la decisión de cruce, ANTES del giro aleatorio: si `peligroEn` existe, evalúa el peligro una manzana adelante para [seguir, girar-A, girar-B]; si alguna alternativa es al menos 20 puntos más segura que seguir, gira hacia la más segura (sin consumir el draw del sentido aleatorio); si no, la lógica original intacta (mismos draws). El draw de `chance(CRUCE_GIRO)` se consume SIEMPRE como hasta ahora (estabilidad de conteo).
 
-- [ ] **Step 1: Test que falla — `tests/memoria.test.ts`**
+- [x] **Step 1: Test que falla — `tests/memoria.test.ts`**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -1509,9 +1509,9 @@ describe('memoria colectiva de peligro', () => {
 });
 ```
 
-- [ ] **Step 2: Verificar que falla.**
+- [x] **Step 2: Verificar que falla.**
 
-- [ ] **Step 3: Implementar**
+- [x] **Step 3: Implementar**
 
 **(a)** `world.ts`:
 
@@ -1586,8 +1586,8 @@ y el bloque del cruce:
 
 (El draw de `chance(CRUCE_GIRO)` se consume siempre, como antes; el del sentido solo cuando el giro es aleatorio — conteo dependiente de estado, determinista.)
 
-- [ ] **Step 4: Verificar** — `npm test` verde; tsc limpio; portabilidad verde.
-- [ ] **Step 5: Commit**
+- [x] **Step 4: Verificar** — `npm test` verde; tsc limpio; portabilidad verde.
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/sim tests/memoria.test.ts
@@ -1603,10 +1603,10 @@ git commit -m "feat: memoria colectiva de zonas de muerte — las multitudes apr
 
 Interiores + asedio físico + familias + líder + memoria mueven el balance con seguridad. Esta tarea lo recalibra con la metodología documentada en `docs/superpowers/reports/2026-07-06-balance-brote.md`.
 
-- [ ] **Step 1:** Quitar `describe.skip` → `describe` en `tests/balance.test.ts` (las tres condiciones y umbrales NO se tocan: ≥60% a 1:30, ≤47% a 8:00, colapso <15:00).
-- [ ] **Step 2:** `npx vitest run tests/balance.test.ts` con la config actual. Si pasa: no tocar nada. Si falla: ajustar UN valor a la vez, documentando (valor → vivos@90 / vivos@480 / colapso), con estas perillas: `ASEDIO.resistencia` (50–600, recordar el filo de navaja), `ASEDIO.radioPuerta` (3–6), `ZOMBIS.velocidad` (3.0–3.8), `ZOMBIS.radioVision` (15–25), `PANICO.velocidadHuida` (2.5–3.1), `INTERIOR_VISION` (8–16), `REFUGIO.capacidad` (20–60), `LIDER.factorCalma` (0.3–0.8). Si tras ~15 intentos razonados no se alcanza: BLOCKED con la tabla (el orquestador decide) — nunca fabricar el resultado.
-- [ ] **Step 3: Verificación completa** — `npm test` TODO verde (incluido balance); `npx tsc --noEmit`; `tests/portabilidad.test.ts` verde (es parte de la suite); navegador ~2 min: brote completo visible, cutaway funcionando, asedio a puertas visible, FPS estable, consola limpia, `?seed=alfa` reproducible entre recargas.
-- [ ] **Step 4: Cierre** — Lección(es) condensada(s) en CLAUDE.md (máx. 2 líneas c/u; si la lista pasa de ~10, fusionar las viejas). Marcar TODOS los checkboxes de este plan (usar Edit o `sed` de Git Bash — PowerShell `Set-Content` corrompe UTF-8). Commit `chore: refugio y sociedad verificados (Plan 3 completo)` y `git push -u origin fase-3-refugio-sociedad`. Avisar que el Plan 3 está listo para la revisión final de rama.
+- [x] **Step 1:** Quitar `describe.skip` → `describe` en `tests/balance.test.ts` (las tres condiciones y umbrales NO se tocan: ≥60% a 1:30, ≤47% a 8:00, colapso <15:00).
+- [x] **Step 2:** `npx vitest run tests/balance.test.ts` con la config actual. Si pasa: no tocar nada. Si falla: ajustar UN valor a la vez, documentando (valor → vivos@90 / vivos@480 / colapso), con estas perillas: `ASEDIO.resistencia` (50–600, recordar el filo de navaja), `ASEDIO.radioPuerta` (3–6), `ZOMBIS.velocidad` (3.0–3.8), `ZOMBIS.radioVision` (15–25), `PANICO.velocidadHuida` (2.5–3.1), `INTERIOR_VISION` (8–16), `REFUGIO.capacidad` (20–60), `LIDER.factorCalma` (0.3–0.8). Si tras ~15 intentos razonados no se alcanza: BLOCKED con la tabla (el orquestador decide) — nunca fabricar el resultado.
+- [x] **Step 3: Verificación completa** — `npm test` TODO verde (incluido balance); `npx tsc --noEmit`; `tests/portabilidad.test.ts` verde (es parte de la suite); navegador ~2 min: brote completo visible, cutaway funcionando, asedio a puertas visible, FPS estable, consola limpia, `?seed=alfa` reproducible entre recargas.
+- [x] **Step 4: Cierre** — Lección(es) condensada(s) en CLAUDE.md (máx. 2 líneas c/u; si la lista pasa de ~10, fusionar las viejas). Marcar TODOS los checkboxes de este plan (usar Edit o `sed` de Git Bash — PowerShell `Set-Content` corrompe UTF-8). Commit `chore: refugio y sociedad verificados (Plan 3 completo)` y `git push -u origin fase-3-refugio-sociedad`. Avisar que el Plan 3 está listo para la revisión final de rama.
 
 ---
 
