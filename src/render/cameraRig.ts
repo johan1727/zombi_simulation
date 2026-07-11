@@ -22,6 +22,8 @@ export class CameraRig {
   private dragging = false;
   private last = { x: 0, y: 0 };
   private pointer = { x: -1, y: -1 };
+  /** true solo si el último pointermove cayó sobre el canvas (no sobre un panel de la interfaz). */
+  private sobreCanvas = false;
   private readonly bounds: { w: number; d: number };
 
   private modo: 'director' | 'tercera' = 'director';
@@ -57,6 +59,10 @@ export class CameraRig {
     });
     window.addEventListener('pointermove', (e) => {
       this.pointer = { x: e.clientX, y: e.clientY };
+      // El panel de agentes vive al pie de la pantalla, justo en la banda de
+      // paneo por borde: sin esto, acercar el ratón a un botón de habilidad
+      // arrastraba la cámara sola (hallazgo de juego, feedback directo).
+      this.sobreCanvas = e.target === canvas;
       if (!this.dragging) return;
       const escala = (this.dist / window.innerHeight) * 1.6;
       // Convención "agarrar la cámara": arrastrar a la derecha mira a la derecha.
@@ -141,8 +147,10 @@ export class CameraRig {
   }
 
   update(): void {
-    // Paneo por bordes (solo si el puntero ya entró a la ventana y no se arrastra).
-    if (!this.dragging && this.pointer.x >= 0) {
+    // Paneo por bordes: solo si el puntero está sobre el canvas (no sobre un
+    // panel de la interfaz, p. ej. el panel de agentes al pie de pantalla,
+    // que vive justo en la banda de borde) y no se está arrastrando.
+    if (!this.dragging && this.sobreCanvas) {
       const s = EDGE_SPEED * (this.dist / 60);
       if (this.pointer.x < EDGE_PX) this.panScreen(-s, 0);
       else if (this.pointer.x > window.innerWidth - EDGE_PX) this.panScreen(s, 0);
