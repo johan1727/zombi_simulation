@@ -19,11 +19,17 @@ export function createStepper(tick: () => void): (elapsedSeconds: number) => num
 export function startLoop(
   world: World,
   render: (alpha: number) => void,
-  onTick?: () => void
+  onTick?: () => void,
+  /** Si devuelve false, el tick se salta (sim congelada); el render sigue. */
+  debeSeguir?: () => boolean,
+  /** Se llama justo después de world.tick() (p. ej. Partida.update). */
+  afterTick?: () => void
 ): void {
   const step = createStepper(() => {
+    if (debeSeguir && !debeSeguir()) return;
     onTick?.();
     world.tick();
+    afterTick?.();
   });
   let last = performance.now();
   const frame = (now: number): void => {

@@ -10,6 +10,7 @@ import { Hud } from '../ui/hud';
 import { Controles } from './controles';
 import { PanelAgentes } from '../ui/panelAgentes';
 import { Posesion } from './posesion';
+import { Partida } from './partida';
 
 const canvas = document.getElementById('app') as HTMLCanvasElement;
 
@@ -41,6 +42,7 @@ const controles = new Controles(canvas, rig.camera, world, {
   estaPoseido: () => posesion.activo,
 });
 const panelAgentes = new PanelAgentes(world, controles);
+const partida = new Partida();
 
 window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -55,7 +57,7 @@ const frame = (alpha: number): void => {
   jugablesView.update(world, foco.x, foco.z);
   citizensView.update(world.citizens, alpha, controles.seleccionado);
   splatsView.update(world.splats);
-  hud.update(world);
+  hud.update(world, partida);
   panelAgentes.update(world, controles.seleccionado);
   renderer.render(scene, rig.camera);
 };
@@ -64,19 +66,29 @@ const frame = (alpha: number): void => {
 // las herramientas de preview tickear el mundo y renderizar un frame a mano
 // (la pestaña oculta congela requestAnimationFrame — limitación conocida).
 // `tick()` incluye lo que en el bucle real hace `onTick` (posesion.alTick())
-// justo antes de `world.tick()`, para que el WASD emulado en consola funcione.
+// justo antes de `world.tick()`, más `partida.update()` justo después, para
+// que el WASD emulado en consola funcione Y el reloj/fin de partida avancen.
 if (import.meta.env.DEV) {
   (window as unknown as { pandemia: unknown }).pandemia = {
     world,
     controles,
     posesion,
     rig,
+    partida,
     frame,
     tick: () => {
+      if (partida.estado === 'terminada') return;
       posesion.alTick();
       world.tick();
+      partida.update(world);
     },
   };
 }
 
-startLoop(world, frame, () => posesion.alTick());
+startLoop(
+  world,
+  frame,
+  () => posesion.alTick(),
+  () => partida.estado !== 'terminada',
+  () => partida.update(world)
+);

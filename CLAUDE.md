@@ -98,3 +98,9 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
   'zombi') { ...; return; }` no compila: TS ya estrechó el tipo y descarta la
   comparación como imposible (TS2367). Si un brief trae ese patrón literal,
   quitar el `if` redundante (el cuerpo ya solo se alcanza para no-zombis).
+- (Plan 4 Task 4, fin de partida) `startLoop` (`src/game/loop.ts`) tenía
+  `world.tick()` cableado dentro del stepper sin punto de corte: para congelar
+  la sim sin tocar el render (reloj a 0:00), se le añadieron `debeSeguir?` (se
+  chequea ANTES del tick) y `afterTick?` (se llama justo DESPUÉS, para que
+  `Partida.update` vea el `tickCount` recién actualizado y no dispare un tick
+  extra por condición de carrera de un tick de retraso).

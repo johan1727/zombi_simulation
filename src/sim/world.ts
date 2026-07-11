@@ -113,6 +113,17 @@ export class World {
     return { vivos, zombis };
   }
 
+  /** Índice de Ciudad: % vivos (0-100) + 1 punto por refugio jugable sin brecha. */
+  get indiceCiudad(): number {
+    const total = this.citizens.length;
+    const { vivos } = this.stats;
+    let intactos = 0;
+    for (const b of this.city.buildings) {
+      if (b.kind === 'jugable' && !this.brecha[b.id]) intactos++;
+    }
+    return Math.round((vivos / total) * 100) + intactos;
+  }
+
   tick(): void {
     for (const o of this.colaOrdenes) aplicarOrden(o, this);
     this.colaOrdenes.length = 0;
