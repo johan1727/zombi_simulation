@@ -113,6 +113,11 @@ export class World {
     return { vivos, zombis };
   }
 
+  /** % de la población original con vida (0-100), sin el bono de refugios. */
+  get vivosPct(): number {
+    return (this.stats.vivos / this.citizens.length) * 100;
+  }
+
   /** Índice de Ciudad: % vivos (0-100) + 1 punto por refugio jugable sin brecha. */
   get indiceCiudad(): number {
     const total = this.citizens.length;

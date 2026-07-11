@@ -15,6 +15,23 @@
       }
       #app.modo-habilidad { cursor: crosshair; }
       .hud-reloj-rojo { color: #ff5a5a; font-weight: 700; }
+      #marcador-rival {
+        position: fixed; top: 12px; right: 12px; z-index: 10;
+        color: #eaf2ff; font-family: system-ui, sans-serif; font-size: 14px;
+        font-weight: 600; background: rgba(13, 15, 20, 0.65);
+        padding: 8px 12px; border-radius: 8px;
+        user-select: none; pointer-events: none;
+      }
+      .marcador-arriba { color: #6fe08a; }
+      .marcador-abajo { color: #ff5a5a; }
+      #aviso-rival {
+        position: fixed; top: 56px; right: 12px; z-index: 10;
+        color: #eaf2ff; font-family: system-ui, sans-serif; font-size: 13px;
+        background: rgba(120, 20, 20, 0.75); padding: 6px 10px; border-radius: 8px;
+        user-select: none; pointer-events: none;
+        opacity: 0; transition: opacity 400ms ease-out;
+      }
+      #aviso-rival.activo { opacity: 1; }
       #flash-caida {
         position: fixed; inset: 0; z-index: 20; pointer-events: none;
         background: rgba(220, 40, 40, 0.45); opacity: 0;
@@ -62,6 +79,8 @@
   <body>
     <canvas id="app"></canvas>
     <div id="hud">Cargando…</div>
+    <div id="marcador-rival"></div>
+    <div id="aviso-rival"></div>
     <div id="panel-agentes"></div>
     <div id="flash-caida"></div>
     <script type="module" src="/src/game/main.ts"></script>
