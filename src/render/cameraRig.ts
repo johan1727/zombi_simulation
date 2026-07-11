@@ -65,11 +65,15 @@ export class CameraRig {
       this.sobreCanvas = e.target === canvas;
       if (!this.dragging) return;
       const escala = (this.dist / window.innerHeight) * 1.6;
-      // Convención "agarrar la cámara": arrastrar a la derecha mira a la derecha.
-      // (La convención anterior de "agarrar el suelo" se sentía invertida al jugar.)
+      // Convención "agarrar el suelo": el terreno sigue a la mano en los DOS
+      // ejes (arrastrar a la derecha mueve el contenido a la derecha en
+      // pantalla, arrastrar hacia arriba lo mueve hacia arriba). El eje
+      // vertical estaba en la convención opuesta a la horizontal — se sentía
+      // "raro"/inconsistente al jugar (feedback directo). Signo de upAmt
+      // invertido para que ambos ejes usen la misma convención.
       this.panScreen(
         (e.clientX - this.last.x) * escala,
-        (this.last.y - e.clientY) * escala
+        (e.clientY - this.last.y) * escala
       );
       this.last = { x: e.clientX, y: e.clientY };
     });
