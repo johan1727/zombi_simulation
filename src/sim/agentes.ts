@@ -112,6 +112,11 @@ function actuarParamedico(a: Citizen, world: World): void {
   if (caido) {
     caido.salud = 'sano';
     caido.caidoTicks = 0;
+    // El rescate sana al agente pero no la herida: cerrar la ventana de
+    // amputación (si no, queda abierta para siempre — actualizarIncubacion
+    // solo decrementa para 'incubando', y un agente nunca pasa por ahí).
+    caido.zonaHerida = '';
+    caido.ventanaAmputarTicks = 0;
     world.hitos.push({ tick: world.tickCount, tipo: 'rescate', a: a.id, b: caido.id });
   } else {
     for (const i of world.grid.queryCircle(a.x, a.z, PARAMEDICO.radioDiagnostico)) {
