@@ -12,6 +12,7 @@ import { PanelAgentes } from '../ui/panelAgentes';
 import { Posesion } from './posesion';
 import { Partida } from './partida';
 import { Rival } from './rival';
+import { Resultado } from '../ui/resultado';
 
 const canvas = document.getElementById('app') as HTMLCanvasElement;
 
@@ -47,6 +48,7 @@ const partida = new Partida();
 // El rival fantasma: MISMA semilla, sin órdenes, tickeado 1:1 junto al mundo
 // del jugador (ver afterTick de startLoop más abajo).
 const rival = new Rival(seed);
+const resultado = new Resultado(world, partida, rival);
 
 window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -63,6 +65,7 @@ const frame = (alpha: number): void => {
   splatsView.update(world.splats);
   hud.update(world, partida, rival);
   panelAgentes.update(world, controles.seleccionado);
+  resultado.update();
   renderer.render(scene, rig.camera);
 };
 
@@ -81,6 +84,7 @@ if (import.meta.env.DEV) {
     rig,
     partida,
     rival,
+    resultado,
     frame,
     tick: () => {
       if (partida.estado === 'terminada') return;

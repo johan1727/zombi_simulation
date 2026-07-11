@@ -2,7 +2,7 @@ import type { World } from '../sim/world';
 import { TICK_RATE } from '../sim/config';
 
 /** Umbral de colapso: menos del 10% de la población original con vida. */
-const UMBRAL_COLAPSO = 0.1;
+export const UMBRAL_COLAPSO = 0.1;
 
 /** Cada cuántos ticks se muestrea la curva propia (5 s a 30 tps) — igual que Rival. */
 const INTERVALO_MUESTRA = 150;

@@ -24,7 +24,15 @@ export interface OrdenJugador {
 export interface Hito {
   tick: number;
   tipo: 'disparo' | 'rescate' | 'megafono' | 'refuerzo' | 'caida_agente' | 'brecha' | 'transformacion_cabeza';
-  a: number; // índice del protagonista
+  /**
+   * índice del protagonista. CASO ESPECIAL 'brecha': no hay protagonista
+   * (siempre viene de un edificio), así que aquí se reaprovecha para guardar
+   * los OCUPANTES humanos que había dentro en el instante de la brecha
+   * (`world.ocupantes[b]` en ese tick) — historias.ts lo necesita para
+   * dramatizar y ese dato no sobrevive al tick siguiente (los ocupantes
+   * huyen o mueren). Ver src/sim/asedio.ts.
+   */
+  a: number;
   b: number; // índice/edificio secundario, -1 si no aplica
 }
 

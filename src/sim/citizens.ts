@@ -3,7 +3,7 @@ import type { Citizen, Personality } from './types';
 import { corridorCenter, corridorIndexAt } from './cityGen';
 import { CITY, CITY_WIDTH, CITY_DEPTH, CITY_PERIOD, CITIZENS, DT, TICK_RATE } from './config';
 
-const NOMBRES = [
+export const NOMBRES = [
   'María', 'José', 'Carmen', 'Luis', 'Ana', 'Miguel', 'Sofía', 'Carlos',
   'Elena', 'Diego', 'Lucía', 'Marcos', 'Valeria', 'Andrés', 'Paula', 'Jorge',
   'Rosa', 'Iván', 'Clara', 'Óscar', 'Nadia', 'Pedro', 'Irene', 'Tomás',

@@ -63,10 +63,10 @@ export class World {
     // 4 agentes deterministas, DISPERSOS en cuatro cruces del centro: evita
     // el imán degenerado de un cúmulo inmóvil y que una sola horda barra al
     // equipo entero (decisión de diseño, resolución del bloqueo de la Task 1).
-    this.citizens.push(crearAgente('policia', corridorCenter(2), corridorCenter(3), this.citizens.length));
-    this.citizens.push(crearAgente('paramedico', corridorCenter(4), corridorCenter(3), this.citizens.length));
-    this.citizens.push(crearAgente('megafono', corridorCenter(2), corridorCenter(5), this.citizens.length));
-    this.citizens.push(crearAgente('obrero', corridorCenter(4), corridorCenter(5), this.citizens.length));
+    this.citizens.push(crearAgente('policia', corridorCenter(2), corridorCenter(3), this.citizens.length, this.rngAgentes));
+    this.citizens.push(crearAgente('paramedico', corridorCenter(4), corridorCenter(3), this.citizens.length, this.rngAgentes));
+    this.citizens.push(crearAgente('megafono', corridorCenter(2), corridorCenter(5), this.citizens.length, this.rngAgentes));
+    this.citizens.push(crearAgente('obrero', corridorCenter(4), corridorCenter(5), this.citizens.length, this.rngAgentes));
     this.ocupantes = this.city.buildings.map(() => 0);
     this.brecha = this.city.buildings.map(() => false);
     this.presion = this.city.buildings.map(() => 0);

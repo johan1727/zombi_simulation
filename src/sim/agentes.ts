@@ -1,20 +1,21 @@
 import type { Citizen, OrdenJugador, RolAgente } from './types';
 import type { World } from './world';
+import type { Rng } from './rng';
 import { AGENTES, DT, MEGAFONO, OBRERO, PARAMEDICO, POLICIA, PANICO, CITY, CITY_PERIOD } from './config';
 import { moveWithSlide } from './collision';
+import { NOMBRES } from './citizens';
 
-const NOMBRES_ROL: Record<Exclude<RolAgente, ''>, string> = {
-  policia: 'Policía',
-  paramedico: 'Paramédico',
-  megafono: 'Megáfono',
-  obrero: 'Obrero',
-};
-
-/** Crea un agente del jugador: sano, sin familia, plantado en (x, z). */
-export function crearAgente(rol: Exclude<RolAgente, ''>, x: number, z: number, id: number): Citizen {
+/**
+ * Crea un agente del jugador: sano, sin familia, plantado en (x, z).
+ * `rng` (SIEMPRE `world.rngAgentes`, ver Task 1) le da un nombre PROPIO real
+ * — el rol (policía, paramédico...) ya vive aparte en `rolAgente` y lo
+ * muestra el panel; `name` es para que las historias (T6, src/ui/historias.ts)
+ * puedan decir «el policía Marcos cayó…» en vez de «el policía Policía».
+ */
+export function crearAgente(rol: Exclude<RolAgente, ''>, x: number, z: number, id: number, rng: Rng): Citizen {
   return {
     id,
-    name: NOMBRES_ROL[rol],
+    name: rng.pick(NOMBRES),
     personality: 'valiente',
     x,
     z,

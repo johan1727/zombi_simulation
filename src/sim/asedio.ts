@@ -30,7 +30,10 @@ export function resolverAsedios(world: World): void {
       world.splats.push({ x: p.x, z: p.z, tono: world.rngInfeccion.next() });
       world.registrarPeligro(p.x, p.z);
       if (world.hitos.length <= 300) {
-        world.hitos.push({ tick: world.tickCount, tipo: 'brecha', a: -1, b: b.id });
+        // `a` guarda los ocupantes humanos en el instante de la brecha (ver
+        // el comentario de Hito en types.ts) — historias.ts lo usa para
+        // dramatizar ("cayó con N personas dentro").
+        world.hitos.push({ tick: world.tickCount, tipo: 'brecha', a: world.ocupantes[b.id], b: b.id });
       }
     }
   }
