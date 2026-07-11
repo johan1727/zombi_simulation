@@ -32,6 +32,13 @@
         opacity: 0; transition: opacity 400ms ease-out;
       }
       #aviso-rival.activo { opacity: 1; }
+      #banner-reto {
+        position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 10;
+        color: #eaf2ff; font-family: system-ui, sans-serif; font-size: 13px; font-weight: 600;
+        background: rgba(120, 80, 20, 0.75); padding: 6px 14px; border-radius: 8px;
+        user-select: none; pointer-events: none; display: none;
+      }
+      #banner-reto.activo { display: block; }
       #flash-caida {
         position: fixed; inset: 0; z-index: 20; pointer-events: none;
         background: rgba(220, 40, 40, 0.45); opacity: 0;
@@ -122,6 +129,7 @@
   <body>
     <canvas id="app"></canvas>
     <div id="hud">Cargando…</div>
+    <div id="banner-reto"></div>
     <div id="marcador-rival"></div>
     <div id="aviso-rival"></div>
     <div id="panel-agentes"></div>

@@ -2,6 +2,7 @@ import type { World } from '../sim/world';
 import { TICK_RATE } from '../sim/config';
 import type { Partida } from '../game/partida';
 import type { Rival } from '../game/rival';
+import type { Desafio } from '../game/desafio';
 
 /** Duración del aviso flotante de brecha del rival. */
 const DURACION_AVISO_MS = 3000;
@@ -10,6 +11,7 @@ export class Hud {
   private readonly el = document.getElementById('hud') as HTMLDivElement;
   private readonly marcadorEl = document.getElementById('marcador-rival') as HTMLDivElement;
   private readonly avisoEl = document.getElementById('aviso-rival') as HTMLDivElement;
+  private readonly bannerRetoEl = document.getElementById('banner-reto') as HTMLDivElement | null;
   private readonly seed: string;
   private ultimo = '';
   private ultimoMarcador = '';
@@ -17,8 +19,22 @@ export class Hud {
   private avisosVistos = 0;
   private avisoOcultarEn = 0;
 
-  constructor(seed: string) {
+  /**
+   * `reto` (Task 7): si viene presente (partida cargada con `?reto=`),
+   * el banner superior queda fijo desde la construcción — no cambia frame a
+   * frame, así que no hace falta tocar `update()` para esto.
+   */
+  constructor(seed: string, reto?: Desafio) {
     this.seed = seed;
+    if (reto && this.bannerRetoEl) {
+      const nombre = reto.nombre?.trim() || 'un desconocido';
+      // "el N%": el último valor conocido de la curva del reto (vivosPct
+      // final), no el índice de ciudad — el índice puede pasar de 100 y el
+      // banner promete explícitamente un "%".
+      const n = Math.round(reto.curva.length > 0 ? reto.curva[reto.curva.length - 1] : reto.indice);
+      this.bannerRetoEl.textContent = `RETO: supera el ${n}% de ${nombre}`;
+      this.bannerRetoEl.classList.add('activo');
+    }
   }
 
   /** `partida` y `rival` son opcionales para no romper llamadas existentes. */

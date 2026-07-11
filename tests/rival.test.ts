@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Rival } from '../src/game/rival';
 import { World } from '../src/sim/world';
+import type { Desafio } from '../src/game/desafio';
 
 // Rival nunca recibe órdenes por construcción: no hay forma de "divergir" con
 // órdenes usando Rival solo. En su lugar probamos que Rival es determinista
@@ -53,5 +54,56 @@ describe('Rival', () => {
     rival.world.brecha[b!.id] = true;
     for (let t = 0; t < 150; t++) rival.tick();
     expect(rival.avisosBrecha.length).toBe(1);
+  });
+
+  describe('modo reto (estático, Task 7)', () => {
+    const reto: Desafio = { seed: 'reto-semilla', curva: [100, 80, 60, 40, 20], indice: 55, nombre: 'Johan' };
+
+    it('estatico() es true con un Desafio y false sin él', () => {
+      expect(new Rival('x', 50, reto).estatico).toBe(true);
+      expect(new Rival('x', 50).estatico).toBe(false);
+    });
+
+    it('NO tickea su propio world (queda congelado en el tick 0)', () => {
+      const rival = new Rival('x', 50, reto);
+      for (let t = 0; t < 900; t++) rival.tick();
+      expect(rival.world.tickCount).toBe(0);
+    });
+
+    it('indiceCiudad devuelve el índice congelado del reto, no el del world (que nunca corrió)', () => {
+      const rival = new Rival('x', 50, reto);
+      expect(rival.indiceCiudad).toBe(55);
+    });
+
+    it('curva se revela cada 5s interpolando la curva gruesa (10s) del reto', () => {
+      const rival = new Rival('x', 50, reto);
+      for (let t = 0; t < 150; t++) rival.tick(); // 5s: muestra 1, posición 0.5 → entre 100 y 80 → 90
+      expect(rival.curva).toEqual([90]);
+      for (let t = 0; t < 150; t++) rival.tick(); // 10s: muestra 2, posición 1 → 80
+      expect(rival.curva).toEqual([90, 80]);
+    });
+
+    it('vivosPct sigue la última muestra revelada de la curva (o el primer punto del reto antes de la primera muestra)', () => {
+      const rival = new Rival('x', 50, reto);
+      expect(rival.vivosPct).toBe(100);
+      for (let t = 0; t < 150; t++) rival.tick();
+      expect(rival.vivosPct).toBe(90);
+    });
+
+    it('avisosBrecha se queda vacío (no hay brechas "en vivo" que detectar sin simular)', () => {
+      const rival = new Rival('x', 50, reto);
+      for (let t = 0; t < 900; t++) rival.tick();
+      expect(rival.avisosBrecha).toEqual([]);
+    });
+
+    it('dos instancias en modo reto con la misma semilla de reto producen la misma curva (determinismo trivial, sin RNG)', () => {
+      const a = new Rival('x', 50, reto);
+      const b = new Rival('x', 50, reto);
+      for (let t = 0; t < 900; t++) {
+        a.tick();
+        b.tick();
+      }
+      expect(a.curva).toEqual(b.curva);
+    });
   });
 });

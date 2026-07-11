@@ -13,17 +13,30 @@ import { Posesion } from './posesion';
 import { Partida } from './partida';
 import { Rival } from './rival';
 import { Resultado } from '../ui/resultado';
+import { decodificarDesafio } from './desafio';
 
 const canvas = document.getElementById('app') as HTMLCanvasElement;
+
+/**
+ * Desafío (Task 7): `?reto=<codigo>` trae una partida ajena ya terminada
+ * (semilla + curva + índice). `decodificarDesafio` nunca lanza — un link
+ * pegado a medias o corrupto simplemente cae a `null` y el juego arranca
+ * como una partida normal (con `?seed=` si lo hay, o semilla aleatoria).
+ */
+const params = new URLSearchParams(location.search);
+const reto = params.get('reto') ? decodificarDesafio(params.get('reto')!) : null;
 
 /**
  * Semilla: sin `?seed=` en la URL, cada carga genera una pandemia NUEVA
  * (estilo Dwarf Fortress). Math.random está permitido aquí (src/game):
  * la semilla es una ENTRADA de la sim; dentro de src/sim sigue prohibido.
  * Para duelos y desafíos, `?seed=lo-que-sea` fija la misma pandemia exacta.
+ * Un `?reto=` válido manda sobre `?seed=`: jugar EXACTAMENTE la pandemia
+ * del desafío es el punto.
  */
 const seed =
-  new URLSearchParams(location.search).get('seed') ??
+  reto?.seed ??
+  params.get('seed') ??
   Math.random().toString(36).slice(2, 8);
 
 const world = new World(seed);
@@ -33,7 +46,7 @@ const jugablesView = new JugablesView(scene, world.city);
 const citizensView = new CitizensView(scene, world.citizens.length);
 const splatsView = new SplatsView(scene);
 const rig = new CameraRig(canvas, { w: world.city.width, d: world.city.depth });
-const hud = new Hud(seed);
+const hud = new Hud(seed, reto ?? undefined);
 const posesion = new Posesion(canvas, rig, world);
 const controles = new Controles(canvas, rig.camera, world, {
   onPoseer: (idx) => {
@@ -45,9 +58,10 @@ const controles = new Controles(canvas, rig.camera, world, {
 });
 const panelAgentes = new PanelAgentes(world, controles);
 const partida = new Partida();
-// El rival fantasma: MISMA semilla, sin órdenes, tickeado 1:1 junto al mundo
-// del jugador (ver afterTick de startLoop más abajo).
-const rival = new Rival(seed);
+// El rival: MISMA semilla. Sin `reto`, es el fantasma en vivo de siempre
+// (sin órdenes, tickeado 1:1 junto al mundo del jugador). Con `reto`, es
+// estático: no simula, muestra la curva congelada del desafío (ver rival.ts).
+const rival = new Rival(seed, undefined, reto ?? undefined);
 const resultado = new Resultado(world, partida, rival);
 
 window.addEventListener('resize', () => {
@@ -85,6 +99,8 @@ if (import.meta.env.DEV) {
     partida,
     rival,
     resultado,
+    seed,
+    reto,
     frame,
     tick: () => {
       if (partida.estado === 'terminada') return;

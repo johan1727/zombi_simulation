@@ -1,6 +1,8 @@
 import type { World } from '../sim/world';
+import { TICK_RATE } from '../sim/config';
 import { UMBRAL_COLAPSO, type Partida } from '../game/partida';
 import type { Rival } from '../game/rival';
+import { codificarDesafio, muestrearParaUrl } from '../game/desafio';
 import { componerHistorias } from './historias';
 
 /**
@@ -33,10 +35,15 @@ function tickDeColapso(curva: readonly number[]): number {
  * no hay colapso claro (o el colapso "simultáneo" es indistinguible con la
  * resolución de 5 s de las curvas), gana el mayor Índice de Ciudad; empate
  * de índice → más vivos; empate exacto → empate.
+ *
+ * Modo reto (Task 7): `rival.world` no simula cuando `rival.estatico` es
+ * true (ver `rival.ts`), así que aquí NUNCA se lee `rival.world.*`
+ * directamente — solo `rival.vivosPct`/`rival.indiceCiudad`, que ya saben
+ * elegir entre el mundo en vivo o la curva congelada del desafío.
  */
 export function calcularVeredicto(world: World, partida: Partida, rival: Rival): Veredicto {
   const tuColapsado = world.stats.vivos < world.citizens.length * UMBRAL_COLAPSO;
-  const rivalColapsado = rival.world.stats.vivos < rival.world.citizens.length * UMBRAL_COLAPSO;
+  const rivalColapsado = rival.vivosPct < UMBRAL_COLAPSO * 100;
 
   if (tuColapsado && !rivalColapsado) {
     return { ganador: 'rival', motivo: 'Tu ciudad colapsó; la del rival, no.' };
@@ -56,14 +63,14 @@ export function calcularVeredicto(world: World, partida: Partida, rival: Rival):
   }
 
   const tuIndice = world.indiceCiudad;
-  const rivalIndice = rival.world.indiceCiudad;
+  const rivalIndice = rival.indiceCiudad;
   if (tuIndice !== rivalIndice) {
     return tuIndice > rivalIndice
       ? { ganador: 'tu', motivo: 'Mayor Índice de Ciudad.' }
       : { ganador: 'rival', motivo: 'El rival tuvo mayor Índice de Ciudad.' };
   }
   const tuVivosPct = world.vivosPct;
-  const rivalVivosPct = rival.world.vivosPct;
+  const rivalVivosPct = rival.vivosPct;
   if (tuVivosPct !== rivalVivosPct) {
     return tuVivosPct > rivalVivosPct
       ? { ganador: 'tu', motivo: 'Índice empatado; ganaste por más población viva.' }
@@ -102,6 +109,14 @@ const ALTO_SVG = 90;
 export class Resultado {
   private readonly el: HTMLDivElement;
   private mostrado = false;
+  /**
+   * Último desafío generado por COPIAR DESAFÍO, expuesto para verificación
+   * programática (`window.pandemia.resultado.ultimoDesafio`): el entorno de
+   * preview no siempre concede permiso de portapapeles sin gesto real de
+   * usuario, así que esto permite comprobar que la URL/código se generaron
+   * bien aunque `navigator.clipboard.writeText` falle o esté ausente.
+   */
+  ultimoDesafio: { codigo: string; url: string; mensaje: string } | null = null;
 
   constructor(
     private readonly world: World,
@@ -148,7 +163,7 @@ export class Resultado {
       <div class="resultado-caja">
         <div class="resultado-veredicto ${claseTitulo}">${titulo}</div>
         <div class="resultado-motivo">${motivoFin} ${escapeHtml(v.motivo)}</div>
-        <div class="resultado-marcador">TÚ ${world.indiceCiudad} · RIVAL ${rival.world.indiceCiudad}</div>
+        <div class="resultado-marcador">TÚ ${world.indiceCiudad} · RIVAL ${rival.indiceCiudad}</div>
         <svg class="resultado-svg" viewBox="0 0 ${ANCHO_SVG} ${ALTO_SVG}" width="${ANCHO_SVG}" height="${ALTO_SVG}">
           <line x1="0" y1="${ALTO_SVG}" x2="${ANCHO_SVG}" y2="${ALTO_SVG}" class="resultado-eje" />
           <line x1="0" y1="${yUmbral}" x2="${ANCHO_SVG}" y2="${yUmbral}" class="resultado-umbral" />
@@ -168,7 +183,7 @@ export class Resultado {
         <div class="resultado-botones">
           <button id="btn-revancha" type="button">REVANCHA</button>
           <button id="btn-otra-pandemia" type="button">OTRA PANDEMIA</button>
-          <button id="btn-copiar-desafio" type="button" disabled title="Llega en el siguiente plan">COPIAR DESAFÍO</button>
+          <button id="btn-copiar-desafio" type="button">COPIAR DESAFÍO</button>
         </div>
       </div>`;
   }
@@ -185,5 +200,40 @@ export class Resultado {
       ?.addEventListener('click', () => {
         location.href = location.pathname;
       });
+    const btnCopiar = this.el.querySelector('#btn-copiar-desafio') as HTMLButtonElement | null;
+    btnCopiar?.addEventListener('click', () => this.copiarDesafio(btnCopiar));
+  }
+
+  /**
+   * Codifica la partida propia (Task 7) y copia al portapapeles el mensaje
+   * de reto. La curva propia es la de `Partida` (5 s) recortada a 10 s con
+   * `muestrearParaUrl` — más gruesa que la del gráfico de este overlay, es
+   * una representación distinta hecha exclusivamente para caber en la URL.
+   */
+  private copiarDesafio(btn: HTMLButtonElement): void {
+    const { world, partida } = this;
+    const curva = muestrearParaUrl(partida.curva);
+    const codigo = codificarDesafio({ seed: world.seed, curva, indice: world.indiceCiudad });
+    const url = `${location.origin}${location.pathname}?reto=${codigo}`;
+    const segsTotales = Math.floor(world.tickCount / TICK_RATE);
+    const mm = Math.floor(segsTotales / 60);
+    const ss = (segsTotales % 60).toString().padStart(2, '0');
+    const mensaje = `Sobreviví ${mm}:${ss} con Índice ${world.indiceCiudad}. Misma pandemia, supérame: ${url}`;
+    this.ultimoDesafio = { codigo, url, mensaje };
+
+    const textoOriginal = btn.textContent ?? 'COPIAR DESAFÍO';
+    const marcarCopiado = (): void => {
+      btn.textContent = '¡Copiado!';
+      window.setTimeout(() => {
+        btn.textContent = textoOriginal;
+      }, 2000);
+    };
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(mensaje).then(marcarCopiado).catch(() => {
+        // Puede fallar sin gesto real de usuario, permiso denegado o contexto
+        // no seguro (http sin TLS); `ultimoDesafio` arriba deja el mensaje/URL
+        // disponibles igual, sin depender del portapapeles.
+      });
+    }
   }
 }
