@@ -12,20 +12,28 @@ export class Hud {
   private readonly marcadorEl = document.getElementById('marcador-rival') as HTMLDivElement;
   private readonly avisoEl = document.getElementById('aviso-rival') as HTMLDivElement;
   private readonly bannerRetoEl = document.getElementById('banner-reto') as HTMLDivElement | null;
+  private readonly btnAudioEl = document.getElementById('btn-audio') as HTMLButtonElement | null;
   private readonly seed: string;
   private ultimo = '';
   private ultimoMarcador = '';
   /** Cuántos avisos de `rival.avisosBrecha` ya se mostraron. */
   private avisosVistos = 0;
   private avisoOcultarEn = 0;
+  private ultimoAudioHabilitado: boolean | null = null;
 
   /**
    * `reto` (Task 7): si viene presente (partida cargada con `?reto=`),
    * el banner superior queda fijo desde la construcción — no cambia frame a
    * frame, así que no hace falta tocar `update()` para esto.
+   *
+   * `onToggleAudio` (Task 8): click en el botón 🔊/🔇 del HUD. El estado
+   * real (`Audio.habilitado`) vive en la clase `Audio`; el HUD solo pinta el
+   * ícono acorde a lo que le pase `update()` — así el toggle por tecla `M`
+   * (cableado en `main.ts`, fuera del HUD) también refleja el ícono.
    */
-  constructor(seed: string, reto?: Desafio) {
+  constructor(seed: string, reto?: Desafio, onToggleAudio?: () => void) {
     this.seed = seed;
+    this.btnAudioEl?.addEventListener('click', () => onToggleAudio?.());
     if (reto && this.bannerRetoEl) {
       const nombre = reto.nombre?.trim() || 'un desconocido';
       // "el N%": el último valor conocido de la curva del reto (vivosPct
@@ -38,7 +46,7 @@ export class Hud {
   }
 
   /** `partida` y `rival` son opcionales para no romper llamadas existentes. */
-  update(world: World, partida?: Partida, rival?: Rival): void {
+  update(world: World, partida?: Partida, rival?: Rival, audioHabilitado?: boolean): void {
     const restantes = partida
       ? Math.max(0, partida.duracionTicks - world.tickCount)
       : world.tickCount;
@@ -56,6 +64,14 @@ export class Hud {
     }
 
     if (rival) this.actualizarMarcadorRival(world, rival);
+
+    if (audioHabilitado !== undefined && audioHabilitado !== this.ultimoAudioHabilitado) {
+      this.ultimoAudioHabilitado = audioHabilitado;
+      if (this.btnAudioEl) {
+        this.btnAudioEl.textContent = audioHabilitado ? '🔊' : '🔇';
+        this.btnAudioEl.title = audioHabilitado ? 'Silenciar (M)' : 'Activar audio (M)';
+      }
+    }
   }
 
   private actualizarMarcadorRival(world: World, rival: Rival): void {

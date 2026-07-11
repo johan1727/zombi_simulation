@@ -568,7 +568,7 @@ describe('agentes', () => {
 
 **Spec:** `audio.ts`: `class Audio { constructor(); habilitado: boolean; alternar(): void; update(world: World): void }` — WebAudio sintetizado, CERO assets: consume los DELTAS de `world.hitos` y `world.ruidos` desde el último frame (guarda índices consumidos). Sonidos (osciladores + envolventes cortas, volumen bajo): disparo (square 180→60 Hz, 80 ms), grito/pánico (saw 600→900 Hz, 120 ms, prob. de sonar 1/3 para no saturar — Math.random PERMITIDO aquí: es render/UI, no sim), brecha (ruido blanco filtrado grave, 400 ms), transformación (triangle 200→80 Hz), rescate (dos notas ascendentes), fin de partida (acorde mayor si ganas / menor si pierdes). AudioContext se crea en el primer gesto del usuario (requisito de los navegadores). Botón en HUD y tecla `M`. Respetar volumen maestro 0.15.
 
-- [ ] Implementar + checklist navegador (cada evento suena; toggle funciona; nada suena antes del primer click). **Commit** — `feat: audio minimo sintetizado — el ruido por fin se oye`
+- [x] Implementar + checklist navegador (cada evento suena; toggle funciona; nada suena antes del primer click). **Commit** — `feat: audio minimo sintetizado — el ruido por fin se oye`
 
 ---
 

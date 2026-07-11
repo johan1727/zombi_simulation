@@ -79,28 +79,28 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
   empeoran la devastación. Lo que sí movió la aguja en el Plan 3: duplicar la
   FRECUENCIA de mordida (enfriamiento 12→6) + presión de puerta ×2. Siempre:
   una perilla por corrida, tabla de datos, y re-correr el gate completo.
-- (Plan 3 Task 3, vida interior) `tsconfig.json` tiene `noUnusedParameters`:
-  un stub de función con parámetros sin usar (p. ej. `updateInteriorZombi` a
-  la espera de la Task 4) necesita `void param;` para CADA parámetro no
-  leído, no solo los "extra" — si el brief trae código literal, revisar que
-  cubra todos los parámetros antes de copiarlo tal cual.
-- (Plan 3 Task 4, caza interior) Al activar IA de zombi donde antes había un
-  stub, un test previo (`interior.test.ts`, seed `puerta-3`) se rompió porque
-  `citizens[0]` resultaba ser el paciente cero de esa semilla (Plan 2): al
-  convertirse en zombi solitario, la nueva lógica lo hacía salir del edificio
-  en vez de quedarse quieto en el piso al que había subido. No era un bug de
-  la Task 4; se corrigió cambiando la seed del test a una donde el paciente
-  cero no coincide con el ciudadano bajo prueba. Tests con seeds fijas y pocos
-  ciudadanos son frágiles a la selección aleatoria del paciente cero — al
-  tocar comportamiento de zombi/infección, revisar si algún test antiguo
-  depende implícitamente de que un ciudadano concreto se mantenga sano.
-- `if (c.salud !== 'zombi')` inmediatamente después de un `if (c.salud ===
-  'zombi') { ...; return; }` no compila: TS ya estrechó el tipo y descarta la
-  comparación como imposible (TS2367). Si un brief trae ese patrón literal,
-  quitar el `if` redundante (el cuerpo ya solo se alcanza para no-zombis).
+- Dos trampas de TS estrictas ya vistas: `noUnusedParameters` exige `void
+  param;` para CADA parámetro sin usar de un stub (no solo los "extra"); y
+  `if (c.salud !== 'zombi')` justo después de un `if (c.salud === 'zombi')
+  {...; return;}` no compila (TS2367, tipo ya estrechado) — quitar el `if`
+  redundante.
+- (Plan 3 Task 4, caza interior) Tests con seeds fijas y pocos ciudadanos son
+  frágiles a la selección aleatoria del paciente cero: al tocar
+  comportamiento de zombi/infección, revisar si algún test antiguo depende
+  implícitamente de que un ciudadano concreto (p. ej. `citizens[0]`) se
+  mantenga sano.
 - (Plan 4 Task 4, fin de partida) `startLoop` (`src/game/loop.ts`) tenía
   `world.tick()` cableado dentro del stepper sin punto de corte: para congelar
   la sim sin tocar el render (reloj a 0:00), se le añadieron `debeSeguir?` (se
   chequea ANTES del tick) y `afterTick?` (se llama justo DESPUÉS, para que
   `Partida.update` vea el `tickCount` recién actualizado y no dispare un tick
   extra por condición de carrera de un tick de retraso).
+- (Plan 4 Task 8, audio) Para consumir DELTAS de un array de la sim entre
+  frames de render, importa si el array solo CRECE (`world.hitos`, tope 300 —
+  un índice "consumido hasta aquí" basta) o si se COMPACTA in-place cada tick
+  (`world.ruidos`: decae y se reescribe por delante) — ahí un índice guardado
+  no sobrevive ni un tick: puede saltarse eventos cortos o apuntar a la
+  entrada equivocada. Para señales derivadas de algo que se compacta, es más
+  robusto leer un ESTADO agregado y estable (p. ej. nº de `citizens` en
+  pánico) y disparar por su cambio entre frames, en vez de perseguir índices
+  del array volátil.

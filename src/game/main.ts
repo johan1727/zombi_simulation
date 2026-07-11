@@ -13,6 +13,7 @@ import { Posesion } from './posesion';
 import { Partida } from './partida';
 import { Rival } from './rival';
 import { Resultado } from '../ui/resultado';
+import { Audio } from '../ui/audio';
 import { decodificarDesafio } from './desafio';
 
 const canvas = document.getElementById('app') as HTMLCanvasElement;
@@ -46,7 +47,8 @@ const jugablesView = new JugablesView(scene, world.city);
 const citizensView = new CitizensView(scene, world.citizens.length);
 const splatsView = new SplatsView(scene);
 const rig = new CameraRig(canvas, { w: world.city.width, d: world.city.depth });
-const hud = new Hud(seed, reto ?? undefined);
+const audio = new Audio();
+const hud = new Hud(seed, reto ?? undefined, () => audio.alternar());
 const posesion = new Posesion(canvas, rig, world);
 const controles = new Controles(canvas, rig.camera, world, {
   onPoseer: (idx) => {
@@ -68,6 +70,21 @@ window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
+// Tecla M: alterna audio. Botón del HUD hace lo mismo (ver arriba).
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'm' || e.key === 'M') audio.alternar();
+});
+// Primer gesto del usuario (click o tecla, cualquiera): desbloquea el
+// AudioContext aunque el jugador nunca toque el botón/tecla de audio —
+// requisito de autoplay de los navegadores (Task 8). Se dispara una sola vez.
+const desbloquearAudio = (): void => {
+  audio.intentarDesbloquear();
+  window.removeEventListener('pointerdown', desbloquearAudio);
+  window.removeEventListener('keydown', desbloquearAudio);
+};
+window.addEventListener('pointerdown', desbloquearAudio);
+window.addEventListener('keydown', desbloquearAudio);
+
 const frame = (alpha: number): void => {
   if (posesion.activo) posesion.actualizarCamara(alpha);
   else rig.update();
@@ -77,7 +94,8 @@ const frame = (alpha: number): void => {
   jugablesView.update(world, foco.x, foco.z);
   citizensView.update(world.citizens, alpha, controles.seleccionado);
   splatsView.update(world.splats);
-  hud.update(world, partida, rival);
+  audio.update(world, partida, rival);
+  hud.update(world, partida, rival, audio.habilitado);
   panelAgentes.update(world, controles.seleccionado);
   resultado.update();
   renderer.render(scene, rig.camera);
@@ -99,6 +117,7 @@ if (import.meta.env.DEV) {
     partida,
     rival,
     resultado,
+    audio,
     seed,
     reto,
     frame,
