@@ -23,7 +23,7 @@ export interface OrdenJugador {
 /** Evento notable para historias/audio/HUD. El texto lo compone la UI. */
 export interface Hito {
   tick: number;
-  tipo: 'disparo' | 'rescate' | 'megafono' | 'refuerzo' | 'caida_agente' | 'brecha' | 'transformacion_cabeza';
+  tipo: 'disparo' | 'rescate' | 'megafono' | 'refuerzo' | 'caida_agente' | 'brecha' | 'transformacion_cabeza' | 'amputacion';
   /**
    * índice del protagonista. CASO ESPECIAL 'brecha': no hay protagonista
    * (siempre viene de un edificio), así que aquí se reaprovecha para guardar

@@ -98,7 +98,28 @@ function dispararPolicia(a: Citizen, o: OrdenJugador, world: World): void {
 }
 
 function actuarParamedico(a: Citizen, world: World): void {
-  // 1) revivir caído adyacente (prioridad); 2) si no, diagnóstico en radio
+  // 1) amputar un brazo dentro de su ventana (más prisa: se cierra sola);
+  // 2) si no, revivir caído adyacente; 3) si no, diagnóstico en radio
+  let herido: Citizen | null = null;
+  let mejorD2Herido = PARAMEDICO.alcanceRevivir ** 2;
+  for (const c of world.citizens) {
+    if (c.ventanaAmputarTicks <= 0) continue;
+    const d2 = (c.x - a.x) ** 2 + (c.z - a.z) ** 2;
+    if (d2 <= mejorD2Herido) {
+      mejorD2Herido = d2;
+      herido = c;
+    }
+  }
+  if (herido) {
+    herido.brazoAmputado = true;
+    herido.ventanaAmputarTicks = 0;
+    if (herido.salud === 'incubando') herido.salud = 'sano'; // amputar detiene la infección: la cura real
+    world.hitos.push({ tick: world.tickCount, tipo: 'amputacion', a: a.id, b: herido.id });
+    a.cdHabilidad = POLICIA.cooldownTicks;
+    return;
+  }
+
+  // 2) revivir caído adyacente (prioridad); 3) si no, diagnóstico en radio
   let caido: Citizen | null = null;
   let mejorD2 = PARAMEDICO.alcanceRevivir ** 2;
   for (const c of world.citizens) {

@@ -16,8 +16,9 @@ export function resolverCombates(world: World): void {
       const o = world.citizens[i];
       if (o === z) continue;
       if (o.salud === 'zombi') zombisCerca++;
-      // un 'caido' no pelea: está en el suelo esperando al paramédico
-      else if (o.salud !== 'eliminado' && o.salud !== 'caido' && o.dentroDe < 0) luchadores.push(o);
+      // un 'caido' no pelea: está en el suelo esperando al paramédico;
+      // un manco (brazoAmputado) tampoco: no puede pelear con un solo brazo
+      else if (o.salud !== 'eliminado' && o.salud !== 'caido' && !o.brazoAmputado && o.dentroDe < 0) luchadores.push(o);
     }
     if (
       zombisCerca === 0 &&

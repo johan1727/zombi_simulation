@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { World } from '../src/sim/world';
-import { AGENTES, OBRERO, POLICIA } from '../src/sim/config';
+import { AGENTES, HERIDAS, OBRERO, POLICIA } from '../src/sim/config';
+import { resolverCombates } from '../src/sim/combate';
 
 describe('agentes', () => {
   it('nacen 4 agentes al final del array, sanos y sin familia', () => {
@@ -163,5 +164,65 @@ describe('agentes', () => {
     const d1 = Math.sqrt((zombi.x - presa.x) ** 2 + (zombi.z - presa.z) ** 2);
     expect(d1).toBeLessThan(d0); // fue por la presa viva
     expect(caido.salud).toBe('caido'); // al caído nadie lo volvió a tocar
+  });
+
+  it('el paramédico amputa un brazo dentro de la ventana y detiene la infección', () => {
+    const w = new World('amputa-1', 5);
+    const para = w.agentes[1];
+    const c = w.citizens[0];
+    c.salud = 'incubando';
+    c.zonaHerida = 'brazo';
+    c.ventanaAmputarTicks = HERIDAS.ventanaAmputarTicks;
+    c.x = para.x + 1;
+    c.z = para.z;
+    c.prevX = c.x;
+    c.prevZ = c.z;
+    w.encolarOrden({ agente: para.id, tipo: 'habilidad', x: c.x, z: c.z });
+    w.tick();
+    expect(c.brazoAmputado).toBe(true);
+    expect(c.salud).toBe('sano');
+    expect(c.ventanaAmputarTicks).toBe(0);
+  });
+
+  it('la amputación no dispara si la ventana ya se cerró', () => {
+    const w = new World('amputa-2', 5);
+    const para = w.agentes[1];
+    const c = w.citizens[0];
+    c.salud = 'incubando';
+    c.zonaHerida = 'brazo';
+    c.ventanaAmputarTicks = 0; // ya se cerró
+    c.x = para.x + 1;
+    c.z = para.z;
+    c.prevX = c.x;
+    c.prevZ = c.z;
+    w.encolarOrden({ agente: para.id, tipo: 'habilidad', x: c.x, z: c.z });
+    w.tick();
+    expect(c.brazoAmputado).toBe(false);
+  });
+
+  it('un ciudadano con brazo amputado no cuenta como luchador', () => {
+    const w = new World('amputa-3', 6);
+    const zombi = w.citizens[0];
+    zombi.salud = 'zombi';
+    zombi.x = 50;
+    zombi.z = 4;
+    zombi.prevX = 50;
+    zombi.prevZ = 4;
+    // 3 civiles cerca, uno de ellos manco y 'valiente' — el manco no debe contar,
+    // así que sin OTRO valiente sano el grupo no debe vencer al zombi.
+    const posiciones: ReadonlyArray<readonly [number, number]> = [[52, 4], [48, 5], [50, 6]];
+    for (let i = 1; i <= 3; i++) {
+      const c = w.citizens[i];
+      c.x = posiciones[i - 1][0];
+      c.z = posiciones[i - 1][1];
+      c.prevX = c.x;
+      c.prevZ = c.z;
+      c.personality = 'cobarde';
+    }
+    w.citizens[1].personality = 'valiente';
+    w.citizens[1].brazoAmputado = true;
+    w.grid.rebuild(w.citizens, (c) => c.salud !== 'eliminado' && c.dentroDe < 0);
+    resolverCombates(w);
+    expect(zombi.salud).toBe('zombi'); // sin un valiente ÚTIL, el grupo no gana
   });
 });
