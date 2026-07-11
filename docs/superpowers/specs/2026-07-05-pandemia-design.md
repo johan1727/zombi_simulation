@@ -184,8 +184,42 @@ Gráficos placeholder: cajas = edificios, cápsulas = personas, colores = estado
 6. Partida completa: reloj, Índice de Ciudad, giro de semilla, rival fantasma, resultado con historias de ciudadanos, revancha.
 7. Link de desafío asíncrono + primera partida guiada.
 
-**Fase 2 (tras validar la diversión):** backend de matchmaking, códigos de sala, marcador en vivo real.
-**Fase 3 (futuro):** assets finales con dirección de arte, 4 jugadores, más mapas.
+**Fase 1.5 (Plan 5 — profundidad, feedback de juego 2026-07-11):** heridas localizadas por zona de mordida, cansancio al huir, diálogos flotantes (barks), giros de semilla (apagón/lluvia/helicóptero).
+
+### 7.1 Heridas localizadas (Plan 5)
+
+La mordida ya no es binaria (infectado o no) — la ZONA importa, estilo Project Zomboid adaptado a la escala de simulación (sin inventario, sin cirugía manual):
+
+| Zona | Probabilidad | Efecto | Cura posible |
+|---|---|---|---|
+| Pierna | 40% | **Fractura**: velocidad al 40% el resto de la partida (civil o agente). Presa fácil — dramatismo puro. | No (permanente) |
+| Brazo | 35% | **Ventana de amputación**: 5 s reales donde el paramédico (o el jugador poseyendo a alguien) puede "cortar" — detiene la infección para siempre, deja el brazo inutilizado (no dispara/no carga). Si nadie corta a tiempo: infección normal. | Amputar en la ventana |
+| Torso | 25% | Infección normal, sentencia de muerte — no hay zona que cortar. | No |
+
+**Cansancio:** correr en pánico >20 s sostenidos agota; la velocidad de huida cae a la de caminar durante el resto del sprint. La huida deja de ser gratis en hordas largas.
+
+### 7.2 Diálogos flotantes (barks, Plan 5)
+
+Frases cortas sobre la cabeza de un ciudadano según su personalidad y la situación («¡CORRE!», «¿Y mi hija?», «¡A la azotea!»). Texto flotante barato (sin voz), determinista por semilla (elegido de una tabla fija, no aleatoriedad libre), disparado por los mismos eventos que ya generan `hitos`.
+
+### 7.3 Giros de semilla (Plan 5, versión simple)
+
+A mitad de partida (tick fijo derivado de la semilla, IDÉNTICO para jugador y rival — nunca da ventaja), un evento entre tres:
+- **Apagón:** zombis cazan mejor (radioVision +50%), civiles más nerviosos (radioVerZombi +30%).
+- **Lluvia:** el ruido se amortigua (radioGrito -40%) — respiro táctico.
+- **Helicóptero de rescate:** aterriza en la azotea del hospital en 60 s — ¿proteges la ruta o es una trampa que junta multitud?
+
+## 8. Niveles de calidad gráfica (arquitectura de assets, Fase 3 adelantada)
+
+**Decisión de diseño (feedback 2026-07-11):** los assets NO son "todo o nada" — se construyen desde el día uno como niveles de calidad intercambiables, para que el juego escale solo según la computadora del jugador (menú de ajustes, Fase 3.5) sin rehacer el pipeline.
+
+| Nivel | Ciudadanos | Técnica | Cuándo |
+|---|---|---|---|
+| **Baja** (actual) | Cápsulas de color | `InstancedMesh` con matrices por tick (ya construido) | Hoy — nunca se retira, es el mínimo garantizado |
+| **Media** (objetivo Plan 6) | Modelo humanoide low-poly, con caminata/pánico/cojera REAL | **Ciclo de poses instanciado**: N poses estáticas pre-horneadas (caminar, correr, cojear, quieto) del mismo modelo; cada ciudadano elige su pose por frame según su fase de movimiento (determinista, calculado en el render — CERO cambio a `src/sim/`). Reutiliza el mismo patrón de instancing que ya mueve 800 cápsulas por frame; NO es animación esquelética por instancia (eso no rinde a esta escala en un navegador). | Plan 6 |
+| **Alta** (futuro) | Modelo detallado con animación esquelética real | Solo para los ciudadanos cerca de cámara/seleccionados (LOD); el resto se queda en Media. Requiere blending de animación de verdad — se evalúa cuando Media esté rindiendo bien. | Fase 3.5+ |
+
+Edificios/props (coches, parques): modelos estáticos de Kenney.nl desde el Plan 6 — sin el problema de animación, mucho más simple.
 
 ## 8. Huecos conocidos (registrados, con fase asignada)
 
