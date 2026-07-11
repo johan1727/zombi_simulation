@@ -43,30 +43,41 @@ interface Paso {
  * Los 5 tips DESPUÉS del de carga (ese no depende del mundo, se muestra
  * directo en el constructor). Orden fijo, un paso solo avanza cuando el
  * anterior ya se mostró.
+ *
+ * El paso del megáfono lee `vistoPanicoMasivo` — una bandera con memoria que
+ * `Tutorial.actualizar` mantiene actualizada TODOS los frames, sin importar
+ * en qué paso esté el puntero — en vez de `hayPanicoMasivo` en vivo. El
+ * pánico es reversible (la gente se calma) y los pasos se comprueban en
+ * orden estricto: un pico de pánico que sube y baja MIENTRAS el jugador
+ * todavía no usó ninguna habilidad (paso anterior, sin relación causal con
+ * este) se perdería para siempre si solo mirásemos el pánico al llegar al
+ * paso 3 — el puntero nunca retrocede a revisarlo.
  */
-const PASOS: readonly Paso[] = [
-  {
-    texto: 'El paciente cero anda suelto. Encuéntralo antes de que estalle',
-    cumplida: (world) => world.tickCount >= INFECCION.pacienteCeroTick,
-  },
-  {
-    // Primera transformación: el primer ciudadano se vuelve zombi (0 → >0).
-    texto: '¡Empezó! Haz click en tu POLICÍA (tecla 1) y llévalo al brote',
-    cumplida: (world) => world.stats.zombis > 0,
-  },
-  {
-    texto: 'Todo tiene un precio: el disparo atrae a la horda',
-    cumplida: huboHabilidadDeJugador,
-  },
-  {
-    texto: 'El del MEGÁFONO (3) puede guiar multitudes… a donde tú quieras',
-    cumplida: hayPanicoMasivo,
-  },
-  {
-    texto: 'El OBRERO (4) refuerza puertas. El hospital de tu rival ya cayó, ¿el tuyo?',
-    cumplida: (world) => world.tickCount >= TICK_OBRERO,
-  },
-];
+function crearPasos(vistoPanicoMasivo: () => boolean): Paso[] {
+  return [
+    {
+      texto: 'El paciente cero anda suelto. Encuéntralo antes de que estalle',
+      cumplida: (world) => world.tickCount >= INFECCION.pacienteCeroTick,
+    },
+    {
+      // Primera transformación: el primer ciudadano se vuelve zombi (0 → >0).
+      texto: '¡Empezó! Haz click en tu POLICÍA (tecla 1) y llévalo al brote',
+      cumplida: (world) => world.stats.zombis > 0,
+    },
+    {
+      texto: 'Todo tiene un precio: el disparo atrae a la horda',
+      cumplida: huboHabilidadDeJugador,
+    },
+    {
+      texto: 'El del MEGÁFONO (3) puede guiar multitudes… a donde tú quieras',
+      cumplida: vistoPanicoMasivo,
+    },
+    {
+      texto: 'El OBRERO (4) refuerza puertas. El hospital de tu rival ya cayó, ¿el tuyo?',
+      cumplida: (world) => world.tickCount >= TICK_OBRERO,
+    },
+  ];
+}
 
 /**
  * Tips de una línea para la primera partida (Task 9): toast inferior
@@ -78,13 +89,17 @@ const PASOS: readonly Paso[] = [
  */
 export class Tutorial {
   private readonly el: HTMLDivElement | null;
+  private readonly pasos: readonly Paso[];
   private activo: boolean;
-  /** Próximo índice de PASOS por comprobar. */
+  /** Próximo índice de `pasos` por comprobar. */
   private paso = 0;
   private ocultarEn = 0;
+  /** Con memoria: una vez true, queda true (ver comentario en crearPasos). */
+  private vistoPanicoMasivo = false;
 
   constructor() {
     this.el = document.getElementById('tutorial-toast') as HTMLDivElement | null;
+    this.pasos = crearPasos(() => this.vistoPanicoMasivo);
     this.activo = localStorage.getItem(CLAVE) !== 'visto';
     if (this.activo) this.mostrar('Arrastra para mover la cámara · rueda para zoom');
   }
@@ -98,11 +113,15 @@ export class Tutorial {
       this.el?.classList.remove('activo');
       return;
     }
+    // Se actualiza SIEMPRE, sin importar en qué paso esté el puntero — si
+    // solo se comprobara al llegar al paso 3, un pico de pánico que ya pasó
+    // mientras el puntero seguía atascado en el paso 2 se perdería.
+    if (hayPanicoMasivo(world)) this.vistoPanicoMasivo = true;
     // while (no if): si varios pasos se cumplieron entre dos llamadas (p. ej.
     // el gancho de depuración tickea varias veces antes de renderizar), se
     // muestra directo el tip más reciente en vez de quedarse atascado.
-    while (this.paso < PASOS.length && PASOS[this.paso].cumplida(world)) {
-      this.mostrar(PASOS[this.paso].texto);
+    while (this.paso < this.pasos.length && this.pasos[this.paso].cumplida(world)) {
+      this.mostrar(this.pasos[this.paso].texto);
       this.paso++;
     }
     if (this.ocultarEn > 0 && Date.now() >= this.ocultarEn) {
