@@ -117,6 +117,38 @@ describe('componerHistorias', () => {
     expect(componerHistorias(lejos)).not.toContain(`${nombre} nunca soltó a los suyos.`);
   });
 
+  it('protector: sin historia si el protector o el familiar ya son zombis', () => {
+    const protectorZombi = new World('historias-4', 10);
+    protectorZombi.citizens[2].personality = 'protector';
+    protectorZombi.citizens[2].familia = 1;
+    protectorZombi.citizens[2].familiares = [3];
+    protectorZombi.citizens[2].salud = 'zombi';
+    protectorZombi.citizens[3].familia = 1;
+    protectorZombi.citizens[3].familiares = [2];
+    protectorZombi.citizens[3].salud = 'sano';
+    protectorZombi.citizens[2].x = 10;
+    protectorZombi.citizens[2].z = 10;
+    protectorZombi.citizens[3].x = 12;
+    protectorZombi.citizens[3].z = 10;
+    const nombre2 = protectorZombi.citizens[2].name.split(' ')[0];
+    expect(componerHistorias(protectorZombi)).not.toContain(`${nombre2} nunca soltó a los suyos.`);
+
+    const familiarZombi = new World('historias-4', 10);
+    familiarZombi.citizens[2].personality = 'protector';
+    familiarZombi.citizens[2].familia = 1;
+    familiarZombi.citizens[2].familiares = [3];
+    familiarZombi.citizens[2].salud = 'sano';
+    familiarZombi.citizens[3].familia = 1;
+    familiarZombi.citizens[3].familiares = [2];
+    familiarZombi.citizens[3].salud = 'zombi';
+    familiarZombi.citizens[2].x = 10;
+    familiarZombi.citizens[2].z = 10;
+    familiarZombi.citizens[3].x = 12;
+    familiarZombi.citizens[3].z = 10;
+    const nombre3 = familiarZombi.citizens[2].name.split(' ')[0];
+    expect(componerHistorias(familiarZombi)).not.toContain(`${nombre3} nunca soltó a los suyos.`);
+  });
+
   it('respeta el tope `max` y es determinista (mismo orden en llamadas repetidas)', () => {
     const w = new World('historias-5', 10);
     const jugables = w.city.buildings.filter((b) => b.kind === 'jugable');

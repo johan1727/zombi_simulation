@@ -114,10 +114,10 @@ export function componerHistorias(world: World, max = 4): string[] {
   // Historia del protector: no viene de un hito — se lee del estado final
   // (posición y salud al momento de componer, normalmente fin de partida).
   for (const c of world.citizens) {
-    if (c.esAgente || c.personality !== 'protector' || c.salud === 'eliminado' || c.familia < 0) continue;
+    if (c.esAgente || c.personality !== 'protector' || !sigueHumano(c) || c.familia < 0) continue;
     const cerca = c.familiares.some((fid) => {
       const f = world.citizens[fid];
-      return !!f && f.salud !== 'eliminado' && distancia(c, f) < RADIO_PROTECTOR;
+      return sigueHumano(f) && distancia(c, f) < RADIO_PROTECTOR;
     });
     if (!cerca) continue;
     candidatos.push({
