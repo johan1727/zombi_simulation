@@ -185,6 +185,10 @@ export class Resultado {
           <button id="btn-otra-pandemia" type="button">OTRA PANDEMIA</button>
           <button id="btn-copiar-desafio" type="button">COPIAR DESAFÍO</button>
         </div>
+        <div id="resultado-manual" class="resultado-manual">
+          No se pudo copiar automáticamente. Copiá el texto:
+          <input id="resultado-manual-input" type="text" readonly />
+        </div>
       </div>`;
   }
 
@@ -209,6 +213,14 @@ export class Resultado {
    * de reto. La curva propia es la de `Partida` (5 s) recortada a 10 s con
    * `muestrearParaUrl` — más gruesa que la del gráfico de este overlay, es
    * una representación distinta hecha exclusivamente para caber en la URL.
+   *
+   * Fallback de copiado (hallazgo de revisión, Task 10): `navigator.clipboard`
+   * puede faltar o fallar sin gesto real de usuario, permiso denegado o
+   * contexto no seguro (http sin TLS). Antes fallaba en silencio; ahora se
+   * intenta primero `execCommand('copy')` (más permisivo, aunque obsoleto) y,
+   * si también falla, se revela un campo de texto seleccionable para copiar
+   * a mano — sin usar `window.prompt` (bloquea la pestaña y complica las
+   * pruebas automatizadas).
    */
   private copiarDesafio(btn: HTMLButtonElement): void {
     const { world, partida } = this;
@@ -228,12 +240,43 @@ export class Resultado {
         btn.textContent = textoOriginal;
       }, 2000);
     };
+    const mostrarCopiaManual = (): void => {
+      const panel = this.el.querySelector('#resultado-manual');
+      const input = this.el.querySelector('#resultado-manual-input') as HTMLInputElement | null;
+      if (!panel || !input) return;
+      panel.classList.add('activo');
+      input.value = mensaje;
+      input.focus();
+      input.select();
+    };
+    const intentarExecCommand = (): boolean => {
+      try {
+        const textarea = document.createElement('textarea');
+        textarea.value = mensaje;
+        textarea.setAttribute('readonly', '');
+        textarea.style.position = 'fixed';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(textarea);
+        return ok;
+      } catch {
+        return false;
+      }
+    };
     if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(mensaje).then(marcarCopiado).catch(() => {
-        // Puede fallar sin gesto real de usuario, permiso denegado o contexto
-        // no seguro (http sin TLS); `ultimoDesafio` arriba deja el mensaje/URL
-        // disponibles igual, sin depender del portapapeles.
-      });
+      navigator.clipboard
+        .writeText(mensaje)
+        .then(marcarCopiado)
+        .catch(() => {
+          if (intentarExecCommand()) marcarCopiado();
+          else mostrarCopiaManual();
+        });
+    } else if (intentarExecCommand()) {
+      marcarCopiado();
+    } else {
+      mostrarCopiaManual();
     }
   }
 }

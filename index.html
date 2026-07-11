@@ -142,6 +142,15 @@
       .resultado-botones button:hover:not(:disabled) { background: rgba(234, 242, 255, 0.18); }
       .resultado-botones button:disabled { opacity: 0.35; cursor: not-allowed; }
       #btn-revancha { border-color: #6fe08a; }
+      .resultado-manual {
+        margin-top: 10px; display: none; font-size: 12px; color: #cdd8e6;
+      }
+      .resultado-manual.activo { display: block; }
+      .resultado-manual input {
+        width: 100%; margin-top: 4px; box-sizing: border-box; font-size: 12px;
+        padding: 6px 8px; border-radius: 6px; border: 1px solid rgba(234, 242, 255, 0.3);
+        background: rgba(234, 242, 255, 0.06); color: #eaf2ff;
+      }
     </style>
   </head>
   <body>

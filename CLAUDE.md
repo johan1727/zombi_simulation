@@ -55,15 +55,19 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
 - `CameraRig` registra listeners en `window` (`pointerup`, `pointermove`, `resize`)
   en el constructor sin `dispose()`: si algún día se reconstruye sin recargar la
   página, añadir teardown para evitar fugas de listeners duplicados.
-- En Windows, usar las herramientas de preview (dev server + eval/screenshot) para
-  verificar consola, FPS y memoria de forma programática, pero dejar el juicio
-  visual fino (fluidez percibida, estética) a un humano.
-- Al añadir pánico/huida (Task 6), tests previos que asumían presas "lentas"
-  (velocidad de caminar, 1.4 m/s) dejaron de cumplirse: en pánico huyen a
-  `PANICO.velocidadHuida` (2.8 m/s), casi tan rápido como el zombi (3.4 m/s),
-  así que escenarios de caza con ventanas de tiempo cortas (~10s) pueden
-  necesitar más margen. Revisar tests de sistemas anteriores tras cambios de
-  velocidad/comportamiento, no solo los tests nuevos.
+- En Windows, usar las herramientas de preview (dev server + eval) para verificar
+  consola, FPS y memoria de forma programática, pero dejar el juicio visual fino
+  (fluidez percibida, estética) a un humano. El screenshot de esas herramientas
+  puede colgarse con el canvas WebGL del juego (timeout ~30s) sin que la página
+  esté rota — usar `javascript_tool`/eval para leer estado en vez de fiarse solo
+  de la imagen. Además, `document.hidden === true` NO congela `requestAnimationFrame`
+  del todo (Chrome lo regula a una tasa baja, no lo suspende): tickear el mundo a
+  mano vía el gancho `window.pandemia.tick()` mientras la pestaña sigue "viva"
+  puede mezclarse con ticks del bucle real y desincronizar el resultado de una
+  corrida limpia (como `balance.test.ts`) por sensibilidad caótica. Para verificar
+  NÚMEROS exactos de balance, confiar en el test automatizado; el gancho de dev
+  sirve para probar FLUJO (órdenes, posesión, overlays, costo por tick), no para
+  reproducir un porcentaje preciso.
 - Trampa de `THREE.InstancedMesh` (Task 9, `SplatsView`): si la malla nace con
   `count = 0` y se llena con instancias más tarde, el primer render calcula
   `boundingSphere` con el conjunto vacío y lo deja inválido (radio `-1`) para
@@ -75,20 +79,13 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
 - Balance (Planes 2-3): los cuellos de botella suelen ser MECÁNICA faltante, no
   ajuste (búnker eterno → asedio); el gate debe medir la curva a un punto fijo
   del reloj, no la cola larga; y el paisaje es NO monotónico — palancas
-  "obviamente letales" (más alcance de mordida, más presión, más velocidad)
-  empeoran la devastación. Lo que sí movió la aguja en el Plan 3: duplicar la
-  FRECUENCIA de mordida (enfriamiento 12→6) + presión de puerta ×2. Siempre:
-  una perilla por corrida, tabla de datos, y re-correr el gate completo.
+  "obviamente letales" empeoran la devastación. Una perilla por corrida, tabla
+  de datos, y re-correr el gate completo.
 - Dos trampas de TS estrictas ya vistas: `noUnusedParameters` exige `void
   param;` para CADA parámetro sin usar de un stub (no solo los "extra"); y
   `if (c.salud !== 'zombi')` justo después de un `if (c.salud === 'zombi')
   {...; return;}` no compila (TS2367, tipo ya estrechado) — quitar el `if`
   redundante.
-- (Plan 3 Task 4, caza interior) Tests con seeds fijas y pocos ciudadanos son
-  frágiles a la selección aleatoria del paciente cero: al tocar
-  comportamiento de zombi/infección, revisar si algún test antiguo depende
-  implícitamente de que un ciudadano concreto (p. ej. `citizens[0]`) se
-  mantenga sano.
 - (Plan 4 Task 4, fin de partida) `startLoop` (`src/game/loop.ts`) tenía
   `world.tick()` cableado dentro del stepper sin punto de corte: para congelar
   la sim sin tocar el render (reloj a 0:00), se le añadieron `debeSeguir?` (se
@@ -96,11 +93,20 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
   `Partida.update` vea el `tickCount` recién actualizado y no dispare un tick
   extra por condición de carrera de un tick de retraso).
 - (Plan 4 Task 8, audio) Para consumir DELTAS de un array de la sim entre
-  frames de render, importa si el array solo CRECE (`world.hitos`, tope 300 —
-  un índice "consumido hasta aquí" basta) o si se COMPACTA in-place cada tick
-  (`world.ruidos`: decae y se reescribe por delante) — ahí un índice guardado
-  no sobrevive ni un tick: puede saltarse eventos cortos o apuntar a la
-  entrada equivocada. Para señales derivadas de algo que se compacta, es más
-  robusto leer un ESTADO agregado y estable (p. ej. nº de `citizens` en
-  pánico) y disparar por su cambio entre frames, en vez de perseguir índices
-  del array volátil.
+  frames de render, importa si el array solo CRECE (`world.hitos`) o se
+  COMPACTA in-place cada tick (`world.ruidos`) — ahí un índice guardado no
+  sobrevive ni un tick. Para señales derivadas de algo que se compacta, leer
+  un ESTADO agregado y estable y disparar por su cambio entre frames, en vez
+  de perseguir índices del array volátil.
+- (Plan 4, arquitectura para Plan 5) Dos patrones reutilizables: la cola de
+  órdenes (`world.encolarOrden`, FIFO al inicio del tick) es la única forma
+  correcta de meter input del jugador a una sim determinista; el modo estático
+  de `Rival` (nunca tickea, deriva `curva`/`indiceCiudad` de datos congelados
+  en vez de simular) es el patrón para "comparar contra una partida grabada"
+  sin duplicar clases. Replicar ambos en vez de inventar de nuevo.
+- (Plan 4 Task 10, hallazgo de revisión) Un `.catch(() => {})` silencioso en
+  `navigator.clipboard.writeText` deja al usuario sin forma de copiar un link
+  viral si el navegador lo bloquea (falta de gesto real, permiso denegado,
+  contexto sin TLS) — encadenar un fallback `execCommand('copy')` y, si
+  también falla, revelar un campo de texto visible y preseleccionado para
+  copiar a mano. Nunca fallar en silencio en una feature de compartir.

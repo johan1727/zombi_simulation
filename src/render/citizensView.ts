@@ -87,7 +87,12 @@ export class CitizensView {
     this.mesh.instanceMatrix.needsUpdate = true;
     if (colorSucio && this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
 
-    if (seleccionado >= 0 && citizens[seleccionado] && citizens[seleccionado].salud !== 'eliminado') {
+    if (
+      seleccionado >= 0 &&
+      citizens[seleccionado] &&
+      citizens[seleccionado].salud !== 'eliminado' &&
+      citizens[seleccionado].salud !== 'zombi'
+    ) {
       const c = citizens[seleccionado];
       const x = c.prevX + (c.x - c.prevX) * alpha;
       const z = c.prevZ + (c.z - c.prevZ) * alpha;

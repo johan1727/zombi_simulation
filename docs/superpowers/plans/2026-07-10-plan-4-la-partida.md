@@ -301,7 +301,7 @@ export interface Hito {
 
 - **Asedio con refuerzo** — en `asedio.ts`, el umbral pasa a `ASEDIO.resistencia + world.refuerzoPuerta[b.id]`.
 
-- [ ] **Step 1: Test que falla — `tests/agentes.test.ts`**
+- [x] **Step 1: Test que falla — `tests/agentes.test.ts`**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -442,10 +442,10 @@ describe('agentes', () => {
 });
 ```
 
-- [ ] **Step 2: Verificar que falla** — `npm test` → FAIL.
-- [ ] **Step 3: Implementar** todo lo descrito en Interfaces (types, config, agentes.ts, world, infeccion, panico, asedio, hitos). OJO compilación: al ampliar `Salud` con `'caido'`, el mapa `COLORES: Record<Salud, number>` de `src/render/citizensView.ts` exige la clave nueva — añadir `caido: 0xffffff` como placeholder (la Task 2 lo estiliza de verdad).
-- [ ] **Step 4: Verificar** — `npm test` completo verde (los 100 previos + nuevos; NOTA: los tests previos crean mundos con N civiles y ahora habrá N+4 ciudadanos — cualquier test que asuma `citizens.length === N` o índices exactos cerca del final debe revisarse; ajustar SOLO setup, documentando, como en tareas anteriores). `npx tsc --noEmit` limpio. El gate de balance DEBE seguir verde sin recalibrar (agentes ociosos solo huyen; si lo mueve, investigar — probablemente autodefensa consumiendo... la autodefensa no consume rng, no debería).
-- [ ] **Step 5: Commit** — `feat: agentes del jugador — ordenes deterministas, caida y rescate, habilidades con dilema`
+- [x] **Step 2: Verificar que falla** — `npm test` → FAIL.
+- [x] **Step 3: Implementar** todo lo descrito en Interfaces (types, config, agentes.ts, world, infeccion, panico, asedio, hitos). OJO compilación: al ampliar `Salud` con `'caido'`, el mapa `COLORES: Record<Salud, number>` de `src/render/citizensView.ts` exige la clave nueva — añadir `caido: 0xffffff` como placeholder (la Task 2 lo estiliza de verdad).
+- [x] **Step 4: Verificar** — `npm test` completo verde (los 100 previos + nuevos; NOTA: los tests previos crean mundos con N civiles y ahora habrá N+4 ciudadanos — cualquier test que asuma `citizens.length === N` o índices exactos cerca del final debe revisarse; ajustar SOLO setup, documentando, como en tareas anteriores). `npx tsc --noEmit` limpio. El gate de balance DEBE seguir verde sin recalibrar (agentes ociosos solo huyen; si lo mueve, investigar — probablemente autodefensa consumiendo... la autodefensa no consume rng, no debería).
+- [x] **Step 5: Commit** — `feat: agentes del jugador — ordenes deterministas, caida y rescate, habilidades con dilema`
 
 ---
 
@@ -464,7 +464,7 @@ describe('agentes', () => {
 
 **Checklist de verificación (navegador):** seleccionar con click y con 1-4; anillo visible; mover con click al suelo; policía dispara a una horda (zombi revienta en pintura + se OYE... visualmente: ruido atrae zombis); paramédico marca incubandos de magenta; megáfono arrastra multitud al punto; obrero refuerza (usos bajan en el panel); agente mordido cae y parpadea con cuenta atrás; paramédico lo revive; consola limpia; drag de cámara no dispara órdenes.
 
-- [ ] **Step 1: Implementar** per spec. **Step 2:** `npx tsc --noEmit` + `npm test` (sim intacta). **Step 3:** checklist en navegador (programático donde la pestaña oculta lo permita, como T6 del Plan 3; anotar lo pendiente de ojos humanos). **Step 4: Commit** — `feat: modo director — seleccion, ordenes y panel de agentes`
+- [x] **Step 1: Implementar** per spec. **Step 2:** `npx tsc --noEmit` + `npm test` (sim intacta). **Step 3:** checklist en navegador (programático donde la pestaña oculta lo permita, como T6 del Plan 3; anotar lo pendiente de ojos humanos). **Step 4: Commit** — `feat: modo director — seleccion, ordenes y panel de agentes`
 
 ---
 
@@ -484,7 +484,7 @@ describe('agentes', () => {
 
 **Checklist:** entrar/salir de posesión; WASD fluido; disparar en posesión; caída expulsa de la posesión; cámara sin saltos raros; `npm test` intacto (la posesión es 100% game layer).
 
-- [ ] **Step 1: Implementar.** **Step 2: Verificar** (tsc, suite, navegador). **Step 3: Commit** — `feat: posesion en tercera persona via cola de ordenes`
+- [x] **Step 1: Implementar.** **Step 2: Verificar** (tsc, suite, navegador). **Step 3: Commit** — `feat: posesion en tercera persona via cola de ordenes`
 
 ---
 
@@ -514,7 +514,7 @@ describe('agentes', () => {
 
 **Test `tests/indice.test.ts`:** índice inicial = 100 + nº de jugables; tras forzar una brecha baja 1; tras eliminar mitad de la población ronda 50 + intactos. (3 tests directos manipulando el mundo.)
 
-- [ ] Steps TDD estándar + navegador (reloj visible, fin por reloj lleva a estado terminado). **Commit** — `feat: reloj de partida, indice de ciudad y fin por colapso o tiempo`
+- [x] Steps TDD estándar + navegador (reloj visible, fin por reloj lleva a estado terminado). **Commit** — `feat: reloj de partida, indice de ciudad y fin por colapso o tiempo`
 
 ---
 
@@ -527,7 +527,7 @@ describe('agentes', () => {
 
 **Spec:** `rival.ts`: `class Rival { readonly world: World; readonly curva: number[]; constructor(seed); tick(): void; get vivosPct(): number }` — un `World` con la misma semilla, SIN órdenes, tickeado en el mismo stepper (un tick de rival por cada tick propio). `curva`: muestra `vivosPct` cada 150 ticks (5 s) — máx 145 muestras. La curva PROPIA se muestrea igual en `partida.ts`. HUD: esquina superior derecha `TÚ 84% · RIVAL 71%` con color según quién va arriba; aviso flotante 3 s cuando el rival sufre una brecha nueva (comparar `world.brecha` del rival entre muestras): «¡Al rival se le cayó un refugio!». Costo: el rival duplica el trabajo de sim (~2× tick) — verificar en navegador que se mantiene fluido; si no, tickear el rival en ráfagas de 2 cada 2 frames (documentar si hace falta).
 
-- [ ] Steps TDD estándar + navegador. **Commit** — `feat: rival fantasma en vivo con marcador y avisos`
+- [x] Steps TDD estándar + navegador. **Commit** — `feat: rival fantasma en vivo con marcador y avisos`
 
 ---
 
@@ -542,7 +542,7 @@ describe('agentes', () => {
 - `historias.ts` (PURO, testeable): `componerHistorias(world: World, max = 4): string[]` — traduce `world.hitos` + estado final a líneas en español con NOMBRES reales, priorizando drama: brecha con más ocupantes («El refugio de la calle N cayó con 12 personas dentro»), `caida_agente` («El policía Marcos cayó… y nadie llegó a tiempo»), `rescate` («La paramédico Ana revivió a Marcos con la horda encima»), `transformacion_cabeza` con familiares vivos («María buscaba a su familia cuando dejó de ser María»), y si un protector terminó a <5 m de un familiar vivo: («Jorge nunca soltó a su hija»). Determinista: sin rng — ordena por dramatismo fijo (ocupantes desc, luego tick).
 - `resultado.ts`: overlay a pantalla completa al terminar: `TÚ N · RIVAL M` grande, veredicto con los DESEMPATES del diseño §2 (ambos colapsan → cayó más tarde; empate de índice → más vivos; exacto → empate), curvas de ambos como polyline SVG inline (2 líneas, ejes mínimos), 3-4 historias, stats (vivos, zombis eliminados por tu policía = hitos disparo, rescates, refuerzos usados), botones: **REVANCHA (misma pandemia)** — recarga con `?seed=igual`, **OTRA PANDEMIA** — recarga sin seed, **COPIAR DESAFÍO** (Task 7). Español, estética del HUD.
 
-- [ ] Steps TDD (historias) + navegador. **Commit** — `feat: pantalla de resultado con historias emergentes y revancha`
+- [x] Steps TDD (historias) + navegador. **Commit** — `feat: pantalla de resultado con historias emergentes y revancha`
 
 ---
 
@@ -555,7 +555,7 @@ describe('agentes', () => {
 
 **Spec:** `desafio.ts` (PURO): `codificarDesafio(d: {seed: string; curva: number[]; indice: number; nombre?: string}): string` → JSON compacto → base64url (reemplazar `+/=`); `decodificarDesafio(s: string): Desafio | null` (try/catch, validar tipos y rangos). URL: `location.origin + location.pathname + '?reto=' + codigo`. Al cargar con `?reto=`: usar `seed` del reto, el rival NO simula — su "curva" es la del reto (interpolada a la muestra actual), banner superior: «RETO: supera el N% de <nombre>». En el resultado, comparar contra el índice del reto. Botón COPIAR DESAFÍO: `navigator.clipboard.writeText` con mensaje «Sobreviví M:SS con Índice N. Misma pandemia, supérame: <url>» + feedback «¡Copiado!». La curva propia va truncada/muestreada para que la URL quede <2000 chars (muestras cada 10 s, enteros 0-100).
 
-- [ ] Steps TDD (codec) + navegador (flujo completo: jugar → copiar → abrir el link en otra pestaña → banner + rival estático). **Commit** — `feat: link de desafio asincrono — misma pandemia, superame`
+- [x] Steps TDD (codec) + navegador (flujo completo: jugar → copiar → abrir el link en otra pestaña → banner + rival estático). **Commit** — `feat: link de desafio asincrono — misma pandemia, superame`
 
 ---
 
@@ -581,7 +581,7 @@ describe('agentes', () => {
 
 **Spec:** `tutorial.ts`: si `localStorage['pandemia-tutorial'] !== 'visto'`, mostrar tips de UNA línea (toast inferior centrado, 6 s o hasta que la condición siguiente se cumpla), disparados por estado real del mundo, en este orden: (1) al cargar: «Arrastra para mover la cámara · rueda para zoom»; (2) tick 150: «El paciente cero anda suelto. Encuéntralo antes de que estalle»; (3) primera transformación: «¡Empezó! Haz click en tu POLICÍA (tecla 1) y llévalo al brote»; (4) primer uso de habilidad propio: «Todo tiene un precio: el disparo atrae a la horda»; (5) primer pánico masivo (>30 en pánico): «El del MEGÁFONO (3) puede guiar multitudes… a donde tú quieras»; (6) tick 4800: «El OBRERO (4) refuerza puertas. El hospital de tu rival ya cayó, ¿el tuyo?». Al terminar la partida: `localStorage['pandemia-tutorial'] = 'visto'`. Sin pantallas de texto, sin pausas.
 
-- [ ] Implementar + navegador (borrar la clave y verificar la secuencia). **Commit** — `feat: primera partida guiada con tips contextuales`
+- [x] Implementar + navegador (borrar la clave y verificar la secuencia). **Commit** — `feat: primera partida guiada con tips contextuales`
 
 ---
 
@@ -589,7 +589,7 @@ describe('agentes', () => {
 
 **Files:** solo verificación y cierre (fixes triviales si algo falla).
 
-- [ ] **Suite completa** (`npm test`) TODO verde — incluidos determinismo gemelo, determinismo CON guion de órdenes, portabilidad y el gate de balance SIN recalibrar (los agentes ociosos no deben moverlo; si lo movió, investigar la fuga — probablemente algo consume rng o los agentes actúan sin órdenes — y corregir, NUNCA recalibrar en esta task).
-- [ ] `npx tsc --noEmit`; grep de prohibiciones (la suite ya lo hace).
-- [ ] **Partida completa en navegador** (programático + lo que la pestaña permita): jugar 8 minutos con órdenes reales, ganar o perder contra el fantasma, ver el resultado con historias, copiar el desafío, abrirlo, ver el banner. FPS estable con DOS mundos corriendo.
-- [ ] Lecciones condensadas en CLAUDE.md (máx 2 líneas c/u; podar si pasa de ~10). Checkboxes del plan (Edit/sed de Git Bash). Commit `chore: la partida completa verificada (Plan 4 completo)` y push.
+- [x] **Suite completa** (`npm test`) TODO verde — incluidos determinismo gemelo, determinismo CON guion de órdenes, portabilidad y el gate de balance SIN recalibrar (los agentes ociosos no deben moverlo; si lo movió, investigar la fuga — probablemente algo consume rng o los agentes actúan sin órdenes — y corregir, NUNCA recalibrar en esta task).
+- [x] `npx tsc --noEmit`; grep de prohibiciones (la suite ya lo hace).
+- [x] **Partida completa en navegador** (programático + lo que la pestaña permita): jugar 8 minutos con órdenes reales, ganar o perder contra el fantasma, ver el resultado con historias, copiar el desafío, abrirlo, ver el banner. FPS estable con DOS mundos corriendo.
+- [x] Lecciones condensadas en CLAUDE.md (máx 2 líneas c/u; podar si pasa de ~10). Checkboxes del plan (Edit/sed de Git Bash). Commit `chore: la partida completa verificada (Plan 4 completo)` y push.

@@ -83,7 +83,11 @@ export class Controles {
       if (e.key >= '1' && e.key <= '4') {
         const idx = Number(e.key) - 1;
         const agentes = this.world.agentes;
-        if (idx < agentes.length) this.seleccionar(agentes[idx].id);
+        // Mismo filtro que el click (agenteVivoEn): no se selecciona un agente
+        // zombi/eliminado (hallazgo de revisión, Task 10).
+        if (idx < agentes.length && agentes[idx].salud !== 'zombi' && agentes[idx].salud !== 'eliminado') {
+          this.seleccionar(agentes[idx].id);
+        }
       } else if (e.key === 'q' || e.key === 'Q') {
         if (this.seleccionado >= 0) this.modoHabilidad = !this.modoHabilidad;
       } else if (e.key === 'e' || e.key === 'E') {
