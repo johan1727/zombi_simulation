@@ -9,6 +9,12 @@ const DRAG_UMBRAL_PX = 6;
 export interface ControlesCallbacks {
   /** Se llama cuando cambia el agente seleccionado (-1 si se deselecciona). */
   onSeleccion?: (idx: number) => void;
+  /** Doble click sobre un agente vivo, o tecla E con uno seleccionado: pide poseerlo. */
+  onPoseer?: (idx: number) => void;
+  /** Escape mientras se posee: sale de la posesión (en vez de deseleccionar). */
+  onEscapePosesion?: () => void;
+  /** true mientras la posesión está activa — Controles cede clicks y teclas a Posesion. */
+  estaPoseido?: () => boolean;
 }
 
 /**
@@ -56,17 +62,32 @@ export class Controles {
       const dx = e.clientX - this.downPos.x;
       const dz = e.clientY - this.downPos.y;
       if (Math.sqrt(dx * dx + dz * dz) > DRAG_UMBRAL_PX) return; // fue drag de cámara, no click
+      if (this.callbacks.estaPoseido?.()) return; // Posesion maneja sus propios clicks
       this.manejarClick(e.clientX, e.clientY);
     });
+    canvas.addEventListener('dblclick', (e) => {
+      if (this.callbacks.estaPoseido?.()) return;
+      const punto = this.raycastSuelo(e.clientX, e.clientY);
+      if (!punto) return;
+      const idx = this.agenteVivoEn(punto.x, punto.z);
+      if (idx >= 0) this.callbacks.onPoseer?.(idx);
+    });
     window.addEventListener('keydown', (e) => {
+      const poseido = this.callbacks.estaPoseido?.() ?? false;
+      if (e.key === 'Escape') {
+        if (poseido) this.callbacks.onEscapePosesion?.();
+        else this.deseleccionar();
+        return;
+      }
+      if (poseido) return; // WASD y clicks los maneja Posesion mientras se posee
       if (e.key >= '1' && e.key <= '4') {
         const idx = Number(e.key) - 1;
         const agentes = this.world.agentes;
         if (idx < agentes.length) this.seleccionar(agentes[idx].id);
       } else if (e.key === 'q' || e.key === 'Q') {
         if (this.seleccionado >= 0) this.modoHabilidad = !this.modoHabilidad;
-      } else if (e.key === 'Escape') {
-        this.deseleccionar();
+      } else if (e.key === 'e' || e.key === 'E') {
+        if (this.seleccionado >= 0) this.callbacks.onPoseer?.(this.seleccionado);
       }
     });
   }

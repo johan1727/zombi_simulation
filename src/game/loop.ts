@@ -16,8 +16,15 @@ export function createStepper(tick: () => void): (elapsedSeconds: number) => num
   };
 }
 
-export function startLoop(world: World, render: (alpha: number) => void): void {
-  const step = createStepper(() => world.tick());
+export function startLoop(
+  world: World,
+  render: (alpha: number) => void,
+  onTick?: () => void
+): void {
+  const step = createStepper(() => {
+    onTick?.();
+    world.tick();
+  });
   let last = performance.now();
   const frame = (now: number): void => {
     const alpha = step((now - last) / 1000);

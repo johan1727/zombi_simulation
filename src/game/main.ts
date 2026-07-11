@@ -9,6 +9,7 @@ import { startLoop } from './loop';
 import { Hud } from '../ui/hud';
 import { Controles } from './controles';
 import { PanelAgentes } from '../ui/panelAgentes';
+import { Posesion } from './posesion';
 
 const canvas = document.getElementById('app') as HTMLCanvasElement;
 
@@ -30,7 +31,15 @@ const citizensView = new CitizensView(scene, world.citizens.length);
 const splatsView = new SplatsView(scene);
 const rig = new CameraRig(canvas, { w: world.city.width, d: world.city.depth });
 const hud = new Hud(seed);
-const controles = new Controles(canvas, rig.camera, world);
+const posesion = new Posesion(canvas, rig, world);
+const controles = new Controles(canvas, rig.camera, world, {
+  onPoseer: (idx) => {
+    controles.seleccionar(idx);
+    posesion.activar(idx);
+  },
+  onEscapePosesion: () => posesion.desactivar(),
+  estaPoseido: () => posesion.activo,
+});
 const panelAgentes = new PanelAgentes(world, controles);
 
 window.addEventListener('resize', () => {
@@ -38,7 +47,8 @@ window.addEventListener('resize', () => {
 });
 
 const frame = (alpha: number): void => {
-  rig.update();
+  if (posesion.activo) posesion.actualizarCamara(alpha);
+  else rig.update();
   controles.update();
   const foco = rig.focusPoint;
   cityView.updateOcclusion(rig.camera.position.x, rig.camera.position.z, foco.x, foco.z);
@@ -53,8 +63,20 @@ const frame = (alpha: number): void => {
 // Gancho de depuración/verificación programática (solo en dev): permite a
 // las herramientas de preview tickear el mundo y renderizar un frame a mano
 // (la pestaña oculta congela requestAnimationFrame — limitación conocida).
+// `tick()` incluye lo que en el bucle real hace `onTick` (posesion.alTick())
+// justo antes de `world.tick()`, para que el WASD emulado en consola funcione.
 if (import.meta.env.DEV) {
-  (window as unknown as { pandemia: unknown }).pandemia = { world, controles, rig, frame };
+  (window as unknown as { pandemia: unknown }).pandemia = {
+    world,
+    controles,
+    posesion,
+    rig,
+    frame,
+    tick: () => {
+      posesion.alTick();
+      world.tick();
+    },
+  };
 }
 
-startLoop(world, frame);
+startLoop(world, frame, () => posesion.alTick());

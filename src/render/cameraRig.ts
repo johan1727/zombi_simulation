@@ -8,6 +8,12 @@ const DIST_INICIAL = 32; // escala íntima por defecto
 const EDGE_PX = 24; // margen de pantalla que activa el paneo
 const EDGE_SPEED = 0.55;
 
+// ——— Tercera persona (posesión, Plan 4 Task 3) ———
+const TERCERA_ATRAS = 6; // m detrás del agente
+const TERCERA_ARRIBA = 3.5; // m sobre el agente
+const TERCERA_MIRA = 4; // m adelante del agente hacia donde apunta la cámara
+const TERCERA_SUAVIZADO = 8; // 1/s: tasa de suavizado exponencial del yaw de cámara
+
 export class CameraRig {
   readonly camera: THREE.PerspectiveCamera;
 
@@ -17,6 +23,10 @@ export class CameraRig {
   private last = { x: 0, y: 0 };
   private pointer = { x: -1, y: -1 };
   private readonly bounds: { w: number; d: number };
+
+  private modo: 'director' | 'tercera' = 'director';
+  private yawTercera = 0;
+  private ultimoTerceraMs = 0;
 
   constructor(canvas: HTMLCanvasElement, bounds: { w: number; d: number }) {
     this.bounds = bounds;
@@ -78,6 +88,56 @@ export class CameraRig {
 
   get focusPoint(): { x: number; z: number } {
     return { x: this.focus.x, z: this.focus.z };
+  }
+
+  /** true mientras la cámara está en modo tercera persona (posesión activa). */
+  get modoTercera(): boolean {
+    return this.modo === 'tercera';
+  }
+
+  /** Yaw actual de la cámara en tercera persona (rad); usado por Posesion para WASD relativo a cámara. */
+  get yawCamaraTercera(): number {
+    return this.yawTercera;
+  }
+
+  /** Entra en tercera persona; arranca el yaw mirando la dirección dada (sin salto si es (0,0)). */
+  entrarTercera(dirX: number, dirZ: number): void {
+    this.modo = 'tercera';
+    if (dirX !== 0 || dirZ !== 0) this.yawTercera = Math.atan2(dirX, dirZ);
+    this.ultimoTerceraMs = performance.now();
+  }
+
+  /** Vuelve al modo director, con el foco centrado en el punto dado (el agente poseído). */
+  volverADirector(x: number, z: number): void {
+    this.modo = 'director';
+    this.focus.set(x, 0, z);
+  }
+
+  /**
+   * Tercera persona: llamar cada frame EN VEZ de `update()` mientras `modoTercera`.
+   * `px/pz` = posición interpolada del agente; `dirX/dirZ` = su eje de marcha actual
+   * (0,0 si está quieto). El yaw de cámara sigue el movimiento con suavizado
+   * exponencial (render-only: no toca la sim ni afecta el determinismo).
+   */
+  actualizarTercera(px: number, pz: number, dirX: number, dirZ: number): void {
+    const ahora = performance.now();
+    const dt = Math.min((ahora - this.ultimoTerceraMs) / 1000, 0.1);
+    this.ultimoTerceraMs = ahora;
+
+    if (dirX !== 0 || dirZ !== 0) {
+      const objetivo = Math.atan2(dirX, dirZ);
+      let diff = objetivo - this.yawTercera;
+      while (diff > Math.PI) diff -= Math.PI * 2;
+      while (diff < -Math.PI) diff += Math.PI * 2;
+      const factor = 1 - Math.exp(-TERCERA_SUAVIZADO * dt);
+      this.yawTercera += diff * factor;
+    }
+
+    const sen = Math.sin(this.yawTercera);
+    const cos = Math.cos(this.yawTercera);
+    this.camera.position.set(px - sen * TERCERA_ATRAS, TERCERA_ARRIBA, pz - cos * TERCERA_ATRAS);
+    this.camera.lookAt(px + sen * TERCERA_MIRA, 1.4, pz + cos * TERCERA_MIRA);
+    this.focus.set(px, 0, pz);
   }
 
   update(): void {
