@@ -14,6 +14,7 @@ import { Partida } from './partida';
 import { Rival } from './rival';
 import { Resultado } from '../ui/resultado';
 import { Audio } from '../ui/audio';
+import { Tutorial } from '../ui/tutorial';
 import { decodificarDesafio } from './desafio';
 
 const canvas = document.getElementById('app') as HTMLCanvasElement;
@@ -65,6 +66,7 @@ const partida = new Partida();
 // estático: no simula, muestra la curva congelada del desafío (ver rival.ts).
 const rival = new Rival(seed, undefined, reto ?? undefined);
 const resultado = new Resultado(world, partida, rival);
+const tutorial = new Tutorial();
 
 window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -98,6 +100,7 @@ const frame = (alpha: number): void => {
   hud.update(world, partida, rival, audio.habilitado);
   panelAgentes.update(world, controles.seleccionado);
   resultado.update();
+  tutorial.actualizar(world, partida);
   renderer.render(scene, rig.camera);
 };
 
@@ -118,6 +121,7 @@ if (import.meta.env.DEV) {
     rival,
     resultado,
     audio,
+    tutorial,
     seed,
     reto,
     frame,
