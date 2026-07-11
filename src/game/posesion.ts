@@ -17,6 +17,8 @@ const PASO = AGENTES.llegadaOrden + AGENTES.velocidad * DT * 3;
 const TECLAS_MOVIMIENTO = new Set(['w', 'a', 's', 'd']);
 /** Duración del flash rojo al caer (debe coincidir con la transición CSS de #flash-caida). */
 const FLASH_MS = 300;
+/** Mismo umbral que Controles: un arrastre (p. ej. intentar mirar alrededor) no dispara la habilidad. */
+const DRAG_UMBRAL_PX = 6;
 
 /**
  * Posesión en tercera persona de un agente del jugador. WASD encola UNA
@@ -58,8 +60,17 @@ export class Posesion {
     });
     window.addEventListener('blur', () => this.teclas.clear());
 
+    let bajadaX = 0;
+    let bajadaY = 0;
+    canvas.addEventListener('pointerdown', (e) => {
+      bajadaX = e.clientX;
+      bajadaY = e.clientY;
+    });
     canvas.addEventListener('pointerup', (e) => {
       if (!this.activo || e.button !== 0) return;
+      const dx = e.clientX - bajadaX;
+      const dy = e.clientY - bajadaY;
+      if (dx * dx + dy * dy > DRAG_UMBRAL_PX * DRAG_UMBRAL_PX) return; // fue arrastre, no clic
       const punto = this.raycastSuelo(e.clientX, e.clientY);
       if (!punto) return;
       this.world.encolarOrden({ agente: this.idAgente, tipo: 'habilidad', x: punto.x, z: punto.z });
