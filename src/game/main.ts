@@ -74,6 +74,7 @@ window.addEventListener('resize', () => {
 
 // Tecla M: alterna audio. Botón del HUD hace lo mismo (ver arriba).
 window.addEventListener('keydown', (e) => {
+  if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
   if (e.key === 'm' || e.key === 'M') audio.alternar();
 });
 // Primer gesto del usuario (click o tecla, cualquiera): desbloquea el

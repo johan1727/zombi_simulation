@@ -24,7 +24,7 @@ export class World {
   readonly rngZombis: Rng;
   readonly rngPanico: Rng;
   readonly rngCombate: Rng;
-  /** Reservado para habilidades de agente; ninguna de este plan consume rng todavía. */
+  /** Nombres de agente al spawn (crearAgente) y tono de splat en disparo/caída (agentes.ts). */
   readonly rngAgentes: Rng;
 
   readonly splats: Splat[] = [];

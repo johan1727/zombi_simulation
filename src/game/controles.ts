@@ -73,6 +73,9 @@ export class Controles {
       if (idx >= 0) this.callbacks.onPoseer?.(idx);
     });
     window.addEventListener('keydown', (e) => {
+      // No robar teclas mientras el jugador escribe (p. ej. el cuadro de
+      // copia manual del desafío — hallazgo de revisión final del Plan 4).
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       const poseido = this.callbacks.estaPoseido?.() ?? false;
       if (e.key === 'Escape') {
         if (poseido) this.callbacks.onEscapePosesion?.();

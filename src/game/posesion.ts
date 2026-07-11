@@ -51,6 +51,7 @@ export class Posesion {
     this.flashEl = document.getElementById('flash-caida');
 
     window.addEventListener('keydown', (e) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       const k = e.key.toLowerCase();
       if (this.activo && TECLAS_MOVIMIENTO.has(k)) this.teclas.add(k);
     });

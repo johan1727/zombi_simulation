@@ -3,6 +3,7 @@ import { TICK_RATE } from '../sim/config';
 import type { Partida } from '../game/partida';
 import type { Rival } from '../game/rival';
 import type { Desafio } from '../game/desafio';
+import { escapeHtml } from './resultado';
 
 /** Duración del aviso flotante de brecha del rival. */
 const DURACION_AVISO_MS = 3000;
@@ -57,7 +58,8 @@ export class Hud {
     const indice = world.indiceCiudad;
     const rojo = segs < 60;
     const claseReloj = rojo ? 'hud-reloj hud-reloj-rojo' : 'hud-reloj';
-    const html = `Vivos: ${vivos} · Zombis: ${zombis} · Tiempo: <span class="${claseReloj}">${mm}:${ss}</span> · Índice: ${indice} · Semilla: ${this.seed}`;
+    // La semilla puede venir de un ?reto= armado por un desconocido: SIEMPRE escapar antes de innerHTML.
+    const html = `Vivos: ${vivos} · Zombis: ${zombis} · Tiempo: <span class="${claseReloj}">${mm}:${ss}</span> · Índice: ${indice} · Semilla: ${escapeHtml(this.seed)}`;
     if (html !== this.ultimo) {
       this.ultimo = html;
       this.el.innerHTML = html;
