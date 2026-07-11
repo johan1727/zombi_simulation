@@ -13,11 +13,49 @@
         background: rgba(13, 15, 20, 0.65); padding: 8px 12px; border-radius: 8px;
         user-select: none; pointer-events: none;
       }
+      #app.modo-habilidad { cursor: crosshair; }
+      #panel-agentes {
+        position: fixed; left: 50%; bottom: 12px; z-index: 10;
+        transform: translateX(-50%);
+        display: flex; gap: 8px;
+        font-family: system-ui, sans-serif;
+        user-select: none;
+      }
+      .agente-card {
+        background: rgba(13, 15, 20, 0.65); border-radius: 8px;
+        padding: 8px 10px; min-width: 150px;
+        border: 1px solid transparent; cursor: pointer;
+      }
+      .agente-card.seleccionado { border-color: #eaf2ff; }
+      .agente-card-nombre {
+        color: #eaf2ff; font-size: 13px; font-weight: 600; margin-bottom: 4px;
+      }
+      .agente-card-nombre .tecla {
+        display: inline-block; margin-left: 4px; padding: 0 5px;
+        border-radius: 4px; background: rgba(234, 242, 255, 0.15);
+        font-size: 11px; font-weight: 400; opacity: 0.8;
+      }
+      .agente-card-estado {
+        color: #cdd8e6; font-size: 12px; margin-bottom: 6px;
+      }
+      .agente-card-habilidad {
+        width: 100%; font-size: 12px; padding: 5px 6px; margin-bottom: 6px;
+        border-radius: 6px; border: 1px solid rgba(234, 242, 255, 0.3);
+        background: rgba(234, 242, 255, 0.08); color: #eaf2ff; cursor: pointer;
+      }
+      .agente-card-habilidad:hover:not(:disabled) { background: rgba(234, 242, 255, 0.18); }
+      .agente-card-habilidad:disabled { opacity: 0.4; cursor: not-allowed; }
+      .cooldown-bar {
+        height: 4px; border-radius: 2px; overflow: hidden;
+        background: rgba(234, 242, 255, 0.15);
+      }
+      .cooldown-fill { height: 100%; width: 0%; background: #4d9bff; }
     </style>
   </head>
   <body>
     <canvas id="app"></canvas>
     <div id="hud">Cargando…</div>
+    <div id="panel-agentes"></div>
     <script type="module" src="/src/game/main.ts"></script>
   </body>
 </html>
