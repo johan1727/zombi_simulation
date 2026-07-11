@@ -95,10 +95,17 @@ export interface Citizen {
   forzadoZ: number;
   /** Ticks restantes bajo el efecto del megáfono. */
   forzadoTicks: number;
+  /** Zona de la mordida que originó la infección/caída; '' si no aplica. */
+  zonaHerida: ZonaHerida;
+  /** Ticks restantes de la ventana de amputación (solo si zonaHerida === 'brazo'). */
+  ventanaAmputarTicks: number;
+  /** true si el brazo herido ya fue amputado. */
+  brazoAmputado: boolean;
 }
 
 export type Salud = 'sano' | 'incubando' | 'zombi' | 'eliminado' | 'caido';
 export type Animo = 'tranquilo' | 'panico';
+export type ZonaHerida = '' | 'pierna' | 'brazo' | 'torso';
 
 /** Mancha de pintura en el suelo (la "sangre" del juego). */
 export interface Splat {

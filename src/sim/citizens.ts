@@ -1,7 +1,7 @@
 import type { Rng } from './rng';
 import type { Citizen, Personality } from './types';
 import { corridorCenter, corridorIndexAt } from './cityGen';
-import { CITY, CITY_WIDTH, CITY_DEPTH, CITY_PERIOD, CITIZENS, DT, TICK_RATE } from './config';
+import { CITY, CITY_WIDTH, CITY_DEPTH, CITY_PERIOD, CITIZENS, DT, HERIDAS, TICK_RATE } from './config';
 
 export const NOMBRES = [
   'María', 'José', 'Carmen', 'Luis', 'Ana', 'Miguel', 'Sofía', 'Carlos',
@@ -124,6 +124,9 @@ export function spawnCitizens(rng: Rng, count: number): Citizen[] {
       forzadoX: NaN,
       forzadoZ: NaN,
       forzadoTicks: 0,
+      zonaHerida: '',
+      ventanaAmputarTicks: 0,
+      brazoAmputado: false,
     });
     grupoRestante--;
   }
@@ -175,7 +178,8 @@ export function updateCitizen(
     return;
   }
 
-  const paso = CITIZENS.walkSpeed * DT * factorVelocidad;
+  const factorFractura = c.zonaHerida === 'pierna' ? HERIDAS.factorVelocidadFractura : 1;
+  const paso = CITIZENS.walkSpeed * DT * factorVelocidad * factorFractura;
   c.x += c.dirX * paso;
   c.z += c.dirZ * paso;
 

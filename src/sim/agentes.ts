@@ -1,7 +1,7 @@
 import type { Citizen, OrdenJugador, RolAgente } from './types';
 import type { World } from './world';
 import type { Rng } from './rng';
-import { AGENTES, DT, MEGAFONO, OBRERO, PARAMEDICO, POLICIA, PANICO, CITY, CITY_PERIOD } from './config';
+import { AGENTES, DT, HERIDAS, MEGAFONO, OBRERO, PARAMEDICO, POLICIA, PANICO, CITY, CITY_PERIOD } from './config';
 import { moveWithSlide } from './collision';
 import { NOMBRES } from './citizens';
 
@@ -49,6 +49,9 @@ export function crearAgente(rol: Exclude<RolAgente, ''>, x: number, z: number, i
     forzadoX: NaN,
     forzadoZ: NaN,
     forzadoTicks: 0,
+    zonaHerida: '',
+    ventanaAmputarTicks: 0,
+    brazoAmputado: false,
   };
 }
 
@@ -160,6 +163,7 @@ export function updateAgente(c: Citizen, world: World): void {
   c.prevX = c.x;
   c.prevZ = c.z;
   if (c.cdHabilidad > 0) c.cdHabilidad--;
+  const velocidad = AGENTES.velocidad * (c.zonaHerida === 'pierna' ? HERIDAS.factorVelocidadFractura : 1);
 
   if (c.salud === 'caido') {
     c.caidoTicks--;
@@ -182,7 +186,7 @@ export function updateAgente(c: Citizen, world: World): void {
     } else {
       c.dirX = dx / d;
       c.dirZ = dz / d;
-      moveWithSlide(world.city, c, c.x + c.dirX * AGENTES.velocidad * DT, c.z + c.dirZ * AGENTES.velocidad * DT);
+      moveWithSlide(world.city, c, c.x + c.dirX * velocidad * DT, c.z + c.dirZ * velocidad * DT);
       return;
     }
   }
@@ -210,7 +214,7 @@ export function updateAgente(c: Citizen, world: World): void {
     if (d > 0.001) {
       c.dirX = dx / d;
       c.dirZ = dz / d;
-      moveWithSlide(world.city, c, c.x + c.dirX * AGENTES.velocidad * DT, c.z + c.dirZ * AGENTES.velocidad * DT);
+      moveWithSlide(world.city, c, c.x + c.dirX * velocidad * DT, c.z + c.dirZ * velocidad * DT);
     }
   }
 }

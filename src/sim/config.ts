@@ -161,3 +161,13 @@ export const OBRERO = {
   usos: 3,
   alcancePuerta: 3, // m a la puerta para reforzar
 } as const;
+
+// ——— Plan 5: heridas, cansancio y eventos ———
+
+export const HERIDAS = {
+  // Probabilidades acumulativas: pierna primero, luego brazo, resto torso.
+  probPierna: 0.4,
+  probBrazo: 0.35, // (probTorso = 1 - probPierna - probBrazo = 0.25)
+  factorVelocidadFractura: 0.4,
+  ventanaAmputarTicks: 5 * TICK_RATE,
+} as const;

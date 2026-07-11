@@ -2,7 +2,7 @@ import type { Citizen, Personality } from './types';
 import type { World } from './world';
 import {
   CITY, CITY_PERIOD, CITY_WIDTH, CITY_DEPTH, CITIZENS, DT,
-  INFECCION, LIDER, MEGAFONO, PANICO, PROB_PANICO_POR_GRITO, REFUGIO,
+  HERIDAS, INFECCION, LIDER, MEGAFONO, PANICO, PROB_PANICO_POR_GRITO, REFUGIO,
 } from './config';
 import { corridorCenter } from './cityGen';
 import { moveWithSlide } from './collision';
@@ -126,7 +126,8 @@ export function updateHumano(c: Citizen, world: World): void {
       }
     }
 
-    const vel = PANICO.velocidadHuida * (c.salud === 'incubando' ? INFECCION.velocidadIncubando : 1);
+    const vel = PANICO.velocidadHuida * (c.salud === 'incubando' ? INFECCION.velocidadIncubando : 1)
+      * (c.zonaHerida === 'pierna' ? HERIDAS.factorVelocidadFractura : 1);
     moveWithSlide(world.city, c, c.x + c.dirX * vel * DT, c.z + c.dirZ * vel * DT);
     intentarRefugio(c, world);
   } else {

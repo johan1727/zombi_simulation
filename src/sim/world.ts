@@ -194,6 +194,7 @@ export class World {
       h = Math.imul(h, 0x01000193);
     };
     const SALUD = { sano: 1, incubando: 2, zombi: 3, eliminado: 4, caido: 5 } as const;
+    const ZONA = { '': 0, pierna: 1, brazo: 2, torso: 3 } as const;
     mix(this.tickCount);
     for (const c of this.citizens) {
       mix(Math.round(c.x * 100));
@@ -203,6 +204,8 @@ export class World {
       mix(c.dentroDe + 1);
       mix(c.piso);
       mix(c.caidoTicks);
+      mix(ZONA[c.zonaHerida]);
+      mix(c.brazoAmputado ? 1 : 0);
     }
     return h >>> 0;
   }
