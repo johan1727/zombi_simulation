@@ -1,8 +1,8 @@
 import type { Citizen, Personality } from './types';
 import type { World } from './world';
 import {
-  CITY, CITY_PERIOD, CITY_WIDTH, CITY_DEPTH, CITIZENS, DT,
-  INFECCION, LIDER, MEGAFONO, PANICO, PROB_PANICO_POR_GRITO, REFUGIO,
+  CITY, CITY_PERIOD, CITY_WIDTH, CITY_DEPTH, CITIZENS, DT, EVENTO,
+  FATIGA, HERIDAS, INFECCION, LIDER, MEGAFONO, PANICO, PROB_PANICO_POR_GRITO, REFUGIO,
 } from './config';
 import { corridorCenter } from './cityGen';
 import { moveWithSlide } from './collision';
@@ -43,7 +43,11 @@ export function updateHumano(c: Citizen, world: World): void {
   let liderCerca: Citizen | null = null;
   let liderD2 = Infinity;
   let panicosCerca = 0;
-  for (const i of world.grid.queryCircle(c.x, c.z, PANICO.radioVerZombi)) {
+  // apagón: un factor más sobre el radio ya existente, en el punto donde se usa (patrón de la fractura, Task 1).
+  const radioVerZombi = world.evento.activo && world.evento.tipo === 'apagon'
+    ? PANICO.radioVerZombi * EVENTO.factorVerZombiApagon
+    : PANICO.radioVerZombi;
+  for (const i of world.grid.queryCircle(c.x, c.z, radioVerZombi)) {
     const o = world.citizens[i];
     if (o.salud === 'zombi') {
       n++;
@@ -81,6 +85,7 @@ export function updateHumano(c: Citizen, world: World): void {
   if (c.animo === 'panico') {
     c.prevX = c.x;
     c.prevZ = c.z;
+    c.ticksSprintando++;
     if (n > 0) {
       const dx = c.x - cx / n;
       const dz = c.z - cz / n;
@@ -126,7 +131,11 @@ export function updateHumano(c: Citizen, world: World): void {
       }
     }
 
-    const vel = PANICO.velocidadHuida * (c.salud === 'incubando' ? INFECCION.velocidadIncubando : 1);
+    const velBase = c.ticksSprintando <= FATIGA.umbralTicks
+      ? PANICO.velocidadHuida
+      : CITIZENS.walkSpeed * FATIGA.factorAgotado;
+    const vel = velBase * (c.salud === 'incubando' ? INFECCION.velocidadIncubando : 1)
+      * (c.zonaHerida === 'pierna' ? HERIDAS.factorVelocidadFractura : 1);
     moveWithSlide(world.city, c, c.x + c.dirX * vel * DT, c.z + c.dirZ * vel * DT);
     intentarRefugio(c, world);
   } else {
@@ -190,13 +199,18 @@ function entrarEnPanico(c: Citizen, world: World, grita: boolean): void {
   c.animo = 'panico';
   c.animoTicks = 0;
   if (grita) {
-    world.ruidos.push({ x: c.x, z: c.z, radio: PANICO.radioGrito, ticks: PANICO.duracionGritoTicks });
+    // lluvia: un factor más sobre el radio ya existente, en el punto donde se usa (patrón de la fractura, Task 1).
+    const radioGrito = world.evento.activo && world.evento.tipo === 'lluvia'
+      ? PANICO.radioGrito * EVENTO.factorRuidoLluvia
+      : PANICO.radioGrito;
+    world.ruidos.push({ x: c.x, z: c.z, radio: radioGrito, ticks: PANICO.duracionGritoTicks });
   }
 }
 
 /** Vuelve a la calma y se re-engancha a la calle más cercana (teletransporte corto). */
 function calmarse(c: Citizen, world: World): void {
   c.animo = 'tranquilo';
+  c.ticksSprintando = 0;
   const kx = Math.max(0, Math.min(CITY.blocksX, Math.round((c.x - CITY.streetWidth / 2) / CITY_PERIOD)));
   const kz = Math.max(0, Math.min(CITY.blocksY, Math.round((c.z - CITY.streetWidth / 2) / CITY_PERIOD)));
   const cxv = corridorCenter(kx);

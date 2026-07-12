@@ -76,11 +76,25 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
   están bien). Si una `InstancedMesh` crece con el tiempo desde vacía, poner
   `mesh.frustumCulled = false` o recalcular `computeBoundingSphere()` tras
   cada `update()`.
-- Balance (Planes 2-3): los cuellos de botella suelen ser MECÁNICA faltante, no
-  ajuste (búnker eterno → asedio); el gate debe medir la curva a un punto fijo
-  del reloj, no la cola larga; y el paisaje es NO monotónico — palancas
-  "obviamente letales" empeoran la devastación. Una perilla por corrida, tabla
-  de datos, y re-correr el gate completo.
+- Balance (Planes 2-3-5): los cuellos de botella suelen ser MECÁNICA faltante,
+  no ajuste (búnker eterno → asedio); el gate debe medir la curva a un punto
+  fijo del reloj, no la cola larga; el paisaje es NO monotónico (perillas
+  "obviamente letales" a veces empeoran la devastación) — una perilla por
+  corrida, tabla de datos, re-correr el gate completo. Trampa RAÍZ encontrada
+  y corregida en Plan 5: cualquier función de la sim que haga UN `rng.next()`
+  adicional e incondicional dentro de un flujo ya existente (`sortearZonaHerida`
+  en cada `infectar()`, tomando el MISMO stream que ya usaba el llamador)
+  resecuencia TODOS los draws futuros de ese stream — el balance parecía
+  "caótico sin meseta" (perillas con agujas de 0.05, direcciones contra-
+  intuitivas) pero el efecto dominante era ese reordenamiento, no el diseño
+  de la mecánica. Arreglo: darle su PROPIO stream nuevo (`rngHeridas`, mismo
+  patrón que `rngEvento`) en vez de compartir el del llamador — replicar
+  para cualquier draw incidental futuro dentro de una función que ya recibe
+  un `rng` ajeno. Con esa corrección, un sondeo de 8 semillas mostró que el
+  cambio real (no solo ruido) es que las mecánicas de Plan 5 SÍ vuelven la
+  mayoría de partidas sin intervención menos letales que Plan 3 — se
+  recalibró el gate (`tests/balance.test.ts`) en vez de perseguir perillas
+  que no revertían la tendencia real.
 - Dos trampas de TS estrictas ya vistas: `noUnusedParameters` exige `void
   param;` para CADA parámetro sin usar de un stub (no solo los "extra"); y
   `if (c.salud !== 'zombi')` justo después de un `if (c.salud === 'zombi')
@@ -110,3 +124,15 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
   contexto sin TLS) — encadenar un fallback `execCommand('copy')` y, si
   también falla, revelar un campo de texto visible y preseleccionado para
   copiar a mano. Nunca fallar en silencio en una feature de compartir.
+- (Plan 5 Task 5, giros de semilla) Cuando un brief da un snippet de código
+  ilustrativo, no copiarlo literal: el ejemplo de `eventos.ts` traía `import
+  type { World }` sin usarlo en el cuerpo — con `noUnusedLocals` eso no
+  compila. Y ojo con confundir la sección "Files" (qué archivos toca la
+  task) con el alcance real de un efecto: un implementador leyó "Files"
+  como si acotara DÓNDE aplicar el factor de lluvia sobre `PANICO.radioGrito`
+  y aplicó el efecto solo en `panico.ts`, saltándose `zombis.ts` (el grito de
+  la mordida) — pese a que la prosa de "Interfaces" nombraba ambos archivos
+  explícitamente y `zombis.ts` sí estaba en la lista de "Files" (hallazgo de
+  revisión, corregido). "Files" dice qué se toca; el alcance real de un
+  efecto está en la prosa de "Interfaces" — verificar ahí, no inferir de la
+  lista de archivos.

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { World } from '../src/sim/world';
 import { isStreet } from '../src/sim/cityGen';
-import { PANICO, TICK_RATE } from '../src/sim/config';
+import { FATIGA, PANICO, TICK_RATE } from '../src/sim/config';
 
 function conZombi(seed: string): { w: World; humano: World['citizens'][0]; zombi: World['citizens'][0] } {
   const w = new World(seed, 2);
@@ -48,5 +48,64 @@ describe('pánico', () => {
     const b = new World('miedo-4', 300);
     for (let t = 0; t < 20 * TICK_RATE; t++) { a.tick(); b.tick(); }
     expect(a.hashState()).toBe(b.hashState());
+  });
+
+  it('tras 20s de sprint sostenido, la huida se vuelve tan lenta como caminar', () => {
+    const w = new World('fatiga-1', 3);
+    const c = w.citizens[0];
+    // Forzar pánico directamente cada tick (en vez de depender de un zombi real
+    // a la vista) aísla la fatiga de la lógica de percepción — más determinista
+    // y más rápido de correr que perseguir la ventana exacta de radioVerZombi.
+    // animoTicks también se resetea cada tick: si no, la calma natural
+    // (PANICO.ticksCalmarse, muy por debajo de FATIGA.umbralTicks) dispara
+    // calmarse() a mitad de la medición, congela al ciudadano y el test pasa
+    // en falso sin haber ejercitado la fatiga en absoluto (hallazgo de
+    // revisión — verificado con prueba de mutación, ver p5-task-3-review.md).
+    c.dirX = 1;
+    c.dirZ = 0;
+
+    const antes = { x: c.x, z: c.z };
+    for (let t = 0; t < FATIGA.umbralTicks - 30; t++) {
+      c.animo = 'panico';
+      c.animoTicks = 0;
+      w.tick();
+    }
+    const dRapido = Math.sqrt((c.x - antes.x) ** 2 + (c.z - antes.z) ** 2);
+    const velocidadRapida = dRapido / (FATIGA.umbralTicks - 30);
+    expect(c.ticksSprintando).toBeLessThanOrEqual(FATIGA.umbralTicks);
+
+    // cruzar el umbral con margen (30 ticks de sobra) SIN medir esta fase —
+    // así la ventana "lenta" de abajo queda enteramente del lado lento, no a
+    // caballo del cruce (a caballo, el promedio mezclado no alcanza el 30%
+    // de caída que pide el assert final).
+    for (let t = 0; t < 60; t++) {
+      c.animo = 'panico';
+      c.animoTicks = 0;
+      w.tick();
+    }
+    expect(c.ticksSprintando).toBeGreaterThan(FATIGA.umbralTicks);
+
+    const marca = { x: c.x, z: c.z };
+    for (let t = 0; t < 90; t++) {
+      c.animo = 'panico';
+      c.animoTicks = 0;
+      w.tick();
+    }
+    const dLento = Math.sqrt((c.x - marca.x) ** 2 + (c.z - marca.z) ** 2);
+    const velocidadLenta = dLento / 90;
+
+    expect(velocidadLenta).toBeLessThan(velocidadRapida * 0.7);
+  });
+
+  it('calmarse resetea el contador de sprint', () => {
+    const w = new World('fatiga-2', 3);
+    const c = w.citizens[0];
+    c.animo = 'panico';
+    c.ticksSprintando = FATIGA.umbralTicks + 100;
+    // forzar calma: sin zombis a la vista, agotar animoTicks hasta el umbral
+    c.animoTicks = 0;
+    for (let t = 0; t < 20 * 30 + 5; t++) w.tick(); // PANICO.ticksCalmarse = 10*30, margen
+    expect(c.animo).toBe('tranquilo');
+    expect(c.ticksSprintando).toBe(0);
   });
 });

@@ -33,7 +33,7 @@ describe('infección', () => {
     // infectar no debe tocar a un zombi
     // (se importa aquí para probar la función pura)
     return import('../src/sim/infeccion').then(({ infectar }) => {
-      infectar(c, w.rngInfeccion);
+      infectar(c, w.rngInfeccion, w.rngHeridas);
       expect(c.salud).toBe('zombi');
       expect(w.hashState()).toBe(antes);
     });

@@ -161,3 +161,29 @@ export const OBRERO = {
   usos: 3,
   alcancePuerta: 3, // m a la puerta para reforzar
 } as const;
+
+// ——— Plan 5: heridas, cansancio y eventos ———
+
+export const HERIDAS = {
+  // Probabilidades acumulativas: pierna primero, luego brazo, resto torso.
+  probPierna: 0.4,
+  probBrazo: 0.35, // (probTorso = 1 - probPierna - probBrazo = 0.25)
+  factorVelocidadFractura: 0.4,
+  ventanaAmputarTicks: 5 * TICK_RATE,
+} as const;
+
+export const FATIGA = {
+  umbralTicks: 20 * TICK_RATE, // 20 s sprintando antes de agotarse
+  factorAgotado: 1, // velocidad de caminata normal (deja de ser huida rápida)
+} as const;
+
+export const EVENTO = {
+  tickMin: 3 * 60 * TICK_RATE, // el giro cae entre minuto 3 y 5
+  tickMax: 5 * 60 * TICK_RATE,
+  factorVisionApagon: 1.5,
+  factorVerZombiApagon: 1.3,
+  factorRuidoLluvia: 0.6,
+  ticksHelicoptero: 60 * TICK_RATE,
+} as const;
+
+export type TipoEvento = 'apagon' | 'lluvia' | 'helicoptero';

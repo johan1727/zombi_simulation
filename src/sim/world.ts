@@ -2,7 +2,7 @@ import { createRng, type Rng } from './rng';
 import { corridorCenter, generateCity, type CityLayout } from './cityGen';
 import { spawnCitizens } from './citizens';
 import type { Citizen, Hito, OrdenJugador, Ruido, Splat } from './types';
-import { CITIZENS, CITY_WIDTH, CITY_DEPTH, INFECCION, OBRERO, PELIGRO } from './config';
+import { CITIZENS, CITY_WIDTH, CITY_DEPTH, EVENTO, INFECCION, OBRERO, PELIGRO, type TipoEvento } from './config';
 import { SpatialGrid } from './spatialGrid';
 import { actualizarIncubacion, elegirPacienteCero, infectar } from './infeccion';
 import { updateZombi } from './zombis';
@@ -11,6 +11,7 @@ import { resolverCombates } from './combate';
 import { resolverAsedios } from './asedio';
 import { updateInterior } from './interior';
 import { aplicarOrden, crearAgente, updateAgente } from './agentes';
+import { elegirEvento } from './eventos';
 
 export class World {
   readonly seed: string;
@@ -26,6 +27,13 @@ export class World {
   readonly rngCombate: Rng;
   /** Nombres de agente al spawn (crearAgente) y tono de splat en disparo/caída (agentes.ts). */
   readonly rngAgentes: Rng;
+  /** Sorteo del giro de semilla (elegirEvento); stream propio, sin tocar el conteo de draws de los demás. */
+  readonly rngEvento: Rng;
+  /** Zona de herida al infectar (sortearZonaHerida, infeccion.ts); stream propio para no resecuenciar rngInfeccion/rngCombate/rngAgentes. */
+  readonly rngHeridas: Rng;
+
+  /** Giro de semilla a mitad de partida: tick y tipo sorteados en el constructor, IDÉNTICO para World y Rival (misma semilla). */
+  readonly evento: { tick: number; tipo: TipoEvento; activo: boolean; helicopteroLlegaEnTicks: number };
 
   readonly splats: Splat[] = [];
   readonly ruidos: Ruido[] = [];
@@ -58,6 +66,10 @@ export class World {
     this.rngPanico = createRng(`pandemia:${seed}:panico`);
     this.rngCombate = createRng(`pandemia:${seed}:combate`);
     this.rngAgentes = createRng(`pandemia:${seed}:agentes`);
+    this.rngEvento = createRng(`pandemia:${seed}:evento`);
+    this.rngHeridas = createRng(`pandemia:${seed}:heridas`);
+    const { tick, tipo } = elegirEvento(this.rngEvento);
+    this.evento = { tick, tipo, activo: false, helicopteroLlegaEnTicks: 0 };
     this.city = generateCity(rngCiudad);
     this.citizens = spawnCitizens(this.rngCiudadanos, citizenCount);
     // 4 agentes deterministas, DISPERSOS en cuatro cruces del centro: evita
@@ -133,7 +145,16 @@ export class World {
     for (const o of this.colaOrdenes) aplicarOrden(o, this);
     this.colaOrdenes.length = 0;
     if (this.tickCount === INFECCION.pacienteCeroTick) {
-      infectar(this.citizens[elegirPacienteCero(this.citizens, this.rngInfeccion)], this.rngInfeccion);
+      infectar(this.citizens[elegirPacienteCero(this.citizens, this.rngInfeccion)], this.rngInfeccion, this.rngHeridas);
+    }
+    if (this.tickCount === this.evento.tick) {
+      this.evento.activo = true;
+      if (this.evento.tipo === 'helicoptero') {
+        this.evento.helicopteroLlegaEnTicks = EVENTO.ticksHelicoptero;
+      }
+    }
+    if (this.evento.helicopteroLlegaEnTicks > 0) {
+      this.evento.helicopteroLlegaEnTicks--;
     }
     this.grid.rebuild(this.citizens, (c) => c.salud !== 'eliminado' && c.dentroDe < 0);
     for (const lista of this.dentroPorEdificio) lista.length = 0;
@@ -194,6 +215,7 @@ export class World {
       h = Math.imul(h, 0x01000193);
     };
     const SALUD = { sano: 1, incubando: 2, zombi: 3, eliminado: 4, caido: 5 } as const;
+    const ZONA = { '': 0, pierna: 1, brazo: 2, torso: 3 } as const;
     mix(this.tickCount);
     for (const c of this.citizens) {
       mix(Math.round(c.x * 100));
@@ -203,6 +225,8 @@ export class World {
       mix(c.dentroDe + 1);
       mix(c.piso);
       mix(c.caidoTicks);
+      mix(ZONA[c.zonaHerida]);
+      mix(c.brazoAmputado ? 1 : 0);
     }
     return h >>> 0;
   }

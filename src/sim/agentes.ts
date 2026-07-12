@@ -1,7 +1,7 @@
 import type { Citizen, OrdenJugador, RolAgente } from './types';
 import type { World } from './world';
 import type { Rng } from './rng';
-import { AGENTES, DT, MEGAFONO, OBRERO, PARAMEDICO, POLICIA, PANICO, CITY, CITY_PERIOD } from './config';
+import { AGENTES, DT, HERIDAS, MEGAFONO, OBRERO, PARAMEDICO, POLICIA, PANICO, CITY, CITY_PERIOD } from './config';
 import { moveWithSlide } from './collision';
 import { NOMBRES } from './citizens';
 
@@ -49,6 +49,13 @@ export function crearAgente(rol: Exclude<RolAgente, ''>, x: number, z: number, i
     forzadoX: NaN,
     forzadoZ: NaN,
     forzadoTicks: 0,
+    zonaHerida: '',
+    ventanaAmputarTicks: 0,
+    brazoAmputado: false,
+    // Los agentes se mueven por updateAgente (nunca pasan por la rama de
+    // pánico/huida de panico.ts), así que este campo nunca se incrementa
+    // para ellos: se deja en 0 solo para cumplir la forma de Citizen.
+    ticksSprintando: 0,
   };
 }
 
@@ -95,7 +102,40 @@ function dispararPolicia(a: Citizen, o: OrdenJugador, world: World): void {
 }
 
 function actuarParamedico(a: Citizen, world: World): void {
-  // 1) revivir caído adyacente (prioridad); 2) si no, diagnóstico en radio
+  // 1) amputar un brazo dentro de su ventana (más prisa: se cierra sola);
+  // 2) si no, revivir caído adyacente; 3) si no, diagnóstico en radio
+  let herido: Citizen | null = null;
+  let mejorD2Herido = PARAMEDICO.alcanceRevivir ** 2;
+  for (const c of world.citizens) {
+    // zonaHerida==='brazo' es redundante hoy (única fuente de ventanaAmputarTicks>0,
+    // ver sortearZonaHerida) pero no lo fuerza el compilador — chequeo explícito
+    // por robustez. salud!=='zombi'/'eliminado': un agente caído sin rescatar
+    // que se convirtió en zombi arrastra una ventana congelada para siempre
+    // (ventanaAmputarTicks solo decrece en 'incubando') — no tiene sentido
+    // "amputar" a un zombi (hallazgo de revisión, P5-T2).
+    if (
+      c.ventanaAmputarTicks <= 0 ||
+      c.zonaHerida !== 'brazo' ||
+      c.salud === 'zombi' ||
+      c.salud === 'eliminado'
+    )
+      continue;
+    const d2 = (c.x - a.x) ** 2 + (c.z - a.z) ** 2;
+    if (d2 <= mejorD2Herido) {
+      mejorD2Herido = d2;
+      herido = c;
+    }
+  }
+  if (herido) {
+    herido.brazoAmputado = true;
+    herido.ventanaAmputarTicks = 0;
+    if (herido.salud === 'incubando') herido.salud = 'sano'; // amputar detiene la infección: la cura real
+    world.hitos.push({ tick: world.tickCount, tipo: 'amputacion', a: a.id, b: herido.id });
+    a.cdHabilidad = POLICIA.cooldownTicks;
+    return;
+  }
+
+  // 2) revivir caído adyacente (prioridad); 3) si no, diagnóstico en radio
   let caido: Citizen | null = null;
   let mejorD2 = PARAMEDICO.alcanceRevivir ** 2;
   for (const c of world.citizens) {
@@ -109,6 +149,11 @@ function actuarParamedico(a: Citizen, world: World): void {
   if (caido) {
     caido.salud = 'sano';
     caido.caidoTicks = 0;
+    // El rescate sana al agente pero no la herida: cerrar la ventana de
+    // amputación (si no, queda abierta para siempre — actualizarIncubacion
+    // solo decrementa para 'incubando', y un agente nunca pasa por ahí).
+    caido.zonaHerida = '';
+    caido.ventanaAmputarTicks = 0;
     world.hitos.push({ tick: world.tickCount, tipo: 'rescate', a: a.id, b: caido.id });
   } else {
     for (const i of world.grid.queryCircle(a.x, a.z, PARAMEDICO.radioDiagnostico)) {
@@ -160,6 +205,7 @@ export function updateAgente(c: Citizen, world: World): void {
   c.prevX = c.x;
   c.prevZ = c.z;
   if (c.cdHabilidad > 0) c.cdHabilidad--;
+  const velocidad = AGENTES.velocidad * (c.zonaHerida === 'pierna' ? HERIDAS.factorVelocidadFractura : 1);
 
   if (c.salud === 'caido') {
     c.caidoTicks--;
@@ -182,7 +228,7 @@ export function updateAgente(c: Citizen, world: World): void {
     } else {
       c.dirX = dx / d;
       c.dirZ = dz / d;
-      moveWithSlide(world.city, c, c.x + c.dirX * AGENTES.velocidad * DT, c.z + c.dirZ * AGENTES.velocidad * DT);
+      moveWithSlide(world.city, c, c.x + c.dirX * velocidad * DT, c.z + c.dirZ * velocidad * DT);
       return;
     }
   }
@@ -210,7 +256,7 @@ export function updateAgente(c: Citizen, world: World): void {
     if (d > 0.001) {
       c.dirX = dx / d;
       c.dirZ = dz / d;
-      moveWithSlide(world.city, c, c.x + c.dirX * AGENTES.velocidad * DT, c.z + c.dirZ * AGENTES.velocidad * DT);
+      moveWithSlide(world.city, c, c.x + c.dirX * velocidad * DT, c.z + c.dirZ * velocidad * DT);
     }
   }
 }

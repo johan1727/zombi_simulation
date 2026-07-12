@@ -39,6 +39,14 @@
         user-select: none; pointer-events: none; display: none;
       }
       #banner-reto.activo { display: block; }
+      #aviso-evento {
+        position: fixed; top: 56px; left: 50%; transform: translateX(-50%); z-index: 10;
+        color: #eaf2ff; font-family: system-ui, sans-serif; font-size: 13px; font-weight: 600;
+        background: rgba(20, 60, 120, 0.75); padding: 6px 14px; border-radius: 8px;
+        user-select: none; pointer-events: none;
+        opacity: 0; transition: opacity 400ms ease-out;
+      }
+      #aviso-evento.activo { opacity: 1; }
       #btn-audio {
         position: fixed; top: 52px; left: 12px; z-index: 10;
         width: 32px; height: 32px; border-radius: 8px;
@@ -63,6 +71,14 @@
         transition: opacity 300ms ease-out;
       }
       #flash-caida.activo { opacity: 1; }
+      #barks { position: fixed; inset: 0; z-index: 12; pointer-events: none; }
+      .bark-burbuja {
+        position: absolute; left: 0; top: 0; transform: translate(-50%, -100%);
+        margin-top: -8px; color: #0d0f14; font-family: system-ui, sans-serif;
+        font-size: 12px; font-weight: 700; background: rgba(234, 242, 255, 0.92);
+        padding: 4px 9px; border-radius: 10px; white-space: nowrap;
+        opacity: 0; transition: opacity 250ms ease-out; user-select: none;
+      }
       #panel-agentes {
         position: fixed; left: 50%; bottom: 12px; z-index: 10;
         transform: translateX(-50%);
@@ -158,9 +174,11 @@
     <div id="hud">Cargando…</div>
     <button id="btn-audio" type="button" title="Silenciar (M)">🔊</button>
     <div id="banner-reto"></div>
+    <div id="aviso-evento"></div>
     <div id="marcador-rival"></div>
     <div id="aviso-rival"></div>
     <div id="panel-agentes"></div>
+    <div id="barks"></div>
     <div id="flash-caida"></div>
     <div id="tutorial-toast"></div>
     <div id="resultado"></div>

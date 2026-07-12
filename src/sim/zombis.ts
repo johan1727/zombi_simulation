@@ -1,6 +1,6 @@
 import type { Citizen } from './types';
 import type { World } from './world';
-import { CITY, CITY_PERIOD, DIRECCIONES, DT, INFECCION, PANICO, ZOMBIS } from './config';
+import { CITY, CITY_PERIOD, DIRECCIONES, DT, EVENTO, INFECCION, PANICO, ZOMBIS } from './config';
 import { moveWithSlide } from './collision';
 import { infectar } from './infeccion';
 import { NORMAL_INTERIOR } from './interior';
@@ -11,9 +11,13 @@ export function updateZombi(c: Citizen, world: World): void {
   if (c.cdMordida > 0) c.cdMordida--;
 
   // presa: el humano activo más cercano a la vista
+  // apagón: un factor más sobre el radio ya existente, en el punto donde se usa (patrón de la fractura, Task 1).
+  const radioVision = world.evento.activo && world.evento.tipo === 'apagon'
+    ? ZOMBIS.radioVision * EVENTO.factorVisionApagon
+    : ZOMBIS.radioVision;
   let objetivo: Citizen | null = null;
-  let mejorD2 = ZOMBIS.radioVision * ZOMBIS.radioVision;
-  for (const i of world.grid.queryCircle(c.x, c.z, ZOMBIS.radioVision)) {
+  let mejorD2 = radioVision * radioVision;
+  for (const i of world.grid.queryCircle(c.x, c.z, radioVision)) {
     const o = world.citizens[i];
     // 'caido' no es presa: un cuerpo inmóvil no retiene a un zombi hambriento
     // (diseño §3.3: persiguen MOVIMIENTO). Evita el imán degenerado de agentes.
@@ -63,13 +67,17 @@ export function updateZombi(c: Citizen, world: World): void {
   if (objetivo && c.cdMordida === 0) {
     const d2 = (objetivo.x - c.x) ** 2 + (objetivo.z - c.z) ** 2;
     if (d2 <= INFECCION.radioMordida ** 2) {
-      infectar(objetivo, world.rngInfeccion);
+      infectar(objetivo, world.rngInfeccion, world.rngHeridas);
       objetivo.animo = 'panico';
       objetivo.animoTicks = 0;
+      // lluvia: un factor más sobre el radio ya existente, en el punto donde se usa (patrón de la fractura, Task 1).
+      const radioGrito = world.evento.activo && world.evento.tipo === 'lluvia'
+        ? PANICO.radioGrito * EVENTO.factorRuidoLluvia
+        : PANICO.radioGrito;
       world.ruidos.push({
         x: objetivo.x,
         z: objetivo.z,
-        radio: PANICO.radioGrito,
+        radio: radioGrito,
         ticks: PANICO.duracionGritoTicks,
       });
       c.cdMordida = ZOMBIS.enfriamientoMordidaTicks;

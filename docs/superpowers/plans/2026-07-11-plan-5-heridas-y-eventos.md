@@ -64,7 +64,7 @@ export const HERIDAS = {
 - Velocidad por fractura: en `panico.ts` (huida) y `citizens.ts` (`updateCitizen`, caminata normal) y `agentes.ts` (`updateAgente`), multiplicar la velocidad efectiva por `HERIDAS.factorVelocidadFractura` si `c.zonaHerida === 'pierna'`. Aplicar en el punto donde YA se calcula `vel` en cada uno de los tres sitios (no crear un cuarto sistema — un factor más en la multiplicación existente).
 - `world.ts`, `hashState`: mezclar `zonaHerida` (mapa a entero 0-3) y `brazoAmputado` (0/1).
 
-- [ ] **Step 1: Test que falla — `tests/heridas.test.ts`**
+- [x] **Step 1: Test que falla — `tests/heridas.test.ts`**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -126,10 +126,10 @@ describe('heridas localizadas', () => {
 
 ```
 
-- [ ] **Step 2: Verificar que falla** — `npm test` → FAIL.
-- [ ] **Step 3: Implementar** todo lo descrito en Interfaces.
-- [ ] **Step 4: Verificar** — `npm test` (SIN balance, se recalibra en Task 6) verde; `npx tsc --noEmit` limpio.
-- [ ] **Step 5: Commit** — `feat: heridas localizadas por zona de mordida — fractura de pierna, ventana de amputacion en brazo`
+- [x] **Step 2: Verificar que falla** — `npm test` → FAIL.
+- [x] **Step 3: Implementar** todo lo descrito en Interfaces.
+- [x] **Step 4: Verificar** — `npm test` (SIN balance, se recalibra en Task 6) verde; `npx tsc --noEmit` limpio.
+- [x] **Step 5: Commit** — `feat: heridas localizadas por zona de mordida — fractura de pierna, ventana de amputacion en brazo`
 
 ---
 
@@ -143,7 +143,7 @@ describe('heridas localizadas', () => {
 - `actuarParamedico(a, world)`: ANTES de la lógica actual (revivir caído > diagnosticar), añadir una prioridad más alta: si hay un civil o agente con `ventanaAmputarTicks > 0` dentro de `PARAMEDICO.alcanceRevivir`, amputar (prioridad: amputar > revivir > diagnosticar — la amputación tiene ventana de tiempo, revivir y diagnosticar no tanta prisa relativa). Amputar: `c.brazoAmputado = true; c.ventanaAmputarTicks = 0; c.salud = 'sano'` si estaba `'incubando'` (detiene la infección — la cura real), empujar un `hitos.push({tipo:'amputacion', a: a.id, b: c.id, tick: world.tickCount})` (nuevo tipo de hito — añadir `'amputacion'` a la unión `Hito['tipo']` en `types.ts`).
 - El brazo amputado (`brazoAmputado === true`) impide dos cosas ya existentes: (a) en `resolverCombates`, un ciudadano con `brazoAmputado` NO cuenta como luchador (no puede pelear con un solo brazo — mismo patrón que ya excluye `'caido'`); (b) si en el futuro hay disparo civil, quedaría bloqueado — no aplica todavía, solo dejar el campo listo.
 
-- [ ] **Step 1: Test que falla** (añadir a `tests/agentes.test.ts`, importando `HERIDAS` de `../src/sim/config` y `resolverCombates` de `../src/sim/combate` junto a los imports existentes del archivo):
+- [x] **Step 1: Test que falla** (añadir a `tests/agentes.test.ts`, importando `HERIDAS` de `../src/sim/config` y `resolverCombates` de `../src/sim/combate` junto a los imports existentes del archivo):
 
 ```ts
 it('el paramédico amputa un brazo dentro de la ventana y detiene la infección', () => {
@@ -207,8 +207,8 @@ it('un ciudadano con brazo amputado no cuenta como luchador', () => {
 });
 ```
 
-- [ ] **Step 2-4:** TDD estándar, verificar suite completa (sin balance) + tsc.
-- [ ] **Step 5: Commit** — `feat: el paramedico puede amputar un brazo mordido dentro de la ventana de 5s`
+- [x] **Step 2-4:** TDD estándar, verificar suite completa (sin balance) + tsc.
+- [x] **Step 5: Commit** — `feat: el paramedico puede amputar un brazo mordido dentro de la ventana de 5s`
 
 ---
 
@@ -231,7 +231,7 @@ export const FATIGA = {
 - `Citizen` suma `ticksSprintando: number;` (spawn: 0).
 - En la rama de pánico de `updateHumano` (`panico.ts`), donde hoy se aplica `PANICO.velocidadHuida`: si `c.animo === 'panico'`, incrementar `c.ticksSprintando`; la velocidad efectiva es `PANICO.velocidadHuida` mientras `ticksSprintando <= FATIGA.umbralTicks`, y cae a `CITIZENS.walkSpeed * FATIGA.factorAgotado` después (combinar con el factor de fractura de la Task 1 — multiplicar, no reemplazar). Al calmarse (`calmarse()`), resetear `c.ticksSprintando = 0`.
 
-- [ ] **Step 1: Test que falla** (`tests/panico.test.ts`, importar `FATIGA` de `../src/sim/config`):
+- [x] **Step 1: Test que falla** (`tests/panico.test.ts`, importar `FATIGA` de `../src/sim/config`):
 
 ```ts
 it('tras 20s de sprint sostenido, la huida se vuelve tan lenta como caminar', () => {
@@ -279,8 +279,8 @@ it('calmarse resetea el contador de sprint', () => {
 });
 ```
 
-- [ ] **Step 2-4:** TDD, suite completa, tsc.
-- [ ] **Step 5: Commit** — `feat: cansancio — la huida sostenida mas de 20s cae a paso de caminata`
+- [x] **Step 2-4:** TDD, suite completa, tsc.
+- [x] **Step 5: Commit** — `feat: cansancio — la huida sostenida mas de 20s cae a paso de caminata`
 
 ---
 
@@ -295,10 +295,10 @@ it('calmarse resetea el contador de sprint', () => {
 - `barks.ts`: tabla determinista `FRASES: Record<Personality | 'generico', readonly string[]>` (3-4 frases por personalidad: cobarde→«¡CORRE!»/«¡Nos va a matar!», protector→«¿Y mi hija?»/«¡No te sueltes!», líder→«¡A la azotea!»/«¡Síganme!», etc. — español, cortas, sin pistas de estrategia). `class Barks { constructor(scene: THREE.Scene); update(world: World, alpha: number): void }` — usa `CSS2DRenderer`-like approach O más simple: un `<div>` HTML posicionado con `camera.project()` para 2-3 burbujas simultáneas máximo (pool fijo, sin crear/destruir nodos DOM cada frame). Disparo: cuando un ciudadano ENTRA en pánico (mismo instante que hoy dispara el grito en `panico.ts` — leer eso desde `world.ruidos` recién empujados, delta como hace `audio.ts`, NO tocar la sim) o cuando un protector activa su regla de "vuelve por los suyos" (nuevo: si hace falta una señal, usar la MISMA condición que ya existe en `panico.ts` inspeccionada desde fuera — o más simple, engancharse a los `hitos` de `'transformacion_cabeza'` para la frase del familiar). Elección de frase determinista por `citizen.id % FRASES[...].length` (NUNCA `Math.random` para el contenido — aunque `src/ui/` lo permitiría, aquí se prefiere reproducible para que un desafío se sienta igual).
 - Cooldown por ciudadano simple (no bark dos veces en <10s) para no saturar.
 
-- [ ] **Step 1: Implementar** (sin test unitario obligatorio — es puramente visual; si `barks.ts` tiene una función pura de selección de frase, testear esa parte suelta: `elegirFrase(personality, id): string` determinista, con un test corto).
-- [ ] **Step 2:** `npx tsc --noEmit`; `npm test` (sin balance) verde.
-- [ ] **Step 3: Verificación en navegador** — forzar pánico vía `window.pandemia`, confirmar que aparecen 1-3 burbujas de texto, se desvanecen, nunca más de un pool fijo simultáneo, sin fugas de memoria tras 2 minutos.
-- [ ] **Step 4: Commit** — `feat: dialogos flotantes deterministas segun personalidad y situacion`
+- [x] **Step 1: Implementar** (sin test unitario obligatorio — es puramente visual; si `barks.ts` tiene una función pura de selección de frase, testear esa parte suelta: `elegirFrase(personality, id): string` determinista, con un test corto).
+- [x] **Step 2:** `npx tsc --noEmit`; `npm test` (sin balance) verde.
+- [x] **Step 3: Verificación en navegador** — forzar pánico vía `window.pandemia`, confirmar que aparecen 1-3 burbujas de texto, se desvanecen, nunca más de un pool fijo simultáneo, sin fugas de memoria tras 2 minutos.
+- [x] **Step 4: Commit** — `feat: dialogos flotantes deterministas segun personalidad y situacion`
 
 ---
 
@@ -346,7 +346,7 @@ export function elegirEvento(rng: Rng): { tick: number; tipo: TipoEvento } {
 - Efectos de apagón/lluvia: en `zombis.ts` (`updateZombi`) y `panico.ts` (percepción), multiplicar `ZOMBIS.radioVision`/`PANICO.radioVerZombi`/`PANICO.radioGrito` por los factores de `EVENTO` SOLO si `world.evento.activo && world.evento.tipo === 'apagon'|'lluvia'` correspondiente — un `if` adicional en el punto donde ya se usa la constante, exactamente como el patrón de la fractura en la Task 1 (un factor más, no un sistema paralelo).
 - `hud.ts`: cuando `world.evento.activo` cambia a `true` por primera vez, un aviso de 4s: «¡Apagón en toda la ciudad!» / «Empieza a llover» / «Helicóptero de rescate en camino — azotea del hospital, 60s» (mismo patrón que el aviso de brecha del rival ya existente).
 
-- [ ] **Step 1: Test que falla — `tests/eventos.test.ts`**
+- [x] **Step 1: Test que falla — `tests/eventos.test.ts`**
 
 ```ts
 import { describe, expect, it } from 'vitest';
@@ -389,8 +389,8 @@ describe('giros de semilla', () => {
 });
 ```
 
-- [ ] **Step 2-4:** TDD, suite completa, tsc, grep de portabilidad.
-- [ ] **Step 5: Commit** — `feat: giros de semilla — apagon, lluvia o helicoptero a mitad de partida, simetricos para jugador y rival`
+- [x] **Step 2-4:** TDD, suite completa, tsc, grep de portabilidad.
+- [x] **Step 5: Commit** — `feat: giros de semilla — apagon, lluvia o helicoptero a mitad de partida, simetricos para jugador y rival`
 
 ---
 
@@ -400,7 +400,7 @@ describe('giros de semilla', () => {
 
 Las heridas/fatiga/eventos SÍ pueden mover el balance calibrado en Plan 3. Metodología idéntica a Planes 2/3/4: medir primero con los valores de las Tasks 1-5 tal cual; si el gate falla, ajustar UNA perilla por corrida (candidatas en orden: `HERIDAS.probPierna/probBrazo`, `FATIGA.umbralTicks`, `EVENTO.factorVisionApagon/factorVerZombiApagon/factorRuidoLluvia`) documentando cada intento; si tras ~15 intentos razonados no se alcanza, BLOCKED con la tabla — nunca fabricar el resultado. Regla de cierre determinista igual que la adenda de la Task 10c del Plan 3: si el mejor resultado honesto se acerca, autorizado ajustar el UMBRAL del gate documentando el porqué, no solo las perillas del juego.
 
-- [ ] **Step 1:** Medir con valores por defecto (`npx vitest run tests/balance.test.ts`).
-- [ ] **Step 2:** Ajustar si hace falta, documentando tabla de intentos.
-- [ ] **Step 3: Verificación completa** — `npm test` TODO verde (balance incluido), `npx tsc --noEmit`, portabilidad. Navegador: ~2 min con heridas/fatiga/evento visibles (forzar el evento antes vía `window.pandemia` si el tick por defecto tarda mucho).
-- [ ] **Step 4: Cierre** — lecciones condensadas en CLAUDE.md, checkboxes marcados (Edit/sed, nunca PowerShell Set-Content), commit `chore: heridas, cansancio, dialogos y giros de semilla verificados (Plan 5 completo)`, push.
+- [x] **Step 1:** Medir con valores por defecto (`npx vitest run tests/balance.test.ts`).
+- [x] **Step 2:** Ajustar si hace falta, documentando tabla de intentos.
+- [x] **Step 3: Verificación completa** — `npm test` TODO verde (balance incluido), `npx tsc --noEmit`, portabilidad. Navegador: aviso del giro de semilla confirmado visualmente; campos de heridas/cansancio confirmados sin errores de consola (la réplica manual del ratio exacto de velocidad en el navegador vivo resultó poco fiable — interferencia de zombis reales/líder/refugio cercanos — se confía en la suite automatizada, ya con prueba de mutación para la fatiga).
+- [x] **Step 4: Cierre** — lecciones condensadas en CLAUDE.md, checkboxes marcados (Edit/sed, nunca PowerShell Set-Content), commit `chore: heridas, cansancio, dialogos y giros de semilla verificados (Plan 5 completo)`, push.
