@@ -70,10 +70,14 @@ export function updateZombi(c: Citizen, world: World): void {
       infectar(objetivo, world.rngInfeccion);
       objetivo.animo = 'panico';
       objetivo.animoTicks = 0;
+      // lluvia: un factor más sobre el radio ya existente, en el punto donde se usa (patrón de la fractura, Task 1).
+      const radioGrito = world.evento.activo && world.evento.tipo === 'lluvia'
+        ? PANICO.radioGrito * EVENTO.factorRuidoLluvia
+        : PANICO.radioGrito;
       world.ruidos.push({
         x: objetivo.x,
         z: objetivo.z,
-        radio: PANICO.radioGrito,
+        radio: radioGrito,
         ticks: PANICO.duracionGritoTicks,
       });
       c.cdMordida = ZOMBIS.enfriamientoMordidaTicks;
