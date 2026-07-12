@@ -110,3 +110,12 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
   contexto sin TLS) — encadenar un fallback `execCommand('copy')` y, si
   también falla, revelar un campo de texto visible y preseleccionado para
   copiar a mano. Nunca fallar en silencio en una feature de compartir.
+- (Plan 5 Task 5, giros de semilla) Cuando un brief da un snippet de código
+  ilustrativo, no copiarlo literal: el ejemplo de `eventos.ts` traía `import
+  type { World }` sin usarlo en el cuerpo — con `noUnusedLocals` eso no
+  compila. Y cuando una constante compartida (`PANICO.radioGrito`) se usa en
+  VARIOS archivos (`panico.ts`, `zombis.ts`, `interior.ts`, `asedio.ts`), un
+  brief que dice "en el punto donde ya se usa" + lista un alcance de archivos
+  explícito significa SOLO esos archivos/puntos, no todas las ocurrencias del
+  proyecto — aplicar el factor solo ahí y documentar la exclusión, no
+  generalizar por cuenta propia.

@@ -1,7 +1,7 @@
 import type { Citizen, Personality } from './types';
 import type { World } from './world';
 import {
-  CITY, CITY_PERIOD, CITY_WIDTH, CITY_DEPTH, CITIZENS, DT,
+  CITY, CITY_PERIOD, CITY_WIDTH, CITY_DEPTH, CITIZENS, DT, EVENTO,
   FATIGA, HERIDAS, INFECCION, LIDER, MEGAFONO, PANICO, PROB_PANICO_POR_GRITO, REFUGIO,
 } from './config';
 import { corridorCenter } from './cityGen';
@@ -43,7 +43,11 @@ export function updateHumano(c: Citizen, world: World): void {
   let liderCerca: Citizen | null = null;
   let liderD2 = Infinity;
   let panicosCerca = 0;
-  for (const i of world.grid.queryCircle(c.x, c.z, PANICO.radioVerZombi)) {
+  // apagón: un factor más sobre el radio ya existente, en el punto donde se usa (patrón de la fractura, Task 1).
+  const radioVerZombi = world.evento.activo && world.evento.tipo === 'apagon'
+    ? PANICO.radioVerZombi * EVENTO.factorVerZombiApagon
+    : PANICO.radioVerZombi;
+  for (const i of world.grid.queryCircle(c.x, c.z, radioVerZombi)) {
     const o = world.citizens[i];
     if (o.salud === 'zombi') {
       n++;
@@ -195,7 +199,11 @@ function entrarEnPanico(c: Citizen, world: World, grita: boolean): void {
   c.animo = 'panico';
   c.animoTicks = 0;
   if (grita) {
-    world.ruidos.push({ x: c.x, z: c.z, radio: PANICO.radioGrito, ticks: PANICO.duracionGritoTicks });
+    // lluvia: un factor más sobre el radio ya existente, en el punto donde se usa (patrón de la fractura, Task 1).
+    const radioGrito = world.evento.activo && world.evento.tipo === 'lluvia'
+      ? PANICO.radioGrito * EVENTO.factorRuidoLluvia
+      : PANICO.radioGrito;
+    world.ruidos.push({ x: c.x, z: c.z, radio: radioGrito, ticks: PANICO.duracionGritoTicks });
   }
 }
 

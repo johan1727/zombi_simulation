@@ -2,7 +2,7 @@ import { createRng, type Rng } from './rng';
 import { corridorCenter, generateCity, type CityLayout } from './cityGen';
 import { spawnCitizens } from './citizens';
 import type { Citizen, Hito, OrdenJugador, Ruido, Splat } from './types';
-import { CITIZENS, CITY_WIDTH, CITY_DEPTH, INFECCION, OBRERO, PELIGRO } from './config';
+import { CITIZENS, CITY_WIDTH, CITY_DEPTH, EVENTO, INFECCION, OBRERO, PELIGRO, type TipoEvento } from './config';
 import { SpatialGrid } from './spatialGrid';
 import { actualizarIncubacion, elegirPacienteCero, infectar } from './infeccion';
 import { updateZombi } from './zombis';
@@ -11,6 +11,7 @@ import { resolverCombates } from './combate';
 import { resolverAsedios } from './asedio';
 import { updateInterior } from './interior';
 import { aplicarOrden, crearAgente, updateAgente } from './agentes';
+import { elegirEvento } from './eventos';
 
 export class World {
   readonly seed: string;
@@ -26,6 +27,11 @@ export class World {
   readonly rngCombate: Rng;
   /** Nombres de agente al spawn (crearAgente) y tono de splat en disparo/caída (agentes.ts). */
   readonly rngAgentes: Rng;
+  /** Sorteo del giro de semilla (elegirEvento); stream propio, sin tocar el conteo de draws de los demás. */
+  readonly rngEvento: Rng;
+
+  /** Giro de semilla a mitad de partida: tick y tipo sorteados en el constructor, IDÉNTICO para World y Rival (misma semilla). */
+  readonly evento: { tick: number; tipo: TipoEvento; activo: boolean; helicopteroLlegaEnTicks: number };
 
   readonly splats: Splat[] = [];
   readonly ruidos: Ruido[] = [];
@@ -58,6 +64,9 @@ export class World {
     this.rngPanico = createRng(`pandemia:${seed}:panico`);
     this.rngCombate = createRng(`pandemia:${seed}:combate`);
     this.rngAgentes = createRng(`pandemia:${seed}:agentes`);
+    this.rngEvento = createRng(`pandemia:${seed}:evento`);
+    const { tick, tipo } = elegirEvento(this.rngEvento);
+    this.evento = { tick, tipo, activo: false, helicopteroLlegaEnTicks: 0 };
     this.city = generateCity(rngCiudad);
     this.citizens = spawnCitizens(this.rngCiudadanos, citizenCount);
     // 4 agentes deterministas, DISPERSOS en cuatro cruces del centro: evita
@@ -134,6 +143,15 @@ export class World {
     this.colaOrdenes.length = 0;
     if (this.tickCount === INFECCION.pacienteCeroTick) {
       infectar(this.citizens[elegirPacienteCero(this.citizens, this.rngInfeccion)], this.rngInfeccion);
+    }
+    if (this.tickCount === this.evento.tick) {
+      this.evento.activo = true;
+      if (this.evento.tipo === 'helicoptero') {
+        this.evento.helicopteroLlegaEnTicks = EVENTO.ticksHelicoptero;
+      }
+    }
+    if (this.evento.helicopteroLlegaEnTicks > 0) {
+      this.evento.helicopteroLlegaEnTicks--;
     }
     this.grid.rebuild(this.citizens, (c) => c.salud !== 'eliminado' && c.dentroDe < 0);
     for (const lista of this.dentroPorEdificio) lista.length = 0;

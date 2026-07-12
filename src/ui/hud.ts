@@ -7,11 +7,20 @@ import { escapeHtml } from './resultado';
 
 /** Duración del aviso flotante de brecha del rival. */
 const DURACION_AVISO_MS = 3000;
+/** Duración del aviso de giro de semilla (apagón/lluvia/helicóptero), pedida por el brief: 4 s. */
+const DURACION_AVISO_EVENTO_MS = 4000;
+
+const MENSAJE_EVENTO: Record<'apagon' | 'lluvia' | 'helicoptero', string> = {
+  apagon: '¡Apagón en toda la ciudad!',
+  lluvia: 'Empieza a llover',
+  helicoptero: 'Helicóptero de rescate en camino — azotea del hospital, 60s',
+};
 
 export class Hud {
   private readonly el = document.getElementById('hud') as HTMLDivElement;
   private readonly marcadorEl = document.getElementById('marcador-rival') as HTMLDivElement;
   private readonly avisoEl = document.getElementById('aviso-rival') as HTMLDivElement;
+  private readonly avisoEventoEl = document.getElementById('aviso-evento') as HTMLDivElement;
   private readonly bannerRetoEl = document.getElementById('banner-reto') as HTMLDivElement | null;
   private readonly btnAudioEl = document.getElementById('btn-audio') as HTMLButtonElement | null;
   private readonly seed: string;
@@ -20,6 +29,9 @@ export class Hud {
   /** Cuántos avisos de `rival.avisosBrecha` ya se mostraron. */
   private avisosVistos = 0;
   private avisoOcultarEn = 0;
+  /** true una vez que ya se mostró el aviso del giro de semilla (evita repetirlo cada frame mientras `evento.activo` siga en true). */
+  private avisoEventoMostrado = false;
+  private avisoEventoOcultarEn = 0;
   private ultimoAudioHabilitado: boolean | null = null;
 
   /**
@@ -66,6 +78,7 @@ export class Hud {
     }
 
     if (rival) this.actualizarMarcadorRival(world, rival);
+    this.actualizarAvisoEvento(world);
 
     if (audioHabilitado !== undefined && audioHabilitado !== this.ultimoAudioHabilitado) {
       this.ultimoAudioHabilitado = audioHabilitado;
@@ -73,6 +86,20 @@ export class Hud {
         this.btnAudioEl.textContent = audioHabilitado ? '🔊' : '🔇';
         this.btnAudioEl.title = audioHabilitado ? 'Silenciar (M)' : 'Activar audio (M)';
       }
+    }
+  }
+
+  /** Aviso de 4 s cuando `world.evento.activo` pasa a true por primera vez (mismo patrón que `avisoEl` de brecha del rival). */
+  private actualizarAvisoEvento(world: World): void {
+    if (world.evento.activo && !this.avisoEventoMostrado) {
+      this.avisoEventoMostrado = true;
+      this.avisoEventoEl.textContent = MENSAJE_EVENTO[world.evento.tipo];
+      this.avisoEventoEl.classList.add('activo');
+      this.avisoEventoOcultarEn = Date.now() + DURACION_AVISO_EVENTO_MS;
+    }
+    if (this.avisoEventoOcultarEn > 0 && Date.now() >= this.avisoEventoOcultarEn) {
+      this.avisoEventoEl.classList.remove('activo');
+      this.avisoEventoOcultarEn = 0;
     }
   }
 

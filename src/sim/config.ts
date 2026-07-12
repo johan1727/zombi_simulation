@@ -176,3 +176,14 @@ export const FATIGA = {
   umbralTicks: 20 * TICK_RATE, // 20 s sprintando antes de agotarse
   factorAgotado: 1, // velocidad de caminata normal (deja de ser huida rápida)
 } as const;
+
+export const EVENTO = {
+  tickMin: 3 * 60 * TICK_RATE, // el giro cae entre minuto 3 y 5
+  tickMax: 5 * 60 * TICK_RATE,
+  factorVisionApagon: 1.5,
+  factorVerZombiApagon: 1.3,
+  factorRuidoLluvia: 0.6,
+  ticksHelicoptero: 60 * TICK_RATE,
+} as const;
+
+export type TipoEvento = 'apagon' | 'lluvia' | 'helicoptero';
