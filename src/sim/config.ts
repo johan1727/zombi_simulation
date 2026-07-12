@@ -171,3 +171,8 @@ export const HERIDAS = {
   factorVelocidadFractura: 0.4,
   ventanaAmputarTicks: 5 * TICK_RATE,
 } as const;
+
+export const FATIGA = {
+  umbralTicks: 20 * TICK_RATE, // 20 s sprintando antes de agotarse
+  factorAgotado: 1, // velocidad de caminata normal (deja de ser huida rápida)
+} as const;

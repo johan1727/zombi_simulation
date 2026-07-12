@@ -101,6 +101,8 @@ export interface Citizen {
   ventanaAmputarTicks: number;
   /** true si el brazo herido ya fue amputado. */
   brazoAmputado: boolean;
+  /** Ticks consecutivos huyendo en pánico (solo humanos); resetea al calmarse. */
+  ticksSprintando: number;
 }
 
 export type Salud = 'sano' | 'incubando' | 'zombi' | 'eliminado' | 'caido';

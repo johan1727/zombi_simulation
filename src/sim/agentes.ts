@@ -52,6 +52,10 @@ export function crearAgente(rol: Exclude<RolAgente, ''>, x: number, z: number, i
     zonaHerida: '',
     ventanaAmputarTicks: 0,
     brazoAmputado: false,
+    // Los agentes se mueven por updateAgente (nunca pasan por la rama de
+    // pánico/huida de panico.ts), así que este campo nunca se incrementa
+    // para ellos: se deja en 0 solo para cumplir la forma de Citizen.
+    ticksSprintando: 0,
   };
 }
 

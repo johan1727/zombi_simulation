@@ -2,7 +2,7 @@ import type { Citizen, Personality } from './types';
 import type { World } from './world';
 import {
   CITY, CITY_PERIOD, CITY_WIDTH, CITY_DEPTH, CITIZENS, DT,
-  HERIDAS, INFECCION, LIDER, MEGAFONO, PANICO, PROB_PANICO_POR_GRITO, REFUGIO,
+  FATIGA, HERIDAS, INFECCION, LIDER, MEGAFONO, PANICO, PROB_PANICO_POR_GRITO, REFUGIO,
 } from './config';
 import { corridorCenter } from './cityGen';
 import { moveWithSlide } from './collision';
@@ -81,6 +81,7 @@ export function updateHumano(c: Citizen, world: World): void {
   if (c.animo === 'panico') {
     c.prevX = c.x;
     c.prevZ = c.z;
+    c.ticksSprintando++;
     if (n > 0) {
       const dx = c.x - cx / n;
       const dz = c.z - cz / n;
@@ -126,7 +127,10 @@ export function updateHumano(c: Citizen, world: World): void {
       }
     }
 
-    const vel = PANICO.velocidadHuida * (c.salud === 'incubando' ? INFECCION.velocidadIncubando : 1)
+    const velBase = c.ticksSprintando <= FATIGA.umbralTicks
+      ? PANICO.velocidadHuida
+      : CITIZENS.walkSpeed * FATIGA.factorAgotado;
+    const vel = velBase * (c.salud === 'incubando' ? INFECCION.velocidadIncubando : 1)
       * (c.zonaHerida === 'pierna' ? HERIDAS.factorVelocidadFractura : 1);
     moveWithSlide(world.city, c, c.x + c.dirX * vel * DT, c.z + c.dirZ * vel * DT);
     intentarRefugio(c, world);
@@ -198,6 +202,7 @@ function entrarEnPanico(c: Citizen, world: World, grita: boolean): void {
 /** Vuelve a la calma y se re-engancha a la calle más cercana (teletransporte corto). */
 function calmarse(c: Citizen, world: World): void {
   c.animo = 'tranquilo';
+  c.ticksSprintando = 0;
   const kx = Math.max(0, Math.min(CITY.blocksX, Math.round((c.x - CITY.streetWidth / 2) / CITY_PERIOD)));
   const kz = Math.max(0, Math.min(CITY.blocksY, Math.round((c.z - CITY.streetWidth / 2) / CITY_PERIOD)));
   const cxv = corridorCenter(kx);
