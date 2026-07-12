@@ -67,7 +67,20 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
   corrida limpia (como `balance.test.ts`) por sensibilidad caótica. Para verificar
   NÚMEROS exactos de balance, confiar en el test automatizado; el gancho de dev
   sirve para probar FLUJO (órdenes, posesión, overlays, costo por tick), no para
-  reproducir un porcentaje preciso.
+  reproducir un porcentaje preciso. `window.pandemia.frame(alpha)` EXIGE el
+  argumento `alpha` (0-1, interpolación `prevX→x`) — llamarlo sin argumento
+  (`frame()`) da `alpha=undefined`, y cualquier posición calculada como
+  `c.prevX + (c.x - c.prevX) * alpha` se vuelve `NaN`: las mallas existen,
+  tienen matrices/material válidos, pero no aparecen en ningún sitio visible
+  (sin error de consola) — casi 2 h perdidas en Plan 6 Task 3 persiguiendo un
+  "bug de renderizado" que en realidad era `frame()` sin `alpha` en las
+  pruebas del propio agente, no un defecto del código. Siempre `frame(1)` (o
+  el valor que corresponda) al usar el gancho manualmente. Para capturar
+  pantallas cuando el `screenshot` normal se cuelga (pestaña "hidden" persiste
+  incluso recién abierta en este entorno): `canvas.toDataURL('image/png')`
+  vía `javascript_tool`, guardar el base64 a archivo con Node (nunca pegarlo
+  a mano — un string de cientos de miles de caracteres se corrompe fácil) y
+  leerlo con la herramienta de lectura de imágenes.
 - Trampa de `THREE.InstancedMesh` (Task 9, `SplatsView`): si la malla nace con
   `count = 0` y se llena con instancias más tarde, el primer render calcula
   `boundingSphere` con el conjunto vacío y lo deja inválido (radio `-1`) para

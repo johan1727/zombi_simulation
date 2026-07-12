@@ -44,6 +44,12 @@ export function hornearPose(skinned: THREE.SkinnedMesh): THREE.BufferGeometry {
   const geoHorneada = new THREE.BufferGeometry();
   geoHorneada.setAttribute('position', new THREE.BufferAttribute(salida, 3));
   if (geoOrig.attributes.uv) geoHorneada.setAttribute('uv', geoOrig.attributes.uv.clone());
+  // GLTFLoader activa material.vertexColors=true en cuanto el primitive trae
+  // COLOR_0 (caso de survivor-base.glb) — si la geometría horneada no trae
+  // el atributo 'color' que ese material espera, WebGL falla en silencio al
+  // dibujar (nada de error en consola, la malla simplemente no aparece:
+  // hallazgo de verificación en navegador, Plan 6 Task 3).
+  if (geoOrig.attributes.color) geoHorneada.setAttribute('color', geoOrig.attributes.color.clone());
   if (geoOrig.index) geoHorneada.setIndex(geoOrig.index.clone());
   geoHorneada.computeVertexNormals();
   return geoHorneada;
