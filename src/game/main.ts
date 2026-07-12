@@ -2,6 +2,7 @@ import { World } from '../sim/world';
 import { createScene } from '../render/scene';
 import { CityView } from '../render/cityView';
 import { cargarModelosFondo } from '../render/buildingModels';
+import { cargarModelosAutos, CarsView } from '../render/carsView';
 import { JugablesView } from '../render/jugablesView';
 import { CitizensView } from '../render/citizensView';
 import { SplatsView } from '../render/splatsView';
@@ -44,18 +45,26 @@ const seed =
   Math.random().toString(36).slice(2, 8);
 
 /**
- * Arranque asíncrono (Plan 6): `cargarModelosFondo()` trae los GLB reales de
- * los edificios de fondo (fetch bajo el capó vía GLTFLoader) — hay que
- * esperarlos ANTES de construir `CityView`, que ya no levanta cajas
- * síncronas. El resto de la construcción de la escena sigue siendo síncrona;
- * el HUD ya muestra "Cargando…" (`index.html`) hasta el primer `frame`, así
- * que no hace falta una pantalla de carga aparte para este await.
+ * Arranque asíncrono (Plan 6): `cargarModelosFondo()`/`cargarModelosAutos()`
+ * traen los GLB reales de edificios de fondo y autos decorativos (fetch bajo
+ * el capó vía GLTFLoader) — hay que esperarlos ANTES de construir
+ * `CityView`/`CarsView`, que ya no levantan geometría síncrona. Las dos
+ * cargas son independientes entre sí, así que van en paralelo con
+ * `Promise.all`. El resto de la construcción de la escena sigue siendo
+ * síncrona; el HUD ya muestra "Cargando…" (`index.html`) hasta el primer
+ * `frame`, así que no hace falta una pantalla de carga aparte para este await.
  */
 async function iniciar(): Promise<void> {
   const world = new World(seed);
   const { renderer, scene } = createScene(canvas);
-  const modelosFondo = await cargarModelosFondo();
+  const [modelosFondo, modelosAutos] = await Promise.all([
+    cargarModelosFondo(),
+    cargarModelosAutos(),
+  ]);
   const cityView = new CityView(scene, world.city, modelosFondo);
+  // CarsView solo planta autos decorativos en el constructor (sin update());
+  // no hace falta guardar la instancia.
+  new CarsView(scene, world.city, modelosAutos);
   const jugablesView = new JugablesView(scene, world.city);
   const citizensView = new CitizensView(scene, world.citizens.length);
   const splatsView = new SplatsView(scene);
