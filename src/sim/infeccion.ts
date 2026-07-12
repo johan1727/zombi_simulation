@@ -14,29 +14,36 @@ export function elegirPacienteCero(citizens: readonly Citizen[], rng: Rng): numb
 }
 
 /**
- * Un solo draw adicional con el MISMO rng recibido por `infectar`, siempre
- * que el estado de `c` acaba de cambiar por una mordida (sano→incubando o
- * agente sano→caído). Pierna primero, luego brazo, resto torso.
+ * Un solo draw adicional, en un stream PROPIO (`world.rngHeridas`) separado
+ * del `rng` que decide la transición de estado — nunca el mismo stream que
+ * `infectar` recibe para incubación/paciente-cero/combate/mordida. Si
+ * compartiera stream, cada infección desplazaría en uno TODOS los draws
+ * futuros de ese stream (p. ej. la duración de incubación de la SIGUIENTE
+ * infección), resecuenciando la partida entera por un efecto mariposa ajeno
+ * al diseño de las heridas (hallazgo de la recalibración de balance, Plan 5
+ * Task 6: el balance calibrado en Plan 3 se rompía por esto, no por el
+ * diseño de fractura/amputación en sí). Pierna primero, luego brazo, resto
+ * torso.
  */
-function sortearZonaHerida(c: Citizen, rng: Rng): void {
-  const r = rng.next();
+function sortearZonaHerida(c: Citizen, rngHeridas: Rng): void {
+  const r = rngHeridas.next();
   c.zonaHerida = r < HERIDAS.probPierna ? 'pierna' : r < HERIDAS.probPierna + HERIDAS.probBrazo ? 'brazo' : 'torso';
   if (c.zonaHerida === 'brazo') c.ventanaAmputarTicks = HERIDAS.ventanaAmputarTicks;
 }
 
-export function infectar(c: Citizen, rng: Rng): void {
+export function infectar(c: Citizen, rng: Rng, rngHeridas: Rng): void {
   if (c.esAgente) {
     if (c.salud === 'sano') {
       c.salud = 'caido';
       c.caidoTicks = AGENTES.ventanaCaidoTicks;
-      sortearZonaHerida(c, rng);
+      sortearZonaHerida(c, rngHeridas);
     }
     return;
   }
   if (c.salud !== 'sano') return;
   c.salud = 'incubando';
   c.incubacionTicks = rng.int(INFECCION.incubacionMinTicks, INFECCION.incubacionMaxTicks);
-  sortearZonaHerida(c, rng);
+  sortearZonaHerida(c, rngHeridas);
 }
 
 export function actualizarIncubacion(c: Citizen, world: World): void {

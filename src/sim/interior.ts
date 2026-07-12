@@ -186,7 +186,7 @@ function updateInteriorZombi(c: Citizen, world: World, b: Building): void {
     if (len > 0.001) { c.dirX = dx / len; c.dirZ = dz / len; }
     moverInterior(b, c, c.x + c.dirX * ZOMBIS.velocidad * 0.8 * DT, c.z + c.dirZ * ZOMBIS.velocidad * 0.8 * DT);
     if (mejorD2 <= INFECCION.radioMordida ** 2 && c.cdMordida === 0) {
-      infectar(presa, world.rngInfeccion);
+      infectar(presa, world.rngInfeccion, world.rngHeridas);
       presa.animo = 'panico';
       presa.animoTicks = 0;
       world.ruidos.push({ x: presa.x, z: presa.z, radio: PANICO.radioGrito / 2, ticks: PANICO.duracionGritoTicks });

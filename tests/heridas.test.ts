@@ -8,7 +8,7 @@ describe('heridas localizadas', () => {
     const w = new World('heridas-1', 50);
     const zonas = new Set<string>();
     for (const c of w.citizens) {
-      infectar(c, w.rngInfeccion);
+      infectar(c, w.rngInfeccion, w.rngHeridas);
       zonas.add(c.zonaHerida);
     }
     expect([...zonas].sort()).toEqual(['brazo', 'pierna', 'torso']);
@@ -39,7 +39,7 @@ describe('heridas localizadas', () => {
     const w = new World('heridas-3', 5);
     const c = w.citizens[0];
     c.salud = 'sano';
-    infectar(c, w.rngInfeccion);
+    infectar(c, w.rngInfeccion, w.rngHeridas);
     c.zonaHerida = 'brazo';
     c.ventanaAmputarTicks = 3;
     for (let t = 0; t < 5; t++) w.tick();

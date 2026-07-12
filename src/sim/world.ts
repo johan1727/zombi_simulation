@@ -29,6 +29,8 @@ export class World {
   readonly rngAgentes: Rng;
   /** Sorteo del giro de semilla (elegirEvento); stream propio, sin tocar el conteo de draws de los demás. */
   readonly rngEvento: Rng;
+  /** Zona de herida al infectar (sortearZonaHerida, infeccion.ts); stream propio para no resecuenciar rngInfeccion/rngCombate/rngAgentes. */
+  readonly rngHeridas: Rng;
 
   /** Giro de semilla a mitad de partida: tick y tipo sorteados en el constructor, IDÉNTICO para World y Rival (misma semilla). */
   readonly evento: { tick: number; tipo: TipoEvento; activo: boolean; helicopteroLlegaEnTicks: number };
@@ -65,6 +67,7 @@ export class World {
     this.rngCombate = createRng(`pandemia:${seed}:combate`);
     this.rngAgentes = createRng(`pandemia:${seed}:agentes`);
     this.rngEvento = createRng(`pandemia:${seed}:evento`);
+    this.rngHeridas = createRng(`pandemia:${seed}:heridas`);
     const { tick, tipo } = elegirEvento(this.rngEvento);
     this.evento = { tick, tipo, activo: false, helicopteroLlegaEnTicks: 0 };
     this.city = generateCity(rngCiudad);
@@ -142,7 +145,7 @@ export class World {
     for (const o of this.colaOrdenes) aplicarOrden(o, this);
     this.colaOrdenes.length = 0;
     if (this.tickCount === INFECCION.pacienteCeroTick) {
-      infectar(this.citizens[elegirPacienteCero(this.citizens, this.rngInfeccion)], this.rngInfeccion);
+      infectar(this.citizens[elegirPacienteCero(this.citizens, this.rngInfeccion)], this.rngInfeccion, this.rngHeridas);
     }
     if (this.tickCount === this.evento.tick) {
       this.evento.activo = true;

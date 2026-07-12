@@ -67,7 +67,7 @@ export function updateZombi(c: Citizen, world: World): void {
   if (objetivo && c.cdMordida === 0) {
     const d2 = (objetivo.x - c.x) ** 2 + (objetivo.z - c.z) ** 2;
     if (d2 <= INFECCION.radioMordida ** 2) {
-      infectar(objetivo, world.rngInfeccion);
+      infectar(objetivo, world.rngInfeccion, world.rngHeridas);
       objetivo.animo = 'panico';
       objetivo.animoTicks = 0;
       // lluvia: un factor más sobre el radio ya existente, en el punto donde se usa (patrón de la fractura, Task 1).
