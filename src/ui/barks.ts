@@ -36,7 +36,7 @@ const POOL = 3;
 const DURACION_MS = 2600;
 /** Un mismo ciudadano no vuelve a hablar antes de este tiempo. */
 const COOLDOWN_MS = 10000;
-/** Altura (m) sobre la base del ciudadano donde flota la burbuja (ver citizensView: capsula ~1.7m). */
+/** Altura (m) sobre la base del ciudadano donde flota la burbuja (ver personajesView: mismo anclaje `y` que antes, base ~0.85m). */
 const ALTURA_SOBRE_CABEZA = 1.2;
 
 interface Burbuja {

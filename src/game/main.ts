@@ -4,7 +4,7 @@ import { CityView } from '../render/cityView';
 import { cargarModelosFondo } from '../render/buildingModels';
 import { cargarModelosAutos, CarsView } from '../render/carsView';
 import { JugablesView } from '../render/jugablesView';
-import { CitizensView } from '../render/citizensView';
+import { cargarPersonajes, PersonajesView } from '../render/personajesView';
 import { SplatsView } from '../render/splatsView';
 import { CameraRig } from '../render/cameraRig';
 import { startLoop } from './loop';
@@ -46,27 +46,30 @@ const seed =
 
 /**
  * Arranque asíncrono (Plan 6): `cargarModelosFondo()`/`cargarModelosAutos()`
- * traen los GLB reales de edificios de fondo y autos decorativos (fetch bajo
- * el capó vía GLTFLoader) — hay que esperarlos ANTES de construir
- * `CityView`/`CarsView`, que ya no levantan geometría síncrona. Las dos
- * cargas son independientes entre sí, así que van en paralelo con
- * `Promise.all`. El resto de la construcción de la escena sigue siendo
- * síncrona; el HUD ya muestra "Cargando…" (`index.html`) hasta el primer
- * `frame`, así que no hace falta una pantalla de carga aparte para este await.
+ * traen los GLB reales de edificios de fondo y autos decorativos, y
+ * `cargarPersonajes()` (Task 3) trae `survivor-base.glb` + sus texturas de
+ * piel y hornea su geometría UNA vez (fetch bajo el capó vía GLTFLoader) —
+ * hay que esperar las tres ANTES de construir `CityView`/`CarsView`/
+ * `PersonajesView`, que ya no levantan geometría síncrona. Las tres cargas
+ * son independientes entre sí, así que van en paralelo con `Promise.all`. El
+ * resto de la construcción de la escena sigue siendo síncrona; el HUD ya
+ * muestra "Cargando…" (`index.html`) hasta el primer `frame`, así que no
+ * hace falta una pantalla de carga aparte para este await.
  */
 async function iniciar(): Promise<void> {
   const world = new World(seed);
   const { renderer, scene } = createScene(canvas);
-  const [modelosFondo, modelosAutos] = await Promise.all([
+  const [modelosFondo, modelosAutos, personajesAssets] = await Promise.all([
     cargarModelosFondo(),
     cargarModelosAutos(),
+    cargarPersonajes(),
   ]);
   const cityView = new CityView(scene, world.city, modelosFondo);
   // CarsView solo planta autos decorativos en el constructor (sin update());
   // no hace falta guardar la instancia.
   new CarsView(scene, world.city, modelosAutos);
   const jugablesView = new JugablesView(scene, world.city);
-  const citizensView = new CitizensView(scene, world.citizens.length);
+  const personajesView = new PersonajesView(scene, world.citizens.length, personajesAssets);
   const splatsView = new SplatsView(scene);
   const rig = new CameraRig(canvas, { w: world.city.width, d: world.city.depth });
   const audio = new Audio();
@@ -117,7 +120,7 @@ async function iniciar(): Promise<void> {
     const foco = rig.focusPoint;
     cityView.updateOcclusion(rig.camera.position.x, rig.camera.position.z, foco.x, foco.z);
     jugablesView.update(world, foco.x, foco.z);
-    citizensView.update(world.citizens, alpha, controles.seleccionado);
+    personajesView.update(world.citizens, alpha, controles.seleccionado);
     splatsView.update(world.splats);
     audio.update(world, partida, rival);
     hud.update(world, partida, rival, audio.habilitado);
