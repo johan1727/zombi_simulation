@@ -200,6 +200,49 @@ describe('agentes', () => {
     expect(c.brazoAmputado).toBe(false);
   });
 
+  it('el paramédico no amputa a un zombi ni a un eliminado con ventana residual', () => {
+    const w = new World('amputa-4', 5);
+    const para = w.agentes[1];
+    const zombi = w.citizens[0];
+    zombi.salud = 'zombi';
+    zombi.zonaHerida = 'brazo';
+    zombi.ventanaAmputarTicks = HERIDAS.ventanaAmputarTicks; // ventana congelada (agente sin rescatar, ver revisión P5-T2)
+    zombi.x = para.x + 1;
+    zombi.z = para.z;
+    zombi.prevX = zombi.x;
+    zombi.prevZ = zombi.z;
+    w.encolarOrden({ agente: para.id, tipo: 'habilidad', x: zombi.x, z: zombi.z });
+    w.tick();
+    expect(zombi.brazoAmputado).toBe(false);
+    expect(zombi.ventanaAmputarTicks).toBe(HERIDAS.ventanaAmputarTicks);
+    expect(w.hitos.some((h) => h.tipo === 'amputacion')).toBe(false);
+  });
+
+  it('un agente caído con brazo mordido: primera orden amputa, segunda (tras el enfriamiento) revive', () => {
+    const w = new World('amputa-5', 5);
+    const para = w.agentes[1];
+    const caido = w.agentes[0];
+    caido.salud = 'caido';
+    caido.caidoTicks = AGENTES.ventanaCaidoTicks;
+    caido.zonaHerida = 'brazo';
+    caido.ventanaAmputarTicks = HERIDAS.ventanaAmputarTicks;
+    caido.x = para.x + 1;
+    caido.z = para.z;
+    caido.prevX = caido.x;
+    caido.prevZ = caido.z;
+
+    w.encolarOrden({ agente: para.id, tipo: 'habilidad', x: caido.x, z: caido.z });
+    w.tick();
+    expect(caido.brazoAmputado).toBe(true);
+    expect(caido.ventanaAmputarTicks).toBe(0);
+    expect(caido.salud).toBe('caido'); // amputar no revive: sigue en el suelo
+
+    for (let t = 0; t < POLICIA.cooldownTicks; t++) w.tick(); // esperar el enfriamiento del paramédico
+    w.encolarOrden({ agente: para.id, tipo: 'habilidad', x: caido.x, z: caido.z });
+    w.tick();
+    expect(caido.salud).toBe('sano'); // segunda orden: ya no hay ventana que amputar, revive normal
+  });
+
   it('un ciudadano con brazo amputado no cuenta como luchador', () => {
     const w = new World('amputa-3', 6);
     const zombi = w.citizens[0];

@@ -103,7 +103,19 @@ function actuarParamedico(a: Citizen, world: World): void {
   let herido: Citizen | null = null;
   let mejorD2Herido = PARAMEDICO.alcanceRevivir ** 2;
   for (const c of world.citizens) {
-    if (c.ventanaAmputarTicks <= 0) continue;
+    // zonaHerida==='brazo' es redundante hoy (única fuente de ventanaAmputarTicks>0,
+    // ver sortearZonaHerida) pero no lo fuerza el compilador — chequeo explícito
+    // por robustez. salud!=='zombi'/'eliminado': un agente caído sin rescatar
+    // que se convirtió en zombi arrastra una ventana congelada para siempre
+    // (ventanaAmputarTicks solo decrece en 'incubando') — no tiene sentido
+    // "amputar" a un zombi (hallazgo de revisión, P5-T2).
+    if (
+      c.ventanaAmputarTicks <= 0 ||
+      c.zonaHerida !== 'brazo' ||
+      c.salud === 'zombi' ||
+      c.salud === 'eliminado'
+    )
+      continue;
     const d2 = (c.x - a.x) ** 2 + (c.z - a.z) ** 2;
     if (d2 <= mejorD2Herido) {
       mejorD2Herido = d2;
