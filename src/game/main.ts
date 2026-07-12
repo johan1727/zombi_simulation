@@ -15,6 +15,7 @@ import { Rival } from './rival';
 import { Resultado } from '../ui/resultado';
 import { Audio } from '../ui/audio';
 import { Tutorial } from '../ui/tutorial';
+import { Barks } from '../ui/barks';
 import { decodificarDesafio } from './desafio';
 
 const canvas = document.getElementById('app') as HTMLCanvasElement;
@@ -67,6 +68,7 @@ const partida = new Partida();
 const rival = new Rival(seed, undefined, reto ?? undefined);
 const resultado = new Resultado(world, partida, rival);
 const tutorial = new Tutorial();
+const barks = new Barks(scene, rig.camera);
 
 window.addEventListener('resize', () => {
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -102,6 +104,7 @@ const frame = (alpha: number): void => {
   panelAgentes.update(world, controles.seleccionado);
   resultado.update();
   tutorial.actualizar(world, partida);
+  barks.update(world, alpha);
   renderer.render(scene, rig.camera);
 };
 
@@ -123,6 +126,7 @@ if (import.meta.env.DEV) {
     resultado,
     audio,
     tutorial,
+    barks,
     seed,
     reto,
     frame,
