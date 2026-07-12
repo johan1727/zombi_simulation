@@ -402,5 +402,5 @@ Las heridas/fatiga/eventos SÍ pueden mover el balance calibrado en Plan 3. Meto
 
 - [x] **Step 1:** Medir con valores por defecto (`npx vitest run tests/balance.test.ts`).
 - [x] **Step 2:** Ajustar si hace falta, documentando tabla de intentos.
-- [ ] **Step 3: Verificación completa** — `npm test` TODO verde (balance incluido), `npx tsc --noEmit`, portabilidad. Navegador: ~2 min con heridas/fatiga/evento visibles (forzar el evento antes vía `window.pandemia` si el tick por defecto tarda mucho).
-- [ ] **Step 4: Cierre** — lecciones condensadas en CLAUDE.md, checkboxes marcados (Edit/sed, nunca PowerShell Set-Content), commit `chore: heridas, cansancio, dialogos y giros de semilla verificados (Plan 5 completo)`, push.
+- [x] **Step 3: Verificación completa** — `npm test` TODO verde (balance incluido), `npx tsc --noEmit`, portabilidad. Navegador: aviso del giro de semilla confirmado visualmente; campos de heridas/cansancio confirmados sin errores de consola (la réplica manual del ratio exacto de velocidad en el navegador vivo resultó poco fiable — interferencia de zombis reales/líder/refugio cercanos — se confía en la suite automatizada, ya con prueba de mutación para la fatiga).
+- [x] **Step 4: Cierre** — lecciones condensadas en CLAUDE.md, checkboxes marcados (Edit/sed, nunca PowerShell Set-Content), commit `chore: heridas, cansancio, dialogos y giros de semilla verificados (Plan 5 completo)`, push.

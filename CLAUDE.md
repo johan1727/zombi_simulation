@@ -78,19 +78,23 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
   cada `update()`.
 - Balance (Planes 2-3-5): los cuellos de botella suelen ser MECÁNICA faltante,
   no ajuste (búnker eterno → asedio); el gate debe medir la curva a un punto
-  fijo del reloj, no la cola larga; y el paisaje es NO monotónico — palancas
-  "obviamente letales" empeoran la devastación, y algunas perillas (Plan 5,
-  `HERIDAS.probPierna`) tienen "agujas" aisladas de ~0.05 de ancho por semilla
-  (pasa en 0.55, falla en 0.5 y en 0.6) en vez de una meseta — perseguirlas es
-  sobreajustar a la semilla de ejemplo, no balancear el juego. Causa raíz Plan
-  5: cualquier función de la sim que haga UN `rng.next()` adicional e
-  incondicional por evento (aquí, `sortearZonaHerida` en cada infección)
-  resecuencia TODOS los draws futuros de ese stream — el efecto dominante en
-  el resultado puede ser ese reordenamiento, no el diseño de la mecánica en
-  sí. Una perilla por corrida, tabla de datos, y re-correr el gate completo
-  — y si una perilla tiene rango prohibido (p. ej. `probPierna = 0` rompe
-  `heridas.test.ts` porque `r < 0` nunca es cierto), revalidar el test de la
-  mecánica ANTES de medir balance, no después.
+  fijo del reloj, no la cola larga; el paisaje es NO monotónico (perillas
+  "obviamente letales" a veces empeoran la devastación) — una perilla por
+  corrida, tabla de datos, re-correr el gate completo. Trampa RAÍZ encontrada
+  y corregida en Plan 5: cualquier función de la sim que haga UN `rng.next()`
+  adicional e incondicional dentro de un flujo ya existente (`sortearZonaHerida`
+  en cada `infectar()`, tomando el MISMO stream que ya usaba el llamador)
+  resecuencia TODOS los draws futuros de ese stream — el balance parecía
+  "caótico sin meseta" (perillas con agujas de 0.05, direcciones contra-
+  intuitivas) pero el efecto dominante era ese reordenamiento, no el diseño
+  de la mecánica. Arreglo: darle su PROPIO stream nuevo (`rngHeridas`, mismo
+  patrón que `rngEvento`) en vez de compartir el del llamador — replicar
+  para cualquier draw incidental futuro dentro de una función que ya recibe
+  un `rng` ajeno. Con esa corrección, un sondeo de 8 semillas mostró que el
+  cambio real (no solo ruido) es que las mecánicas de Plan 5 SÍ vuelven la
+  mayoría de partidas sin intervención menos letales que Plan 3 — se
+  recalibró el gate (`tests/balance.test.ts`) en vez de perseguir perillas
+  que no revertían la tendencia real.
 - Dos trampas de TS estrictas ya vistas: `noUnusedParameters` exige `void
   param;` para CADA parámetro sin usar de un stub (no solo los "extra"); y
   `if (c.salud !== 'zombi')` justo después de un `if (c.salud === 'zombi')
