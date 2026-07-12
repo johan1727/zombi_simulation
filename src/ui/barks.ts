@@ -138,7 +138,7 @@ export class Barks {
     for (const b of this.burbujas) {
       if (b.ciudadano < 0) continue;
       const c = world.citizens[b.ciudadano];
-      if (!c || c.salud === 'eliminado' || ahora >= b.ocultarEn) {
+      if (!c || c.salud === 'eliminado' || c.salud === 'zombi' || ahora >= b.ocultarEn) {
         b.el.style.opacity = '0';
         b.ciudadano = -1;
         continue;
