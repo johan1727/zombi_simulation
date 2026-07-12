@@ -1,5 +1,14 @@
 import * as THREE from 'three';
 import type { CityLayout, Building } from '../sim/cityGen';
+import { elegirModelo } from './buildingModels';
+
+/** Edificios `fondo` a partir de esta altura (m) usan el pool de rascacielos.
+ * cityGen genera `fondo` en [30, 120] m — un umbral bajo (p. ej. 12, la
+ * altura de un `jugable`) mandaría TODOS los fondo al pool de rascacielos y
+ * el pool `MODELOS_FONDO` nunca se usaría. 70 parte el rango a la mitad
+ * (30-70 edificio normal, 70-120 rascacielos), dando una mezcla visible de
+ * ambos pools en el skyline. */
+const UMBRAL_RASCACIELOS = 70;
 
 /** ¿El segmento (x1,z1)→(x2,z2) cruza el rectángulo del edificio? (Liang-Barsky) */
 function segmentoCruzaRect(x1: number, z1: number, x2: number, z2: number, b: Building): boolean {
@@ -27,12 +36,21 @@ function segmentoCruzaRect(x1: number, z1: number, x2: number, z2: number, b: Bu
 }
 
 export class CityView {
-  private readonly mesh: THREE.InstancedMesh;
   private readonly fondos: Building[];
-  private readonly m = new THREE.Matrix4();
+  /** Un `THREE.Object3D` real (clon de un GLB) por edificio de fondo. */
+  private readonly grupos: THREE.Object3D[];
+  /**
+   * Escala Y que corresponde a la ALTURA COMPLETA de cada edificio (la que
+   * tenía al construirse). Los modelos Kenney tienen el pivote en la base
+   * (y=0), a diferencia del `BoxGeometry` centrado que usaba este archivo
+   * antes — por eso aplanar/restaurar solo toca `scale.y` y NUNCA
+   * `position.y` (con pivote en la base, escalar en Y ya deja la base en
+   * el suelo, sin recentrar).
+   */
+  private readonly escalaYCompleta: number[];
   private readonly aplanados = new Set<number>();
 
-  constructor(scene: THREE.Scene, city: CityLayout) {
+  constructor(scene: THREE.Scene, city: CityLayout, modelos: Map<string, THREE.Object3D>) {
     this.fondos = city.buildings.filter((b) => b.kind === 'fondo');
 
     const suelo = new THREE.Mesh(
@@ -43,29 +61,35 @@ export class CityView {
     suelo.position.set(city.width / 2, 0, city.depth / 2);
     scene.add(suelo);
 
-    const geo = new THREE.BoxGeometry(1, 1, 1);
-    const mat = new THREE.MeshLambertMaterial();
-    this.mesh = new THREE.InstancedMesh(geo, mat, this.fondos.length);
-    const colorFondo = new THREE.Color(0x3a4150);
-    this.fondos.forEach((_b, i) => {
-      this.setAltura(i, this.fondos[i].height);
-      this.mesh.setColorAt(i, colorFondo);
+    this.escalaYCompleta = [];
+    this.grupos = this.fondos.map((b) => {
+      const nombre = elegirModelo(b.id, b.height > UMBRAL_RASCACIELOS);
+      const base = modelos.get(nombre);
+      if (!base) throw new Error(`Modelo de edificio no cargado: ${nombre}`);
+      const clon = base.clone(true); // clone(true): recursivo, comparte geometría/material (barato)
+      // Kenney exporta sus kits con el pivote en la base; reescalar al
+      // footprint real del edificio (ancho/profundidad del layout) y a la
+      // altura ya calculada por cityGen, igual que hacía BoxGeometry antes.
+      const bbox = new THREE.Box3().setFromObject(clon);
+      const tam = new THREE.Vector3();
+      bbox.getSize(tam);
+      const escalaY = b.height / tam.y;
+      clon.scale.set(b.width / tam.x, escalaY, b.depth / tam.z);
+      clon.position.set(b.x + b.width / 2, 0, b.z + b.depth / 2);
+      scene.add(clon);
+      this.escalaYCompleta.push(escalaY);
+      return clon;
     });
-    this.mesh.instanceMatrix.needsUpdate = true;
-    if (this.mesh.instanceColor) this.mesh.instanceColor.needsUpdate = true;
-    scene.add(this.mesh);
   }
 
+  /** Escala visualmente un edificio a la altura `h` (m), manteniendo la base en el suelo. */
   private setAltura(i: number, h: number): void {
     const b = this.fondos[i];
-    this.m.makeScale(b.width, h, b.depth);
-    this.m.setPosition(b.x + b.width / 2, h / 2, b.z + b.depth / 2);
-    this.mesh.setMatrixAt(i, this.m);
+    this.grupos[i].scale.y = this.escalaYCompleta[i] * (h / b.height);
   }
 
   /** Aplana a 3 m los edificios altos que cruzan la línea cámara→foco. */
   updateOcclusion(camX: number, camZ: number, focoX: number, focoZ: number): void {
-    let sucio = false;
     this.fondos.forEach((b, i) => {
       const debe = b.height > 6 && segmentoCruzaRect(camX, camZ, focoX, focoZ, b);
       const estaba = this.aplanados.has(i);
@@ -73,8 +97,6 @@ export class CityView {
       if (debe) this.aplanados.add(i);
       else this.aplanados.delete(i);
       this.setAltura(i, debe ? 3 : b.height);
-      sucio = true;
     });
-    if (sucio) this.mesh.instanceMatrix.needsUpdate = true;
   }
 }
