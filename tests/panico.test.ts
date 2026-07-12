@@ -56,24 +56,39 @@ describe('pánico', () => {
     // Forzar pánico directamente cada tick (en vez de depender de un zombi real
     // a la vista) aísla la fatiga de la lógica de percepción — más determinista
     // y más rápido de correr que perseguir la ventana exacta de radioVerZombi.
-    c.animo = 'panico';
-    c.animoTicks = 0;
-    const dirX0 = 1;
-    const dirZ0 = 0;
-    c.dirX = dirX0;
-    c.dirZ = dirZ0;
+    // animoTicks también se resetea cada tick: si no, la calma natural
+    // (PANICO.ticksCalmarse, muy por debajo de FATIGA.umbralTicks) dispara
+    // calmarse() a mitad de la medición, congela al ciudadano y el test pasa
+    // en falso sin haber ejercitado la fatiga en absoluto (hallazgo de
+    // revisión — verificado con prueba de mutación, ver p5-task-3-review.md).
+    c.dirX = 1;
+    c.dirZ = 0;
 
     const antes = { x: c.x, z: c.z };
     for (let t = 0; t < FATIGA.umbralTicks - 30; t++) {
-      c.animo = 'panico'; // no dejar que se calme durante la medición
+      c.animo = 'panico';
+      c.animoTicks = 0;
       w.tick();
     }
     const dRapido = Math.sqrt((c.x - antes.x) ** 2 + (c.z - antes.z) ** 2);
     const velocidadRapida = dRapido / (FATIGA.umbralTicks - 30);
+    expect(c.ticksSprintando).toBeLessThanOrEqual(FATIGA.umbralTicks);
+
+    // cruzar el umbral con margen (30 ticks de sobra) SIN medir esta fase —
+    // así la ventana "lenta" de abajo queda enteramente del lado lento, no a
+    // caballo del cruce (a caballo, el promedio mezclado no alcanza el 30%
+    // de caída que pide el assert final).
+    for (let t = 0; t < 60; t++) {
+      c.animo = 'panico';
+      c.animoTicks = 0;
+      w.tick();
+    }
+    expect(c.ticksSprintando).toBeGreaterThan(FATIGA.umbralTicks);
 
     const marca = { x: c.x, z: c.z };
     for (let t = 0; t < 90; t++) {
-      c.animo = 'panico'; // ya pasó el umbral de fatiga, sigue en pánico
+      c.animo = 'panico';
+      c.animoTicks = 0;
       w.tick();
     }
     const dLento = Math.sqrt((c.x - marca.x) ** 2 + (c.z - marca.z) ** 2);
