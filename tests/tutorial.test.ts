@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { World } from '../src/sim/world';
-import { huboHabilidadDeJugador, hayPanicoMasivo } from '../src/ui/tutorial';
+import { huboHabilidadDeJugador, hayPanicoMasivo, huboPosesion } from '../src/ui/tutorial';
 
 describe('tutorial: detección de disparadores', () => {
   it('huboHabilidadDeJugador es false en un mundo recién creado', () => {
@@ -35,5 +35,22 @@ describe('tutorial: detección de disparadores', () => {
     const w = new World('tuto-5', 40);
     for (let i = 0; i < 31; i++) w.citizens[i].animo = 'panico';
     expect(hayPanicoMasivo(w)).toBe(true);
+  });
+
+  it('huboPosesion es false en un mundo recién creado (ningún agente poseído todavía)', () => {
+    const w = new World('tuto-6', 2);
+    expect(huboPosesion(w)).toBe(false);
+  });
+
+  it('huboPosesion ignora ordenControl en civiles (nunca debería estar en true, pero por si acaso)', () => {
+    const w = new World('tuto-7', 2);
+    w.citizens[0].ordenControl = true;
+    expect(huboPosesion(w)).toBe(false);
+  });
+
+  it('huboPosesion es true en cuanto un agente tiene ordenControl (posesión WASD aplicada)', () => {
+    const w = new World('tuto-8', 2);
+    w.agentes[0].ordenControl = true;
+    expect(huboPosesion(w)).toBe(true);
   });
 });

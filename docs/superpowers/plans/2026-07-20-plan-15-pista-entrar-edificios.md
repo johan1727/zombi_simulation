@@ -96,24 +96,30 @@ tests a este archivo; no es requisito de este plan, pero si el
 implementador ve que ya existen tests de `tutorial.ts`, seguir el mismo
 patrón para `huboPosesion` en vez de omitirlo).
 
-- [ ] **Step 1: Implementar.**
-- [ ] **Step 2:** `npx tsc --noEmit` limpio.
-- [ ] **Step 3: Verificación en navegador** — con `localStorage` limpio
-  (borrar la clave `pandemia-tutorial` antes de probar, mismo método que
-  ya usaba la verificación original de Plan 4 Task 9), poseer un agente
-  (`window.pandemia.posesion.activar(id)` o clic normal + doble clic) y
-  confirmar que el tip nuevo aparece la PRIMERA vez que se aplica una
-  orden 'control' — probar poseer ANTES de que aparezca el tick de
-  paciente cero (posesión temprana) y confirmar que el tip de todos modos
-  aparece más tarde, en su posición correcta de la secuencia, sin
-  perderse (la trampa del puntero-que-no-retrocede). Sin errores de consola.
-- [ ] **Step 4: Commit** — `feat: pista de tutorial para entrar a edificios poseido (Plan 15)`
+- [x] **Step 1: Implementar.**
+- [x] **Step 2:** `npx tsc --noEmit` limpio.
+- [x] **Step 3: Verificación** — DESVIACIÓN: las herramientas de navegador
+  no estaban disponibles en esta sesión (el servidor MCP se desconectó a
+  mitad de la sesión). `tests/tutorial.test.ts` YA EXISTÍA (con tests de
+  `huboHabilidadDeJugador`/`hayPanicoMasivo`) — siguiendo la indicación
+  del plan para ese caso, se agregaron 3 tests para `huboPosesion` en vez
+  de omitir la verificación: mundo recién creado (false), un CIVIL con
+  `ordenControl=true` a mano (sigue false — la función filtra por
+  `esAgente`), y un agente con `ordenControl=true` (true). La trampa del
+  "puntero que no retrocede" no se re-verificó en vivo, pero replica
+  EXACTAMENTE el patrón ya probado en producción de `vistoPanicoMasivo`
+  (misma clase `Tutorial`, mismo mecanismo de bandera con memoria
+  actualizada todos los frames) — no es código nuevo sin precedente.
+  `npm test` completo: 235/235 (antes 232, +3 nuevos), `git diff --stat --
+  src/sim/` vacío. Sin verificación visual del toast en pantalla — pendiente
+  si se retoman las herramientas de navegador en una sesión futura.
+- [x] **Step 4: Commit** — `feat: pista de tutorial para entrar a edificios poseido (Plan 15)`
 
 ---
 
 ## Task 2: Cierre
 
-- [ ] **Step 1:** `npm test` completo (no debería tocar `src/sim/`) y
+- [x] **Step 1:** `npm test` completo (no debería tocar `src/sim/`) y
   `npx tsc --noEmit` limpios.
-- [ ] **Step 2: Cierre** — checkboxes marcados, commit
+- [x] **Step 2: Cierre** — checkboxes marcados, commit
   `chore: pista de entrar a edificios verificada (Plan 15 completo)`, push.

@@ -34,6 +34,17 @@ export function hayPanicoMasivo(world: World): boolean {
   return false;
 }
 
+/**
+ * true si en ESTE tick algún agente tiene `ordenControl` — o sea, la última
+ * orden que se le aplicó fue una orden 'control' (posesión WASD, ver
+ * `aplicarOrden` en src/sim/agentes.ts). Señal de "el jugador ya poseyó a
+ * alguien al menos una vez", sin necesitar enganchar `Posesion` directamente
+ * (mismo espíritu que `huboHabilidadDeJugador` lee del `world`, no de `Controles`).
+ */
+export function huboPosesion(world: World): boolean {
+  return world.citizens.some((c) => c.esAgente && c.ordenControl);
+}
+
 interface Paso {
   texto: string;
   cumplida: (world: World) => boolean;
@@ -53,7 +64,7 @@ interface Paso {
  * este) se perdería para siempre si solo mirásemos el pánico al llegar al
  * paso 3 — el puntero nunca retrocede a revisarlo.
  */
-function crearPasos(vistoPanicoMasivo: () => boolean): Paso[] {
+function crearPasos(vistoPanicoMasivo: () => boolean, vistoPosesion: () => boolean): Paso[] {
   return [
     {
       texto: 'El paciente cero anda suelto. Encuéntralo antes de que estalle',
@@ -63,6 +74,10 @@ function crearPasos(vistoPanicoMasivo: () => boolean): Paso[] {
       // Primera transformación: el primer ciudadano se vuelve zombi (0 → >0).
       texto: '¡Empezó! Haz click en tu POLICÍA (tecla 1) y llévalo al brote',
       cumplida: (world) => world.stats.zombis > 0,
+    },
+    {
+      texto: 'Poseíste a un agente: caminá hasta la puerta de un edificio para refugiarlo adentro',
+      cumplida: vistoPosesion,
     },
     {
       texto: 'Todo tiene un precio: el disparo atrae a la horda',
@@ -96,10 +111,12 @@ export class Tutorial {
   private ocultarEn = 0;
   /** Con memoria: una vez true, queda true (ver comentario en crearPasos). */
   private vistoPanicoMasivo = false;
+  /** Con memoria, mismo patrón que vistoPanicoMasivo. */
+  private vistoPosesion = false;
 
   constructor() {
     this.el = document.getElementById('tutorial-toast') as HTMLDivElement | null;
-    this.pasos = crearPasos(() => this.vistoPanicoMasivo);
+    this.pasos = crearPasos(() => this.vistoPanicoMasivo, () => this.vistoPosesion);
     this.activo = localStorage.getItem(CLAVE) !== 'visto';
     if (this.activo) this.mostrar('Arrastra para mover la cámara · rueda para zoom');
   }
@@ -117,6 +134,7 @@ export class Tutorial {
     // solo se comprobara al llegar al paso 3, un pico de pánico que ya pasó
     // mientras el puntero seguía atascado en el paso 2 se perdería.
     if (hayPanicoMasivo(world)) this.vistoPanicoMasivo = true;
+    if (huboPosesion(world)) this.vistoPosesion = true;
     // while (no if): si varios pasos se cumplieron entre dos llamadas (p. ej.
     // el gancho de depuración tickea varias veces antes de renderizar), se
     // muestra directo el tip más reciente en vez de quedarse atascado.
