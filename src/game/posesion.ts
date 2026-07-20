@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { World } from '../sim/world';
 import type { CameraRig } from '../render/cameraRig';
-import { AGENTES, DT } from '../sim/config';
+import { AGENTES, DT, INTERIOR } from '../sim/config';
 
 /**
  * Paso por tick de la orden 'control'. La fórmula del spec (~3 ticks adelante,
@@ -149,7 +149,8 @@ export class Posesion {
     if (!a) return;
     const px = a.prevX + (a.x - a.prevX) * alpha;
     const pz = a.prevZ + (a.z - a.prevZ) * alpha;
-    this.rig.actualizarTercera(px, pz, a.dirX, a.dirZ);
+    const alturaSuelo = a.dentroDe >= 0 ? a.piso * INTERIOR.alturaPiso : 0;
+    this.rig.actualizarTercera(px, pz, a.dirX, a.dirZ, alturaSuelo);
   }
 
   /** WASD combinado con el yaw ACTUAL de cámara (adelante/derecha relativos a cámara). */
