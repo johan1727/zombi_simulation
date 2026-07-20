@@ -27,6 +27,7 @@ function vistaMenu(mensajeError?: string): string {
       <div class="sala-titulo">PANDEMIA</div>
       ${mensajeError ? `<div class="sala-error">${escapeHtml(mensajeError)}</div>` : ''}
       <button id="sala-btn-solo" type="button">JUGAR SOLO</button>
+      <button id="sala-btn-buscar" type="button">BUSCAR PARTIDA</button>
       <div class="sala-separador">o jugá con un amigo, en vivo</div>
       <button id="sala-btn-crear" type="button">CREAR SALA</button>
       <div class="sala-unirse">
@@ -134,6 +135,7 @@ export function mostrarPantallaSala(): Promise<EleccionInicio> {
     const mostrarMenu = (mensajeError?: string): void => {
       el.innerHTML = vistaMenu(mensajeError);
       el.querySelector('#sala-btn-solo')?.addEventListener('click', () => terminar({}));
+      el.querySelector('#sala-btn-buscar')?.addEventListener('click', () => flujoBuscar());
       el.querySelector('#sala-btn-crear')?.addEventListener('click', () => flujoCrear());
       const btnUnirse = el.querySelector('#sala-btn-unirse') as HTMLButtonElement | null;
       const inputCodigo = el.querySelector('#sala-input-codigo') as HTMLInputElement | null;
@@ -167,6 +169,16 @@ export function mostrarPantallaSala(): Promise<EleccionInicio> {
           conexion.onEmparejado((seed) => terminar({ conexion, seed }));
         })
         .catch(() => mostrarMenu('No se pudo crear la sala. ¿Está corriendo el relay?'));
+    };
+
+    const flujoBuscar = (): void => {
+      const conexion = crearConexionSala();
+      el.innerHTML = vistaCargando('Buscando un rival…');
+      conectarCancelar(conexion);
+      conexion
+        .buscarPartida()
+        .then((seed) => terminar({ conexion, seed }))
+        .catch(() => mostrarMenu('No se pudo buscar partida. ¿Está corriendo el relay?'));
     };
 
     const flujoUnirse = (codigo: string): void => {
