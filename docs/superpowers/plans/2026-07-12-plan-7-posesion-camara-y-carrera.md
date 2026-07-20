@@ -70,17 +70,17 @@ cámara vuelve a seguir la dirección de marcha (mismo comportamiento de hoy,
 ahora con una ventana real para mirar alrededor mientras está quieto o
 mientras arrastras activamente).
 
-- [ ] **Step 1: Implementar** (sin test unitario — `CameraRig` ya no tenía
+- [x] **Step 1: Implementar** (sin test unitario — `CameraRig` ya no tenía
   tests unitarios antes de este plan, es lógica de interacción con
   `performance.now()`/DOM; verificar en navegador).
-- [ ] **Step 2:** `npx tsc --noEmit` limpio.
-- [ ] **Step 3: Verificación en navegador** — poseer un agente
+- [x] **Step 2:** `npx tsc --noEmit` limpio.
+- [x] **Step 3: Verificación en navegador** — poseer un agente
   (`window.pandemia.posesion.activar(id)` o clic normal), arrastrar el
   mouse y confirmar que la cámara gira libremente sin que el personaje se
   mueva ni la orden de movimiento se dispare; soltar y mover con WASD,
   confirmar que la cámara vuelve a seguir la dirección de marcha como
   antes. Sin errores de consola.
-- [ ] **Step 4: Commit** — `feat: mirar alrededor con el mouse al poseer a un agente (Plan 7)`
+- [x] **Step 4: Commit** — `feat: mirar alrededor con el mouse al poseer a un agente (Plan 7)`
 
 ---
 
@@ -165,7 +165,7 @@ this.world.encolarOrden({
 });
 ```
 
-- [ ] **Step 1: Test que falla** (añadir a `tests/agentes.test.ts`, junto a
+- [x] **Step 1: Test que falla** (añadir a `tests/agentes.test.ts`, junto a
   los tests existentes de determinismo de agentes — importar `AGENTES` si
   no está ya importado):
 
@@ -203,22 +203,22 @@ consistente con `AGENTES.factorSprint`. Usar el patrón de comparación de
 distancia ya usado en `tests/heridas.test.ts`/`tests/panico.test.ts`
 —`sqrt(dx*dx+dz*dz)`, nunca `Math.hypot`.)
 
-- [ ] **Step 2-4:** TDD estándar; suite completa (`npx vitest run --exclude tests/balance.test.ts`) y `npx tsc --noEmit` en verde; `tests/portabilidad.test.ts` sigue verde (sin funciones prohibidas nuevas).
-- [ ] **Step 5: Verificación en navegador** — poseer un agente, sostener
+- [x] **Step 2-4:** TDD estándar; suite completa (`npx vitest run --exclude tests/balance.test.ts`) y `npx tsc --noEmit` en verde; `tests/portabilidad.test.ts` sigue verde (sin funciones prohibidas nuevas).
+- [x] **Step 5: Verificación en navegador** — poseer un agente, sostener
   Shift + WASD, confirmar visualmente que se mueve más rápido que sin
   Shift, y que soltar Shift a mitad de movimiento vuelve a la velocidad
   normal en el siguiente tick (sin salto raro). Sin errores de consola.
-- [ ] **Step 6: Commit** — `feat: correr (sprint) al poseer a un agente, tecla Shift (Plan 7)`
+- [x] **Step 6: Commit** — `feat: correr (sprint) al poseer a un agente, tecla Shift (Plan 7)`
 
 ---
 
 ## Task 3: Cierre
 
-- [ ] **Step 1:** `npm test` completo (con balance — no debería moverse,
+- [x] **Step 1:** `npm test` completo (con balance — no debería moverse,
   ninguna task de este plan cambia el comportamiento SIN intervención del
   jugador, solo la posesión activa; confirmar de todos modos ya que Task 2
   sí toca `src/sim/`) y `npx tsc --noEmit` limpios.
-- [ ] **Step 2: Cierre** — lecciones condensadas en CLAUDE.md si aplica,
+- [x] **Step 2: Cierre** — lecciones condensadas en CLAUDE.md si aplica,
   checkboxes marcados, commit
   `chore: mirar alrededor y correr en posesion verificados (Plan 7 completo)`,
   push.
