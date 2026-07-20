@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import type { Citizen, RolAgente, Salud } from '../sim/types';
 import { INTERIOR } from '../sim/config';
-import { hornearPose } from './poseBake';
+import { hornearPose, hornearCiclo } from './poseBake';
 
 const COLORES: Record<Salud, number> = {
   sano: 0x9fd8ff,
@@ -89,7 +89,46 @@ function pielActiva(c: Citizen): NombrePiel {
 
 export interface PersonajesAssets {
   geometria: THREE.BufferGeometry;
+  geometriaIdle: THREE.BufferGeometry[]; // FRAMES_IDLE elementos
+  geometriaRun: THREE.BufferGeometry[]; // FRAMES_RUN elementos
   materiales: Map<NombrePiel, THREE.Material>;
+}
+
+/** Cuántos frames se hornean por ciclo (Plan 9 Task 1: usados recién en Task 2). */
+export const FRAMES_IDLE = 4;
+export const FRAMES_RUN = 8;
+
+/** Primer THREE.SkinnedMesh encontrado recorriendo la jerarquía de una escena GLTF. */
+function encontrarSkinnedMesh(escena: THREE.Object3D): THREE.SkinnedMesh {
+  let encontrado: THREE.SkinnedMesh | null = null;
+  escena.traverse((obj) => {
+    if (encontrado === null && obj instanceof THREE.SkinnedMesh) {
+      encontrado = obj;
+    }
+  });
+  if (encontrado === null) {
+    throw new Error('El GLB no contiene ningún SkinnedMesh');
+  }
+  return encontrado;
+}
+
+/**
+ * Elige, de la lista de `AnimationClip` de un GLB de animación, el que
+ * corresponde al ciclo real (por nombre, insensible a mayúsculas). Hallazgo
+ * de verificación en navegador (Plan 9 Task 1): `survivor-anim-idle.glb`/
+ * `survivor-anim-run.glb` traen DOS clips cada uno — `animations[0]` es
+ * `"Root|0.Targeting Pose"` (una pose estática de referencia, no el ciclo) y
+ * el segundo es el ciclo real (`"Root|Idle"`/`"Root|Run"`) — así que el plan
+ * original (asumir `animations[0]`) era incorrecto para este asset; se busca
+ * por nombre en vez de asumir un índice fijo, con el último clip como
+ * fallback si ningún nombre calza.
+ */
+function elegirClip(clips: THREE.AnimationClip[], palabraClave: string): THREE.AnimationClip {
+  const porNombre = clips.find((c) => c.name.toLowerCase().includes(palabraClave));
+  if (porNombre) return porNombre;
+  const ultimo = clips[clips.length - 1];
+  if (!ultimo) throw new Error(`No se encontró ningún AnimationClip (buscando "${palabraClave}")`);
+  return ultimo;
 }
 
 /**
@@ -100,22 +139,49 @@ export interface PersonajesAssets {
  * ver investigación de la task — con la textura de piel correspondiente
  * asignada). La geometría horneada es la MISMA para las 4 pieles: solo
  * cambia el material/textura.
+ *
+ * Además carga `survivor-anim-{idle,run}.glb` para sus `AnimationClip` y
+ * hornea `FRAMES_IDLE`/`FRAMES_RUN` frames de cada uno vía `hornearCiclo`.
+ * Hallazgo de verificación en navegador (Plan 9 Task 1, desviación del
+ * plan): a diferencia de lo asumido en el plan, estos GLB de animación NO
+ * traen su propio `SkinnedMesh` — son solo esqueleto + clips (patrón típico
+ * de packs de animación tipo Mixamo/Kenney pensados para RETARGETING). Por
+ * eso `hornearCiclo` se llama con el `root`/`skinned` de `survivor-base.glb`
+ * (el único mesh real) y el `clip` sacado del GLB de animación — el
+ * `AnimationMixer` conecta los tracks del clip a los huesos del esqueleto
+ * base por NOMBRE (confirmado: ambos rigs comparten los mismos nombres de
+ * hueso, p.ej. `LeftForeArm`), sin que haga falta un `SkinnedMesh` propio en
+ * el GLB de animación. Esto también hace irrelevante la preocupación
+ * original del plan sobre "coincidencia de topología de vértices" entre
+ * `survivor-base.glb` y los GLB de animación: como ambos ciclos se hornean
+ * sobre la MISMA geometría/skinIndex/skinWeight de `survivor-base.glb`, el
+ * conteo de vértices coincide por construcción (ver verificación abajo).
  */
 export async function cargarPersonajes(): Promise<PersonajesAssets> {
   const loader = new GLTFLoader();
   const gltf = await loader.loadAsync('/models/personajes/survivor-base.glb');
 
-  let encontrado: THREE.SkinnedMesh | null = null;
-  gltf.scene.traverse((obj) => {
-    if (encontrado === null && obj instanceof THREE.SkinnedMesh) {
-      encontrado = obj;
-    }
-  });
-  if (encontrado === null) {
-    throw new Error('survivor-base.glb no contiene ningún SkinnedMesh');
-  }
-  const skinned: THREE.SkinnedMesh = encontrado;
+  const skinned = encontrarSkinnedMesh(gltf.scene);
   const geometria = hornearPose(skinned);
+
+  const [gltfIdle, gltfRun] = await Promise.all([
+    loader.loadAsync('/models/personajes/survivor-anim-idle.glb'),
+    loader.loadAsync('/models/personajes/survivor-anim-run.glb'),
+  ]);
+
+  if (gltfIdle.animations.length === 0) {
+    throw new Error('survivor-anim-idle.glb no contiene ningún AnimationClip');
+  }
+  if (gltfRun.animations.length === 0) {
+    throw new Error('survivor-anim-run.glb no contiene ningún AnimationClip');
+  }
+  const clipIdle = elegirClip(gltfIdle.animations, 'idle');
+  const clipRun = elegirClip(gltfRun.animations, 'run');
+
+  // root/skinned SIEMPRE los de survivor-base.glb (ver comentario arriba):
+  // los GLB de animación no traen mesh propio, solo el clip a retargetear.
+  const geometriaIdle = hornearCiclo(gltf.scene, skinned, clipIdle, FRAMES_IDLE);
+  const geometriaRun = hornearCiclo(gltf.scene, skinned, clipRun, FRAMES_RUN);
 
   const materialBase = Array.isArray(skinned.material) ? skinned.material[0] : skinned.material;
   const textureLoader = new THREE.TextureLoader();
@@ -131,7 +197,7 @@ export async function cargarPersonajes(): Promise<PersonajesAssets> {
     })
   );
 
-  return { geometria, materiales };
+  return { geometria, geometriaIdle, geometriaRun, materiales };
 }
 
 export class PersonajesView {

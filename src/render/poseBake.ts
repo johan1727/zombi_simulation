@@ -54,3 +54,38 @@ export function hornearPose(skinned: THREE.SkinnedMesh): THREE.BufferGeometry {
   geoHorneada.computeVertexNormals();
   return geoHorneada;
 }
+
+/**
+ * Hornea N frames muestreados uniformemente a lo largo de un clip (loop: el
+ * último frame es el instante ANTERIOR al final, para que el ciclo no repita
+ * el frame 0 dos veces al volver a empezar). `root` es el objeto raíz sobre
+ * el que corre el AnimationMixer (normalmente `gltf.scene`); `skinned` es el
+ * SkinnedMesh a hornear en cada instante.
+ */
+export function hornearCiclo(
+  root: THREE.Object3D,
+  skinned: THREE.SkinnedMesh,
+  clip: THREE.AnimationClip,
+  frames: number
+): THREE.BufferGeometry[] {
+  const mixer = new THREE.AnimationMixer(root);
+  const accion = mixer.clipAction(clip);
+  accion.play();
+  const salida: THREE.BufferGeometry[] = [];
+  for (let i = 0; i < frames; i++) {
+    const t = (clip.duration * i) / frames;
+    mixer.setTime(t);
+    // `AnimationMixer.setTime` solo escribe el transform LOCAL de cada hueso
+    // (position/quaternion/scale) — no recalcula `matrixWorld` (eso lo hace
+    // normalmente el bucle de render vía `scene.updateMatrixWorld()`, que
+    // aquí no corre: esto es un horneado puntual sin render loop). Sin este
+    // `updateMatrixWorld(true)`, `hornearPose` (que lee `skeleton.update()`,
+    // a su vez basado en `bone.matrixWorld`) usaría matrices MUNDIALES
+    // obsoletas (las del bind pose calculadas una vez al parsear el GLB) y
+    // TODOS los frames horneados saldrían idénticos al bind pose sin ningún
+    // error — hallazgo de verificación en navegador, Plan 9 Task 1.
+    root.updateMatrixWorld(true);
+    salida.push(hornearPose(skinned));
+  }
+  return salida;
+}
