@@ -24,6 +24,8 @@ export interface ConexionSala {
   crear(): Promise<string>;
   /** Se une a una sala existente; resuelve con la seed compartida al emparejar. */
   unirse(sala: string): Promise<string>;
+  /** Cola pública: espera a que el relay empareje con el primer desconocido disponible. */
+  buscarPartida(): Promise<string>;
   enviarMuestra(m: Muestra): void;
   onMuestraRival(cb: (m: Muestra) => void): void;
   onDesconexion(cb: () => void): void;
@@ -41,6 +43,7 @@ export interface ConexionSala {
 type MsgCliente =
   | { tipo: 'crear' }
   | { tipo: 'unirse'; sala: string }
+  | { tipo: 'buscar' }
   | { tipo: 'muestra'; vivosPct: number; indiceCiudad: number; brecha: boolean };
 
 type MsgServidor =
@@ -149,6 +152,17 @@ export function crearConexionSala(url: string = URL_RELAY): ConexionSala {
         'Timeout esperando emparejado',
       );
       enviar({ tipo: 'unirse', sala });
+      const msg = await promesa;
+      return msg.seed;
+    },
+
+    async buscarPartida(): Promise<string> {
+      await listo;
+      const promesa = esperarMensaje(
+        (m): m is Extract<MsgServidor, { tipo: 'emparejado' }> => m.tipo === 'emparejado',
+        'Timeout esperando emparejado',
+      );
+      enviar({ tipo: 'buscar' });
       const msg = await promesa;
       return msg.seed;
     },

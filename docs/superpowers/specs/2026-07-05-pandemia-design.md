@@ -119,7 +119,7 @@ Juego 3D de navegador, vista de director (arriba, con zoom continuo), estilo *Pr
 
 - **Marcador en vivo:** % de población del rival, sus estructuras, mini-gráfica de ambas curvas. Avisos dramáticos ("¡Al rival le cayó el hospital!"). No se ve el mapa del rival.
 - **Link de desafío (asíncrono, Fase 1):** "Sobreviví 6:42 con 34%. Misma pandemia, supérame: [link]". El link codifica semilla + curva del retador; quien lo abre juega contra ese fantasma. Sin registro ni descarga.
-- **Matchmaking (Fase 2), estilo Clash Royale:** ✅ Jugar con amigo (código de sala de 6 letras) y el link asíncrono — implementados y desplegados (Plan 10, `server/relay.ts` en Render). Buscar partida (cola pública de desconocidos) queda pendiente (ver Plan 10 Task 5, sin diseñar en detalle a propósito). El relay es deliberadamente tonto — no simula nada, solo empareja dos sockets por código de sala y reenvía muestras de `vivosPct`/`indiceCiudad`/brecha cada 5 s; cada jugador sigue simulando 100% local y determinista su propia ciudad.
+- **Matchmaking (Fase 2), estilo Clash Royale:** ✅ Los 3 caminos implementados y desplegados: jugar con amigo (código de sala), el link asíncrono, y buscar partida (cola pública de desconocidos, Plan 16 — reusa el mismo `Map` de salas del relay con un código sintético al emparejar). El relay es deliberadamente tonto — no simula nada, solo empareja sockets y reenvía muestras de `vivosPct`/`indiceCiudad`/brecha cada 5 s; cada jugador sigue simulando 100% local y determinista su propia ciudad. Cooldown de 3 s por IP contra abuso en la cola pública.
 
 ### 5.1 Ciudadanos con nombre e historias (prototipo)
 
