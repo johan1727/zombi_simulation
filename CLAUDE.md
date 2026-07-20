@@ -143,6 +143,22 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
   conocido y aprobado desde Plan 6. Antes de investigar un artefacto visual
   raro en una escena recién tocada, reproducir la MISMA escena con código NO
   tocado (otro agente, otro punto) para descartar que sea preexistente.
+- (Plan 9, ciclo de poses) Dos trampas de `THREE.AnimationMixer` al hornear
+  frames de un clip FUERA de un render loop real (para `InstancedMesh`, que
+  no soporta skinning por instancia): (1) `mixer.setTime(t)` solo escribe el
+  transform LOCAL de cada hueso — nunca recalcula `matrixWorld` (eso lo hace
+  normalmente `scene.updateMatrixWorld()` cada frame del render loop, que
+  aquí no corre); sin un `root.updateMatrixWorld(true)` explícito tras cada
+  `setTime()`, `hornearPose` lee matrices mundiales STALE (las del bind pose)
+  y TODOS los frames horneados salen idénticos, sin ningún error de consola.
+  (2) Los packs de animación tipo Kenney/Synty/Mixamo (`survivor-anim-*.glb`
+  en este proyecto) suelen traer solo esqueleto + `AnimationClip`, SIN su
+  propio `SkinnedMesh` — están pensados para retargeting por NOMBRE de hueso
+  sobre la malla base (`survivor-base.glb`), así que `hornearCiclo` debe
+  recibir el `root`/`skinned` de la malla base y solo el `clip` del GLB de
+  animación. Además, `animations[0]` de esos GLB puede ser una pose estática
+  de referencia (p. ej. "Targeting Pose"), no el ciclo real — buscar el clip
+  por nombre (`.toLowerCase().includes(...)`) en vez de asumir el índice 0.
 - (Plan 5 Task 5, giros de semilla) Cuando un brief da un snippet de código
   ilustrativo, no copiarlo literal: el ejemplo de `eventos.ts` traía `import
   type { World }` sin usarlo en el cuerpo — con `noUnusedLocals` eso no
