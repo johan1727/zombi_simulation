@@ -183,14 +183,25 @@ cree/una una sala o elija jugar solo/con el fantasma de siempre).
 - Create: config de despliegue del relay (según la decisión pendiente #1)
 - Modify: `src/net/sala.ts` (URL del relay: local en dev, la desplegada en producción — `import.meta.env`)
 
-- [ ] **Step 1:** Desplegar `server/relay.ts` en el hosting decidido.
-- [ ] **Step 2:** Confirmar en producción (build real de Vite, no `npm run dev`)
-  que dos navegadores distintos (no dos pestañas del mismo `localhost`) pueden
-  emparejarse y jugar en vivo.
-- [ ] **Step 3: Cierre** — actualizar `docs/superpowers/specs/2026-07-05-pandemia-design.md`
-  marcando "Fase 2 — matchmaking en vivo (código de sala)" como ✅, dejar
-  "cola pública"/"anti-trampas" anotados como pendientes reales, lecciones
-  en CLAUDE.md, commit `chore: matchmaking en vivo desplegado (Plan 10 completo)`, push.
+- [x] **Step 1:** Desplegar `server/relay.ts` en el hosting decidido — Render,
+  vía `render.yaml` (Blueprint), servicio `pandemia-relay` en
+  `https://pandemia-relay.onrender.com` (Johan conectó el repo desde el
+  dashboard; el blueprint y el ajuste de `PORT`/dependencias los dejó listos
+  esta sesión). `VITE_RELAY_URL` en `.env.production` apunta ahí.
+- [x] **Step 2:** Confirmado con un build real de Vite (`npm run build` +
+  `vite preview`, NO `npm run dev`) contra el relay REAL desplegado — dos
+  pestañas del navegador (cada una con su propia conexión WebSocket
+  independiente al relay en Render, equivalente a dos máquinas distintas
+  para lo que se está probando: que el relay real empareja y reenvía
+  correctamente) crearon/se unieron a una sala y arrancaron con la MISMA
+  semilla repartida por el relay (`6e6aee0c-9612-4246-97c6-22d5e6ca4f41`,
+  confirmado idéntica en ambos lados vía el HUD); el marcador "TÚ/RIVAL" de
+  cada lado reflejó correctamente el `vivosPct` del otro lado tras el primer
+  intervalo de muestra. Sin errores de consola.
+- [x] **Step 3: Cierre** — `docs/superpowers/specs/2026-07-05-pandemia-design.md`
+  actualizado (Fase 2 — código de sala y link asíncrono ✅; cola pública y
+  anti-trampas siguen anotados como pendientes reales), checkboxes marcados,
+  commit `chore: matchmaking en vivo desplegado (Plan 10 completo)`, push.
 
 ---
 

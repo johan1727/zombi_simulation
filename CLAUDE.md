@@ -121,11 +121,19 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
   mayoría de partidas sin intervención menos letales que Plan 3 — se
   recalibró el gate (`tests/balance.test.ts`) en vez de perseguir perillas
   que no revertían la tendencia real.
-- Dos trampas de TS estrictas ya vistas: `noUnusedParameters` exige `void
-  param;` para CADA parámetro sin usar de un stub (no solo los "extra"); y
-  `if (c.salud !== 'zombi')` justo después de un `if (c.salud === 'zombi')
-  {...; return;}` no compila (TS2367, tipo ya estrechado) — quitar el `if`
-  redundante.
+- (Plan 10, matchmaking en vivo) El gancho de dev `window.pandemia` SOLO
+  existe cuando `import.meta.env.DEV` es true (`main.ts`) — un build de
+  producción real (`npm run build` + `vite preview`, necesario para probar
+  contra un relay YA desplegado) no lo expone. Verificar ahí con
+  `get_page_text`/`read_page` sobre el HUD/DOM en vez del gancho; si hace
+  falta un servidor de preview en las herramientas del proyecto, agregar una
+  config `"preview"` a `.claude/launch.json` (`npm run preview`) junto a la
+  de `"dev"` — no reusar el mismo puerto sin verificar que esté libre
+  primero. Además, en este entorno de preview, una pestaña que pierde el
+  foco (p. ej. al abrir/interactuar con una segunda pestaña) throttlea su
+  `requestAnimationFrame` casi a cero — el HUD se queda pegado en un texto
+  viejo ("Cargando…") aunque el juego siga corriendo por debajo; re-enfocar
+  la pestaña y esperar unos segundos antes de leer su estado.
 - (Plan 4 Task 8, audio) Para consumir DELTAS de un array de la sim entre
   frames de render, importa si el array solo CRECE (`world.hitos`) o se
   COMPACTA in-place cada tick (`world.ruidos`) — ahí un índice guardado no
