@@ -61,6 +61,25 @@ export class CityView {
     suelo.position.set(city.width / 2, 0, city.depth / 2);
     scene.add(suelo);
 
+    // Suelo extendido más allá del borde real de la ciudad (Plan 13): sin
+    // esto, panear la cámara hasta el límite del mapa corta del suelo
+    // (parcialmente neblinoso, todavía con silueta visible) a la nada
+    // (color plano de fondo) de golpe — se ve como un muro. Reusa el MISMO
+    // material que el suelo real (color idéntico, sin costear un segundo
+    // material) y queda un poco más abajo en Y para no z-fighting con él.
+    // MARGEN_SUELO_EXTENDIDO cubre de sobra el offset diagonal de la cámara
+    // isométrica al zoom máximo (`MAX_DIST` en cameraRig.ts) desde una
+    // esquina del mapa; junto con el fog más cercano (scene.ts) su propio
+    // borde queda siempre oculto en la niebla, nunca visible.
+    const MARGEN_SUELO_EXTENDIDO = 300;
+    const sueloExtendido = new THREE.Mesh(
+      new THREE.PlaneGeometry(city.width + MARGEN_SUELO_EXTENDIDO * 2, city.depth + MARGEN_SUELO_EXTENDIDO * 2),
+      suelo.material
+    );
+    sueloExtendido.rotation.x = -Math.PI / 2;
+    sueloExtendido.position.set(city.width / 2, -0.05, city.depth / 2);
+    scene.add(sueloExtendido);
+
     this.escalaYCompleta = [];
     this.grupos = this.fondos.map((b) => {
       const nombre = elegirModelo(b.id, b.height > UMBRAL_RASCACIELOS);
