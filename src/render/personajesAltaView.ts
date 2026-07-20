@@ -1,14 +1,15 @@
 import * as THREE from 'three';
 import { clone as clonarEsqueleto } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import type { Citizen } from '../sim/types';
-import { INTERIOR } from '../sim/config';
+import { CITIZENS, INTERIOR } from '../sim/config';
 import type { AssetsAnimacion } from './animacionAssets';
 import {
   PIELES_DISPONIBLES,
   PARPADEO_FRAMES,
   colorFor,
-  enMovimiento,
   pielActiva,
+  velocidadReal,
+  UMBRAL_QUIETO,
   type NombrePiel,
 } from './personajesView';
 
@@ -241,12 +242,19 @@ export class PersonajesAltaView {
       slot.grupo.scale.set(1, scaleY, 1);
       slot.grupo.visible = !oculto;
 
-      const poseDeseada: Pose = enMovimiento(c) ? 'run' : 'idle';
+      const v = velocidadReal(c);
+      const poseDeseada: Pose = v < UMBRAL_QUIETO ? 'idle' : 'run';
       if (slot.poseActual !== poseDeseada) {
         const saliente = slot.poseActual === 'run' ? slot.accionRun : slot.accionIdle;
         const entrante = poseDeseada === 'run' ? slot.accionRun : slot.accionIdle;
         crossFade(saliente, entrante, CROSSFADE_SEGUNDOS);
         slot.poseActual = poseDeseada;
+      }
+      if (slot.poseActual === 'run') {
+        // Ciclo proporcional a la velocidad real (ver Meta del plan): piso de
+        // 0.15 para no congelar del todo el ciclo si `v` es casi 0 pero aún
+        // se considera "en movimiento" (justo sobre UMBRAL_QUIETO).
+        slot.accionRun.timeScale = Math.max(v / CITIZENS.walkSpeed, 0.15);
       }
 
       const piel = pielActiva(c);

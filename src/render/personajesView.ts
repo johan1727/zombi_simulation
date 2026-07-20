@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import type { Citizen, RolAgente, Salud } from '../sim/types';
-import { INTERIOR } from '../sim/config';
+import { CITIZENS, DT, INTERIOR } from '../sim/config';
 import { hornearPose, hornearCiclo } from './poseBake';
 import { cargarAssetsAnimacion, type AssetsAnimacion } from './animacionAssets';
 
@@ -110,14 +110,27 @@ function claveMesh(piel: NombrePiel, pose: Pose, frame: number): string {
   return `${piel}:${pose}:${frame}`;
 }
 
-/** true si el ciudadano se está moviendo (mismo criterio que el resto del render).
- * Exportado por el mismo motivo que `colorFor` (ver comentario arriba). */
-export function enMovimiento(c: Citizen): boolean {
-  return c.dirX !== 0 || c.dirZ !== 0;
-}
+/** Ticks de sim por frame de animación en pose "run", a la velocidad de
+ * referencia `CITIZENS.walkSpeed` (30 tps / 6 ≈ 5 fps de ciclo). Se escala
+ * por la velocidad real de cada ciudadano en `poseYFrame`. */
+const CICLO_TICKS_BASE = 6;
 
-/** Ticks de sim por frame de animación en pose "run" (30 tps / 6 ≈ 5 fps de ciclo). */
-const CICLO_TICKS = 6;
+/** m/s: por debajo de esto se considera "sin movimiento real" (pose idle),
+ * sin importar la dirección deseada — evita "correr en el lugar" contra
+ * una pared/multitud. Exportada para que `personajesAltaView.ts` use el
+ * MISMO umbral al decidir `poseDeseada`. */
+export const UMBRAL_QUIETO = 0.05;
+
+/** Velocidad real instantánea (m/s) a partir del desplazamiento del último
+ * tick — no depende de qué mecánica la causó (marcha, huida, sprint,
+ * cojera, bloqueo contra una pared). Exportada para que
+ * `personajesAltaView.ts` (Plan 11) use el MISMO criterio en vez de
+ * duplicar la fórmula. */
+export function velocidadReal(c: Citizen): number {
+  const dx = c.x - c.prevX;
+  const dz = c.z - c.prevZ;
+  return Math.sqrt(dx * dx + dz * dz) / DT;
+}
 
 /**
  * Pose y frame activos de un ciudadano en un tick dado. Determinista: sin
@@ -125,15 +138,20 @@ const CICLO_TICKS = 6;
  * sí (mismo espíritu que `c.id % 2` de `pielActiva`). Los agentes caídos
  * quedan en 'idle' (cualquier frame sirve: el cuerpo se aplana con
  * `scaleY = 0.35` en `update()`, no tiene sentido animar un ciclo de
- * marcha tumbado).
+ * marcha tumbado). El ciclo de "run" avanza proporcional a la velocidad
+ * real respecto a `CITIZENS.walkSpeed`: más rápido con sprint/huida, más
+ * lento con cojera (`zonaHerida === 'pierna'`) sin ningún caso especial —
+ * la sim ya reduce la velocidad real por fractura, este cálculo lo capta
+ * solo (ver Meta del plan).
  */
 function poseYFrame(c: Citizen, tickCount: number): { pose: Pose; frame: number } {
-  if (!enMovimiento(c) || c.salud === 'caido') {
+  const v = velocidadReal(c);
+  if (v < UMBRAL_QUIETO || c.salud === 'caido') {
     return { pose: 'idle', frame: (tickCount + c.id) % FRAMES_IDLE };
   }
-  // Cojera: ciclo de "run" a la mitad de velocidad (aproximación sin clip propio, ver Meta).
-  const factorCojera = c.zonaHerida === 'pierna' ? 2 : 1;
-  const fase = Math.floor((tickCount + c.id * 7) / (CICLO_TICKS * factorCojera));
+  const factor = v / CITIZENS.walkSpeed;
+  const cicloTicks = Math.max(1, Math.round(CICLO_TICKS_BASE / factor));
+  const fase = Math.floor((tickCount + c.id * 7) / cicloTicks);
   return { pose: 'run', frame: fase % FRAMES_RUN };
 }
 
