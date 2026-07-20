@@ -29,6 +29,8 @@ export class CameraRig {
   private modo: 'director' | 'tercera' = 'director';
   private yawTercera = 0;
   private ultimoTerceraMs = 0;
+  /** true mientras el jugador arrastra el mouse en modo tercera (mirar alrededor manual, Plan 7). */
+  private mirandoManual = false;
 
   constructor(canvas: HTMLCanvasElement, bounds: { w: number; d: number }) {
     this.bounds = bounds;
@@ -56,6 +58,9 @@ export class CameraRig {
     });
     window.addEventListener('pointerup', () => {
       this.dragging = false;
+      // Al soltar, el auto-seguimiento de actualizarTercera vuelve a mandar
+      // (sin salto: yawTercera queda donde el arrastre lo dejó).
+      this.mirandoManual = false;
     });
     window.addEventListener('pointermove', (e) => {
       this.pointer = { x: e.clientX, y: e.clientY };
@@ -64,6 +69,16 @@ export class CameraRig {
       // arrastraba la cámara sola (hallazgo de juego, feedback directo).
       this.sobreCanvas = e.target === canvas;
       if (!this.dragging) return;
+      if (this.modo === 'tercera') {
+        // Modo tercera persona (posesión, Plan 7): arrastrar gira la cámara
+        // libremente alrededor del agente en vez de desplazar el foco (eso
+        // solo tiene sentido en modo director).
+        this.mirandoManual = true;
+        const SENSIBILIDAD = 0.005; // rad por pixel de arrastre horizontal
+        this.yawTercera -= (e.clientX - this.last.x) * SENSIBILIDAD;
+        this.last = { x: e.clientX, y: e.clientY };
+        return; // no cae al paneo de modo director
+      }
       const escala = (this.dist / window.innerHeight) * 1.6;
       // Convención "agarrar el suelo": el terreno sigue a la mano en los DOS
       // ejes (arrastrar a la derecha mueve el contenido a la derecha en
@@ -134,7 +149,7 @@ export class CameraRig {
     const dt = Math.min((ahora - this.ultimoTerceraMs) / 1000, 0.1);
     this.ultimoTerceraMs = ahora;
 
-    if (dirX !== 0 || dirZ !== 0) {
+    if (!this.mirandoManual && (dirX !== 0 || dirZ !== 0)) {
       const objetivo = Math.atan2(dirX, dirZ);
       let diff = objetivo - this.yawTercera;
       while (diff > Math.PI) diff -= Math.PI * 2;

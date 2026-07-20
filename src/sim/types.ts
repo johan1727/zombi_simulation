@@ -18,6 +18,8 @@ export interface OrdenJugador {
   tipo: 'mover' | 'habilidad' | 'control';
   x: number;
   z: number;
+  /** Solo relevante para tipo 'control' (posesión WASD): Shift sostenido. */
+  veloz?: boolean;
 }
 
 /** Evento notable para historias/audio/HUD. El texto lo compone la UI. */
@@ -103,6 +105,8 @@ export interface Citizen {
   brazoAmputado: boolean;
   /** Ticks consecutivos huyendo en pánico (solo humanos); resetea al calmarse. */
   ticksSprintando: number;
+  /** true si la orden 'control' activa (posesión WASD) lleva Shift sostenido. */
+  corriendoOrden: boolean;
 }
 
 export type Salud = 'sano' | 'incubando' | 'zombi' | 'eliminado' | 'caido';

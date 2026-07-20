@@ -35,6 +35,8 @@ export class Posesion {
   private readonly rig: CameraRig;
   private readonly canvas: HTMLCanvasElement;
   private readonly teclas = new Set<string>();
+  /** Shift sostenido: sprint en posesión. No tiene dirección, no va en `teclas`. */
+  private shiftPresionado = false;
 
   private readonly raycaster = new THREE.Raycaster();
   private readonly suelo = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -54,12 +56,17 @@ export class Posesion {
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
       const k = e.key.toLowerCase();
       if (this.activo && TECLAS_MOVIMIENTO.has(k)) this.teclas.add(k);
+      if (this.activo && k === 'shift') this.shiftPresionado = true;
     });
     window.addEventListener('keyup', (e) => {
       const k = e.key.toLowerCase();
       if (TECLAS_MOVIMIENTO.has(k)) this.teclas.delete(k);
+      if (k === 'shift') this.shiftPresionado = false;
     });
-    window.addEventListener('blur', () => this.teclas.clear());
+    window.addEventListener('blur', () => {
+      this.teclas.clear();
+      this.shiftPresionado = false;
+    });
 
     let bajadaX = 0;
     let bajadaY = 0;
@@ -86,6 +93,7 @@ export class Posesion {
     this.activo = true;
     this.idAgente = idAgente;
     this.teclas.clear();
+    this.shiftPresionado = false;
     this.rig.entrarTercera(a.dirX, a.dirZ);
   }
 
@@ -96,6 +104,7 @@ export class Posesion {
     this.activo = false;
     this.idAgente = -1;
     this.teclas.clear();
+    this.shiftPresionado = false;
     if (a) this.rig.volverADirector(a.x, a.z);
   }
 
@@ -116,6 +125,7 @@ export class Posesion {
       tipo: 'control',
       x: a.x + dir.x * PASO,
       z: a.z + dir.z * PASO,
+      veloz: this.shiftPresionado,
     });
   }
 

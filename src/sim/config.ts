@@ -133,6 +133,7 @@ export const LIDER = {
 
 export const AGENTES = {
   velocidad: 2.2, // m/s — más rápido que civil, más lento que zombi cazando
+  factorSprint: 1.6, // multiplicador al sostener Shift en posesión — 2.2*1.6 ≈ 3.5 m/s
   radioAutodefensa: 6, // huyen de zombis sin orden activa
   ventanaCaidoTicks: 30 * 30, // 30 s para que el paramédico llegue
   llegadaOrden: 0.6, // m para considerar cumplida una orden de mover
