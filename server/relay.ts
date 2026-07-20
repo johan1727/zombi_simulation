@@ -27,6 +27,7 @@ const PUERTO = Number(process.env.PORT ?? process.env.PUERTO_RELAY ?? 8787);
 type MsgCliente =
   | { tipo: 'crear' }
   | { tipo: 'unirse'; sala: string }
+  | { tipo: 'buscar' }
   | { tipo: 'muestra'; vivosPct: number; indiceCiudad: number; brecha: boolean };
 
 type MsgServidor =
@@ -37,6 +38,21 @@ type MsgServidor =
 
 /** Código de sala → hasta 2 sockets. */
 const salas = new Map<string, WebSocket[]>();
+
+/**
+ * Reemplaza el `let salaActual` de closure: mapea CUALQUIER socket a su sala
+ * actual, mutable desde cualquier punto del módulo (necesario para emparejar
+ * dos sockets de la cola pública, uno de los cuales no está procesando un
+ * mensaje propio en ese instante).
+ */
+const salaDeSocket = new Map<WebSocket, string>();
+
+/** Sockets esperando pareja por cola pública, FIFO. */
+const colaPublica: WebSocket[] = [];
+
+/** Último `buscar` aceptado por IP (Plan 16: cooldown anti-abuso). */
+const ultimaBusquedaPorIp = new Map<string, number>();
+const COOLDOWN_BUSQUEDA_MS = 3000;
 
 function enviar(ws: WebSocket, msg: MsgServidor): void {
   if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(msg));
@@ -59,10 +75,21 @@ function quitarDeSala(sala: string, ws: WebSocket): void {
   if (sockets.length === 0) salas.delete(sala);
 }
 
+function emparejar(a: WebSocket, b: WebSocket): void {
+  let sala = generarCodigoSala();
+  while (salas.has(sala)) sala = generarCodigoSala();
+  salas.set(sala, [a, b]);
+  salaDeSocket.set(a, sala);
+  salaDeSocket.set(b, sala);
+  const seed = randomUUID();
+  enviar(a, { tipo: 'emparejado', seed });
+  enviar(b, { tipo: 'emparejado', seed });
+}
+
 const wss = new WebSocketServer({ port: PUERTO });
 
-wss.on('connection', (ws: WebSocket) => {
-  let salaActual: string | undefined;
+wss.on('connection', (ws: WebSocket, req) => {
+  const ip = req.socket.remoteAddress ?? 'desconocida';
 
   ws.on('message', (data) => {
     let msg: MsgCliente;
@@ -76,7 +103,7 @@ wss.on('connection', (ws: WebSocket) => {
       let sala = generarCodigoSala();
       while (salas.has(sala)) sala = generarCodigoSala();
       salas.set(sala, [ws]);
-      salaActual = sala;
+      salaDeSocket.set(ws, sala);
       enviar(ws, { tipo: 'sala-creada', sala });
       return;
     }
@@ -85,13 +112,26 @@ wss.on('connection', (ws: WebSocket) => {
       const sockets = salas.get(msg.sala);
       if (!sockets || sockets.length !== 1) return; // sala inexistente, llena o vacía
       sockets.push(ws);
-      salaActual = msg.sala;
+      salaDeSocket.set(ws, msg.sala);
       const seed = randomUUID();
       for (const s of sockets) enviar(s, { tipo: 'emparejado', seed });
       return;
     }
 
+    if (msg.tipo === 'buscar') {
+      const ahora = Date.now();
+      const ultima = ultimaBusquedaPorIp.get(ip) ?? 0;
+      if (ahora - ultima < COOLDOWN_BUSQUEDA_MS) return; // ignorar, sin mensaje de error (simplicidad)
+      ultimaBusquedaPorIp.set(ip, ahora);
+
+      const otro = colaPublica.shift();
+      if (otro) emparejar(otro, ws);
+      else colaPublica.push(ws);
+      return;
+    }
+
     if (msg.tipo === 'muestra') {
+      const salaActual = salaDeSocket.get(ws);
       if (!salaActual) return;
       const rival = otroSocket(salaActual, ws);
       if (!rival) return;
@@ -105,10 +145,16 @@ wss.on('connection', (ws: WebSocket) => {
   });
 
   ws.on('close', () => {
-    if (!salaActual) return;
-    const rival = otroSocket(salaActual, ws);
-    quitarDeSala(salaActual, ws);
-    if (rival) enviar(rival, { tipo: 'rival-desconectado' });
+    const idxCola = colaPublica.indexOf(ws);
+    if (idxCola !== -1) colaPublica.splice(idxCola, 1);
+
+    const salaActual = salaDeSocket.get(ws);
+    if (salaActual) {
+      const rival = otroSocket(salaActual, ws);
+      quitarDeSala(salaActual, ws);
+      if (rival) enviar(rival, { tipo: 'rival-desconectado' });
+    }
+    salaDeSocket.delete(ws);
   });
 });
 
