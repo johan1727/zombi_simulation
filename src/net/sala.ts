@@ -29,6 +29,13 @@ export interface ConexionSala {
   onDesconexion(cb: () => void): void;
   /** Solo relevante para quien llamó crear(): se dispara cuando el rival se une. */
   onEmparejado(cb: (seed: string) => void): void;
+  /**
+   * Cierra el WebSocket (Task 3: botón "cancelar" de la pantalla de sala
+   * mientras se espera al rival). Opcional en la interfaz para no romper
+   * las `ConexionSala` falsas de tests existentes (`tests/rivalEnVivo.test.ts`)
+   * que no lo necesitan.
+   */
+  cerrar?(): void;
 }
 
 type MsgCliente =
@@ -152,6 +159,10 @@ export function crearConexionSala(url: string = URL_RELAY_LOCAL): ConexionSala {
 
     onEmparejado(cb: (seed: string) => void): void {
       cbEmparejado = cb;
+    },
+
+    cerrar(): void {
+      ws.close();
     },
   };
 }
