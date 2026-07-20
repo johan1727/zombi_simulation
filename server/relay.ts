@@ -13,11 +13,16 @@
 // Arranque: `node server/relay.ts` (Node 24 ejecuta TypeScript "erasable"
 // directamente, sin transpilar — ver .superpowers/sdd/p10-task-1-report.md
 // para el porqué de esta decisión).
+//
+// Puerto (Plan 10 Task 4): Render (y la mayoría de hostings de Node) inyecta
+// el puerto asignado en `PORT` — el proceso DEBE escuchar ahí, no en uno
+// fijo. `PUERTO_RELAY` sigue disponible para desarrollo local manual;
+// `PORT` gana si ambas están presentes (caso de producción).
 
 import { WebSocketServer, type WebSocket } from 'ws';
 import { randomUUID } from 'node:crypto';
 
-const PUERTO = Number(process.env.PUERTO_RELAY ?? 8787);
+const PUERTO = Number(process.env.PORT ?? process.env.PUERTO_RELAY ?? 8787);
 
 type MsgCliente =
   | { tipo: 'crear' }

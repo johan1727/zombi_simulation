@@ -1,0 +1,18 @@
+# PANDEMIA — blueprint de Render para el relay de matchmaking en vivo
+# (Plan 10 Task 4). Despliega SOLO server/relay.ts — el juego en sí
+# (cliente) es 100% estático y se sirve aparte (GitHub Pages, Vercel,
+# Netlify, etc.), no desde aquí.
+#
+# Uso: en el dashboard de Render, "New +" -> "Blueprint" -> conectar este
+# repo. Render detecta este archivo y crea el servicio solo.
+services:
+  - type: web
+    name: pandemia-relay
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install
+    startCommand: node server/relay.ts
+    envVars:
+      - key: NODE_ENV
+        value: production

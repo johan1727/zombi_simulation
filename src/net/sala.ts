@@ -49,12 +49,20 @@ type MsgServidor =
   | { tipo: 'rival-desconectado' }
   | { tipo: 'muestra-rival'; vivosPct: number; indiceCiudad: number; brecha: boolean };
 
-/** URL del relay local. Task 4 la hará configurable vía import.meta.env para producción. */
+/** URL del relay en desarrollo local (`npm run dev` + `npm run relay`). */
 export const URL_RELAY_LOCAL = 'ws://localhost:8787';
+
+/**
+ * URL del relay a usar (Plan 10 Task 4): `VITE_RELAY_URL` en `.env`/`.env.production`
+ * apunta a la URL desplegada (p. ej. `wss://pandemia-relay.onrender.com`);
+ * sin esa variable, cae a `URL_RELAY_LOCAL` (desarrollo). Vite solo expone
+ * variables con el prefijo `VITE_` al cliente — ver `.env.example`.
+ */
+export const URL_RELAY = import.meta.env.VITE_RELAY_URL ?? URL_RELAY_LOCAL;
 
 const TIMEOUT_MS = 10_000;
 
-export function crearConexionSala(url: string = URL_RELAY_LOCAL): ConexionSala {
+export function crearConexionSala(url: string = URL_RELAY): ConexionSala {
   const ws = new WebSocket(url);
 
   let cbMuestraRival: ((m: Muestra) => void) | undefined;
