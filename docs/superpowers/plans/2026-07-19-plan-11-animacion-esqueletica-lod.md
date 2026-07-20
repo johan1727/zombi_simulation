@@ -45,9 +45,9 @@ UNA vez, expone tanto los `SkinnedMesh`/`AnimationClip` crudos (para este
 plan) como lo que Plan 9 ya necesita (geometrías horneadas). Evitar
 duplicar `fetch`/`GLTFLoader.loadAsync` de los mismos archivos.
 
-- [ ] **Step 1: Implementar** (refactor de carga, sin cambio de comportamiento visible).
-- [ ] **Step 2:** `npx tsc --noEmit` limpio; verificación en navegador de que Plan 9 sigue funcionando igual (sin regresión).
-- [ ] **Step 3: Commit** — `refactor: assets de animacion compartidos entre ciclo de poses y skinning real (Plan 11)`
+- [x] **Step 1: Implementar** (refactor de carga, sin cambio de comportamiento visible).
+- [x] **Step 2:** `npx tsc --noEmit` limpio; verificación en navegador de que Plan 9 sigue funcionando igual (sin regresión).
+- [x] **Step 3: Commit** — `refactor: assets de animacion compartidos entre ciclo de poses y skinning real (Plan 11)`
 
 ---
 
@@ -104,16 +104,16 @@ Cada frame:
    hace para "no dibujar en esta piel/pose") — si no, se ven DOS copias
    superpuestas.
 
-- [ ] **Step 1: Implementar.**
-- [ ] **Step 2:** `npx tsc --noEmit` limpio.
-- [ ] **Step 3: Verificación en navegador** — acercar la cámara a un grupo
+- [x] **Step 1: Implementar.**
+- [x] **Step 2:** `npx tsc --noEmit` limpio.
+- [x] **Step 3: Verificación en navegador** — acercar la cámara a un grupo
   de ciudadanos (zoom/pan en modo director, o poseer un agente y caminar
   hacia una multitud) y confirmar visualmente que los más cercanos animan
   con huesos reales (transición de pose fluida, no a saltos de frame como
   el pool horneado) y que alejarse los devuelve al pool barato SIN un
   "pop" visible de posición/pose. Confirmar que nunca hay doble-render
   (silueta duplicada). Sin errores de consola.
-- [ ] **Step 4: Commit** — `feat: animacion esqueletica real con LOD para ciudadanos cercanos (Plan 11)`
+- [x] **Step 4: Commit** — `feat: animacion esqueletica real con LOD para ciudadanos cercanos (Plan 11)`
 
 ---
 
@@ -121,7 +121,7 @@ Cada frame:
 
 **Files:** ninguno (solo medición; ajustes de `MAX_SLOTS`/`RADIO_LOD` si hace falta).
 
-- [ ] **Step 1:** Medir FPS/tiempo de frame (mismo método de
+- [x] **Step 1:** Medir FPS/tiempo de frame (mismo método de
   `javascript_tool` que Plan 6 Task 4 y Plan 9 Task 3) en el peor caso
   realista: cámara cerca de una multitud grande (asedio, combate) con
   `MAX_SLOTS` esqueletos reales activos A LA VEZ que el resto de la
@@ -129,9 +129,9 @@ Cada frame:
   sistema). Si el costo es prohibitivo, bajar `MAX_SLOTS` (menos
   ciudadanos con hueso real, más margen) ANTES de cerrar — este plan NO
   se considera terminado con FPS peor que Plan 9 sin una razón documentada.
-- [ ] **Step 2:** `npm test` completo (no debería tocar nada de `src/sim/`)
+- [x] **Step 2:** `npm test` completo (no debería tocar nada de `src/sim/`)
   y `npx tsc --noEmit` limpios.
-- [ ] **Step 3: Cierre** — actualizar la tabla de calidad del design doc
+- [x] **Step 3: Cierre** — actualizar la tabla de calidad del design doc
   (nivel "Alta" pasa a ✅, con los valores finales de `MAX_SLOTS`/`RADIO_LOD`
   documentados), lecciones en CLAUDE.md, checkboxes marcados, commit
   `chore: animacion esqueletica con LOD verificada (Plan 11 completo)`, push.
