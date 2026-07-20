@@ -99,15 +99,15 @@ export interface ConexionSala {
 }
 ```
 
-- [ ] **Step 1: Implementar** relay + cliente mínimo (sin integrar a
+- [x] **Step 1: Implementar** relay + cliente mínimo (sin integrar a
   `main.ts` todavía — puede probarse con un HTML/script de prueba suelto
   o la consola del navegador en dos pestañas).
-- [ ] **Step 2:** Probar manualmente: abrir dos pestañas, una `crear()`,
+- [x] **Step 2:** Probar manualmente: abrir dos pestañas, una `crear()`,
   copiar el código a la otra, `unirse(codigo)`, confirmar que ambas
   reciben la MISMA `seed`; desde una pestaña `enviarMuestra(...)` y
   confirmar que la otra recibe `'muestra-rival'` con los mismos datos.
   Cerrar una pestaña y confirmar que la otra recibe `'rival-desconectado'`.
-- [ ] **Step 3: Commit** — `feat: spike de relay de matchmaking en vivo (Plan 10, sin desplegar)`
+- [x] **Step 3: Commit** — `feat: spike de relay de matchmaking en vivo (Plan 10, sin desplegar)`
 
 ---
 
@@ -141,11 +141,11 @@ intervalo que `Rival` ya usa para muestrear `vivosPct` del jugador) vía
 fantasma, no duplicar la lógica sin necesidad (extraer a una función
 compartida si aplica).
 
-- [ ] **Step 1: Test** (si se extrae a clase propia) que falla, luego
+- [x] **Step 1: Test** (si se extrae a clase propia) que falla, luego
   implementación.
-- [ ] **Step 2-3:** `npx tsc --noEmit` y `npm test` en verde; confirmar
+- [x] **Step 2-3:** `npx tsc --noEmit` y `npm test` en verde; confirmar
   que NADA de esto toca `src/sim/` (`git diff --stat -- src/sim/` vacío).
-- [ ] **Step 4: Commit** — `feat: RivalEnVivo alimentado por muestras de red (Plan 10)`
+- [x] **Step 4: Commit** — `feat: RivalEnVivo alimentado por muestras de red (Plan 10)`
 
 ---
 
@@ -166,14 +166,14 @@ un parámetro de URL o un menú previo a `iniciar()` (revisar cómo arranca
 sala puede vivir ANTES de esa llamada, bloqueando hasta que el jugador
 cree/una una sala o elija jugar solo/con el fantasma de siempre).
 
-- [ ] **Step 1: Implementar.**
-- [ ] **Step 2:** `npx tsc --noEmit` limpio.
-- [ ] **Step 3: Verificación en navegador** — con el relay de Task 1
+- [x] **Step 1: Implementar.**
+- [x] **Step 2:** `npx tsc --noEmit` limpio.
+- [x] **Step 3: Verificación en navegador** — con el relay de Task 1
   corriendo en local, dos pestañas: crear sala en una, unirse en la otra,
   confirmar que ambas arrancan con la MISMA semilla y que el marcador
   ("TÚ N · RIVAL M") se actualiza en vivo en ambas conforme cada una juega
   su propia ciudad. Sin errores de consola.
-- [ ] **Step 4: Commit** — `feat: pantalla de sala y enganche de matchmaking en vivo (Plan 10)`
+- [x] **Step 4: Commit** — `feat: pantalla de sala y enganche de matchmaking en vivo (Plan 10)`
 
 ---
 

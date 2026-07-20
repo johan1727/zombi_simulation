@@ -1,7 +1,7 @@
 import type { World } from '../sim/world';
 import { TICK_RATE } from '../sim/config';
 import type { Partida } from '../game/partida';
-import type { Rival } from '../game/rival';
+import type { RivalComparable } from '../game/rival';
 import type { Desafio } from '../game/desafio';
 import { escapeHtml } from './resultado';
 
@@ -59,7 +59,7 @@ export class Hud {
   }
 
   /** `partida` y `rival` son opcionales para no romper llamadas existentes. */
-  update(world: World, partida?: Partida, rival?: Rival, audioHabilitado?: boolean): void {
+  update(world: World, partida?: Partida, rival?: RivalComparable, audioHabilitado?: boolean): void {
     const restantes = partida
       ? Math.max(0, partida.duracionTicks - world.tickCount)
       : world.tickCount;
@@ -103,7 +103,7 @@ export class Hud {
     }
   }
 
-  private actualizarMarcadorRival(world: World, rival: Rival): void {
+  private actualizarMarcadorRival(world: World, rival: RivalComparable): void {
     const tuPct = Math.round(world.vivosPct);
     const rivalPct = Math.round(rival.vivosPct);
     const clase =

@@ -14,7 +14,10 @@ import { Controles } from './controles';
 import { PanelAgentes } from '../ui/panelAgentes';
 import { Posesion } from './posesion';
 import { Partida } from './partida';
-import { Rival } from './rival';
+import { Rival, INTERVALO_MUESTRA, calcularMuestraPropia, type RivalComparable } from './rival';
+import type { ConexionSala } from '../net/sala';
+import { RivalEnVivo } from '../net/rivalEnVivo';
+import { mostrarPantallaSala } from '../ui/sala';
 import { Resultado } from '../ui/resultado';
 import { Audio } from '../ui/audio';
 import { Tutorial } from '../ui/tutorial';
@@ -22,6 +25,7 @@ import { Barks } from '../ui/barks';
 import { decodificarDesafio } from './desafio';
 
 const canvas = document.getElementById('app') as HTMLCanvasElement;
+const avisoDesconexionEl = document.getElementById('aviso-desconexion');
 
 /**
  * Desafío (Task 7): `?reto=<codigo>` trae una partida ajena ya terminada
@@ -33,17 +37,24 @@ const params = new URLSearchParams(location.search);
 const reto = params.get('reto') ? decodificarDesafio(params.get('reto')!) : null;
 
 /**
- * Semilla: sin `?seed=` en la URL, cada carga genera una pandemia NUEVA
- * (estilo Dwarf Fortress). Math.random está permitido aquí (src/game):
- * la semilla es una ENTRADA de la sim; dentro de src/sim sigue prohibido.
- * Para duelos y desafíos, `?seed=lo-que-sea` fija la misma pandemia exacta.
- * Un `?reto=` válido manda sobre `?seed=`: jugar EXACTAMENTE la pandemia
- * del desafío es el punto.
+ * Punto de entrada (Plan 10 Task 3): un `?reto=` válido en la URL es un modo
+ * aparte (desafío asíncrono, Plan 4 Task 7) — jugar EXACTAMENTE la pandemia
+ * de un link ajeno no tiene nada que ver con matchmaking en vivo, así que
+ * SALTA la pantalla de sala por completo y arranca igual que siempre.
+ *
+ * Sin `?reto=`, `mostrarPantallaSala()` (src/ui/sala.ts) bloquea hasta que
+ * el jugador elige: "jugar solo" (sin red — mismo flujo de siempre, `?seed=`
+ * de la URL o una aleatoria) o crear/unirse a una sala en vivo (la seed la
+ * reparte el relay al emparejar, `eleccion.seed`/`eleccion.conexion`).
  */
-const seed =
-  reto?.seed ??
-  params.get('seed') ??
-  Math.random().toString(36).slice(2, 8);
+async function elegirInicio(): Promise<{ seed: string; conexion?: ConexionSala }> {
+  if (reto) return { seed: reto.seed };
+  const eleccion = await mostrarPantallaSala();
+  if (eleccion.conexion && eleccion.seed) {
+    return { seed: eleccion.seed, conexion: eleccion.conexion };
+  }
+  return { seed: params.get('seed') ?? Math.random().toString(36).slice(2, 8) };
+}
 
 /**
  * Arranque asíncrono (Plan 6): `cargarModelosFondo()`/`cargarModelosAutos()`
@@ -56,8 +67,12 @@ const seed =
  * resto de la construcción de la escena sigue siendo síncrona; el HUD ya
  * muestra "Cargando…" (`index.html`) hasta el primer `frame`, así que no
  * hace falta una pantalla de carga aparte para este await.
+ *
+ * `conexionInicial` (Plan 10 Task 3): viene de `elegirInicio()` YA
+ * conectada y emparejada (o `undefined` en "jugar solo"/`?reto=`) — aquí
+ * solo decide qué tipo de rival construir, nunca abre la conexión.
  */
-async function iniciar(): Promise<void> {
+async function iniciar(seed: string, conexionInicial: ConexionSala | undefined): Promise<void> {
   const world = new World(seed);
   const { renderer, scene } = createScene(canvas);
   const [modelosFondo, modelosAutos, personajesAssets] = await Promise.all([
@@ -89,13 +104,61 @@ async function iniciar(): Promise<void> {
   });
   const panelAgentes = new PanelAgentes(world, controles);
   const partida = new Partida();
-  // El rival: MISMA semilla. Sin `reto`, es el fantasma en vivo de siempre
-  // (sin órdenes, tickeado 1:1 junto al mundo del jugador). Con `reto`, es
-  // estático: no simula, muestra la curva congelada del desafío (ver rival.ts).
-  const rival = new Rival(seed, undefined, reto ?? undefined);
+  /**
+   * El rival (Plan 10 Task 3, tres modos posibles):
+   * - `conexionInicial` presente: `RivalEnVivo` — el jugador creó/se unió a
+   *   una sala y ya se emparejó; sus muestras llegan por WebSocket.
+   * - `reto` presente (sin `conexionInicial`, son mutuamente excluyentes —
+   *   `elegirInicio()` nunca muestra la pantalla de sala si hay `?reto=`):
+   *   `Rival` estático, curva congelada del desafío.
+   * - Ninguno de los dos: `Rival` fantasma de siempre (misma semilla,
+   *   tickeado 1:1 junto al mundo del jugador, sin órdenes).
+   * Tipado como `RivalComparable` (no la clase concreta) para que los tres
+   * modos sean intercambiables sin fricción — ver `rival.ts`.
+   */
+  const rival: RivalComparable = conexionInicial
+    ? new RivalEnVivo(conexionInicial)
+    : new Rival(seed, undefined, reto ?? undefined);
   const resultado = new Resultado(world, partida, rival);
   const tutorial = new Tutorial();
   const barks = new Barks(scene, rig.camera);
+
+  /**
+   * Matchmaking en vivo (Plan 10 Task 3): con `conexionInicial` (sala ya
+   * emparejada), `enviarMuestraPropia()` manda la muestra propia al rival
+   * remoto cada `INTERVALO_MUESTRA`. Sin ella (jugar solo o `?reto=`), sigue
+   * siendo no-op — CERO cambio de comportamiento respecto a antes de esta task.
+   */
+  const conexionSalaActiva: ConexionSala | undefined = conexionInicial;
+  let brechasPropiasPrevias = 0;
+
+  if (conexionSalaActiva) {
+    // El rival remoto se desconectó a mitad de partida: seguimos jugando
+    // nuestra propia ciudad (100% local y determinista, como siempre);
+    // `RivalEnVivo` simplemente deja de recibir muestras nuevas y conserva
+    // el último valor conocido. Solo avisamos, sin bloquear nada.
+    conexionSalaActiva.onDesconexion(() => {
+      avisoDesconexionEl?.classList.add('activo');
+    });
+  }
+
+  /**
+   * Igual cálculo que el modo fantasma de `Rival` (`calcularMuestraPropia`,
+   * src/game/rival.ts) y misma cadencia (`INTERVALO_MUESTRA`, 5 s a 30 tps),
+   * pero sobre el `world` del JUGADOR (no el rival) — la muestra que se
+   * envía por red para que el otro lado la vea como su "rival en vivo".
+   */
+  const enviarMuestraPropia = (): void => {
+    if (!conexionSalaActiva) return;
+    if (world.tickCount % INTERVALO_MUESTRA !== 0) return;
+    const m = calcularMuestraPropia(world, brechasPropiasPrevias);
+    brechasPropiasPrevias = m.brechasActuales;
+    conexionSalaActiva.enviarMuestra({
+      vivosPct: m.vivosPct,
+      indiceCiudad: m.indiceCiudad,
+      brecha: m.brecha,
+    });
+  };
 
   window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -172,6 +235,7 @@ async function iniciar(): Promise<void> {
       barks,
       seed,
       reto,
+      conexionSalaActiva,
       frame,
       tick: () => {
         if (partida.estado === 'terminada') return;
@@ -179,6 +243,7 @@ async function iniciar(): Promise<void> {
         world.tick();
         partida.update(world);
         rival.tick();
+        enviarMuestraPropia();
       },
     };
   }
@@ -191,8 +256,12 @@ async function iniciar(): Promise<void> {
     () => {
       partida.update(world);
       rival.tick();
+      enviarMuestraPropia();
     }
   );
 }
 
-void iniciar();
+void (async (): Promise<void> => {
+  const { seed, conexion } = await elegirInicio();
+  await iniciar(seed, conexion);
+})();

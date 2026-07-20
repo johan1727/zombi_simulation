@@ -1,7 +1,7 @@
 import type { World } from '../sim/world';
 import type { Hito } from '../sim/types';
 import type { Partida } from '../game/partida';
-import type { Rival } from '../game/rival';
+import type { RivalComparable } from '../game/rival';
 import { calcularVeredicto } from './resultado';
 
 /** Volumen maestro (0-1): todo pasa por un único GainNode con este valor. */
@@ -64,7 +64,7 @@ export class Audio {
    * Consume deltas desde el último frame y dispara los sonidos que
    * correspondan. Llamar una vez por frame de render (no por tick de sim).
    */
-  update(world: World, partida?: Partida, rival?: Rival): void {
+  update(world: World, partida?: Partida, rival?: RivalComparable): void {
     const desde = this.hitosConsumidos;
     this.hitosConsumidos = world.hitos.length;
     if (this.habilitado) {
