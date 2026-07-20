@@ -12,6 +12,7 @@ import { startLoop } from './loop';
 import { Hud } from '../ui/hud';
 import { Controles } from './controles';
 import { PanelAgentes } from '../ui/panelAgentes';
+import { Minimapa } from '../ui/minimapa';
 import { Posesion } from './posesion';
 import { Partida } from './partida';
 import { Rival, INTERVALO_MUESTRA, calcularMuestraPropia, type RivalComparable } from './rival';
@@ -103,6 +104,7 @@ async function iniciar(seed: string, conexionInicial: ConexionSala | undefined):
     estaPoseido: () => posesion.activo,
   });
   const panelAgentes = new PanelAgentes(world, controles);
+  const minimapa = new Minimapa(world);
   const partida = new Partida();
   /**
    * El rival (Plan 10 Task 3, tres modos posibles):
@@ -205,6 +207,7 @@ async function iniciar(seed: string, conexionInicial: ConexionSala | undefined):
     audio.update(world, partida, rival);
     hud.update(world, partida, rival, audio.habilitado);
     panelAgentes.update(world, controles.seleccionado);
+    minimapa.update(foco.x, foco.z);
     resultado.update();
     tutorial.actualizar(world, partida);
     barks.update(world, alpha);
