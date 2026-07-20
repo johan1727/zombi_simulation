@@ -112,17 +112,17 @@ export interface PersonajesAssets {
 }
 ```
 
-- [ ] **Step 1: Implementar** — sin test unitario (lógica de carga de
+- [x] **Step 1: Implementar** — sin test unitario (lógica de carga de
   assets con `GLTFLoader`, mismo criterio que el resto de `personajesView.ts`).
-- [ ] **Step 2:** `npx tsc --noEmit` limpio.
-- [ ] **Step 3: Verificación en navegador** — confirmar en consola
+- [x] **Step 2:** `npx tsc --noEmit` limpio.
+- [x] **Step 3: Verificación en navegador** — confirmar en consola
   (`javascript_tool`) que `cargarPersonajes()` resuelve sin error, que
   `geometriaIdle.length === FRAMES_IDLE` y `geometriaRun.length ===
   FRAMES_RUN`, y que cada geometría tiene `attributes.position.count`
   IDÉNTICO al de la bind pose original (mismo número de vértices — si no,
   hay un mismatch de topología entre `survivor-base.glb` y los clips,
   investigar antes de seguir a Task 2). Sin errores de consola.
-- [ ] **Step 4: Commit** — `feat: hornear frames de idle y run por clip de animacion (Plan 9)`
+- [x] **Step 4: Commit** — `feat: hornear frames de idle y run por clip de animacion (Plan 9)`
 
 ---
 
@@ -196,9 +196,9 @@ parámetro `tickCount: number`; `main.ts` ya tiene `world.tickCount`
 disponible en el `frame()` loop — pasar `world.tickCount` en la llamada
 existente.
 
-- [ ] **Step 1: Implementar** — sin test unitario.
-- [ ] **Step 2:** `npx tsc --noEmit` limpio.
-- [ ] **Step 3: Verificación en navegador** — con el gancho de dev
+- [x] **Step 1: Implementar** — sin test unitario.
+- [x] **Step 2:** `npx tsc --noEmit` limpio.
+- [x] **Step 3: Verificación en navegador** — con el gancho de dev
   (`window.pandemia.tick()`/`frame(alpha)`, SIEMPRE con `alpha` explícito),
   poseer un agente, caminar con WASD y confirmar visualmente (captura vía
   `canvas.toDataURL`, ver lección de CLAUDE.md) que el modelo cicla entre
@@ -206,7 +206,7 @@ existente.
   posesión y observar civiles/zombis caminando por la calle — confirmar
   que NO todos comparten la misma fase (desfase por `c.id` funcionando).
   Sin errores de consola.
-- [ ] **Step 4: Commit** — `feat: ciclo de poses real al caminar/correr/cojear (Plan 9)`
+- [x] **Step 4: Commit** — `feat: ciclo de poses real al caminar/correr/cojear (Plan 9)`
 
 ---
 
@@ -214,7 +214,7 @@ existente.
 
 **Files:** ninguno (solo verificación).
 
-- [ ] **Step 1:** Con ~800 ciudadanos activos y el escenario más cargado
+- [x] **Step 1:** Con ~800 ciudadanos activos y el escenario más cargado
   posible (varios edificios con brecha, combate, muchos zombis en calle),
   medir FPS/tiempo de frame vía `javascript_tool` (mismo método que Plan 6
   Task 4 — leer `performance.now()` entre frames o el contador interno
@@ -223,10 +223,10 @@ existente.
   reducir `FRAMES_RUN`/`FRAMES_IDLE` (menos frames = pools más baratos,
   ciclo más entrecortado — documentar el trade-off elegido) ANTES de
   cerrar la task, no después.
-- [ ] **Step 2:** `npm test` completo (no debería tocar nada de
+- [x] **Step 2:** `npm test` completo (no debería tocar nada de
   `src/sim/`, confirmar con `git diff --stat -- src/sim/` vacío) y
   `npx tsc --noEmit` limpios.
-- [ ] **Step 3: Cierre** — actualizar la tabla de calidad del design doc
+- [x] **Step 3: Cierre** — actualizar la tabla de calidad del design doc
   (`docs/superpowers/specs/2026-07-05-pandemia-design.md:220`, "Media —
   ciclo de poses" pasa a ✅, corregir la referencia a "Plan 7" que quedó
   desactualizada), lecciones condensadas en CLAUDE.md si aplica, checkboxes
