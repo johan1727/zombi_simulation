@@ -221,6 +221,12 @@
         opacity: 0; transition: opacity 400ms ease-out;
       }
       #aviso-desconexion.activo { opacity: 1; }
+      #minimapa {
+        position: fixed; bottom: 12px; right: 12px; z-index: 10;
+        width: 180px; height: 180px; border-radius: 8px;
+        border: 1px solid rgba(234, 242, 255, 0.25);
+        pointer-events: none; /* MVP: sin click-to-pan, ver Plan 12 */
+      }
     </style>
   </head>
   <body>
@@ -233,6 +239,7 @@
     <div id="aviso-rival"></div>
     <div id="aviso-desconexion">El rival se desconectó — seguís jugando tu ciudad.</div>
     <div id="panel-agentes"></div>
+    <canvas id="minimapa"></canvas>
     <div id="barks"></div>
     <div id="flash-caida"></div>
     <div id="tutorial-toast"></div>
