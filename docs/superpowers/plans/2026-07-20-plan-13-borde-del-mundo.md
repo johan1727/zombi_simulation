@@ -67,22 +67,22 @@ densidad de niebla. Verificar también que la niebla más cercana no afecte
 negativamente la lectura del mapa en el modo de juego normal, zoom alejado
 — probar en varios niveles de zoom, no solo pegado al borde.)
 
-- [ ] **Step 1: Implementar.**
-- [ ] **Step 2:** `npx tsc --noEmit` limpio.
-- [ ] **Step 3: Verificación en navegador** — panear la cámara a las 4
+- [x] **Step 1: Implementar.**
+- [x] **Step 2:** `npx tsc --noEmit` limpio.
+- [x] **Step 3: Verificación en navegador** — panear la cámara a las 4
   esquinas y a la mitad de cada borde del mapa (usar `rig.volverADirector`
   o arrastre real) y confirmar visualmente (captura con
   `canvas.toDataURL`, método ya documentado en CLAUDE.md) que ya no se ve
   el muro negro — el suelo se pierde gradualmente en la niebla. Confirmar
   también que la vista normal (ciudad completa, zoom lejano) no se ve
   "neblinosa" de más por el nuevo rango de fog. Sin errores de consola.
-- [ ] **Step 4: Commit** — `feat: suelo extendido y niebla mas cercana para evitar el muro negro en el borde del mapa (Plan 13)`
+- [x] **Step 4: Commit** — `feat: suelo extendido y niebla mas cercana para evitar el muro negro en el borde del mapa (Plan 13)`
 
 ---
 
 ## Task 2: Cierre
 
-- [ ] **Step 1:** `npm test` completo (no debería tocar `src/sim/`) y
+- [x] **Step 1:** `npm test` completo (no debería tocar `src/sim/`) y
   `npx tsc --noEmit` limpios.
-- [ ] **Step 2: Cierre** — checkboxes marcados, commit
+- [x] **Step 2: Cierre** — checkboxes marcados, commit
   `chore: borde del mundo verificado (Plan 13 completo)`, push.

@@ -12,7 +12,11 @@ export function createScene(canvas: HTMLCanvasElement): SceneParts {
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x0d0f14);
-  scene.fog = new THREE.Fog(0x0d0f14, 250, 600);
+  // Rango más cercano que antes (era 250-600, Plan 13): el suelo extendido
+  // de CityView necesita perderse en la niebla mucho antes de llegar a su
+  // propio borde para que el límite del mapa se sienta como un horizonte
+  // neblinoso, no un corte.
+  scene.fog = new THREE.Fog(0x0d0f14, 150, 400);
 
   const ambiente = new THREE.HemisphereLight(0xbfd4ff, 0x2a2d33, 0.9);
   scene.add(ambiente);
