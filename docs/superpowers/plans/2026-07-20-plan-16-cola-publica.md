@@ -117,9 +117,9 @@ ultimaBusquedaPorIp.set(ip, ahora);
 Sin tests automatizados (el relay no tiene infraestructura de tests hoy
 — mismo criterio que Plan 10 Task 1, verificación manual/en navegador).
 
-- [ ] **Step 1: Implementar.**
-- [ ] **Step 2:** `npx tsc --noEmit` (raíz y `server/tsconfig.json`) limpios.
-- [ ] **Step 3: Verificación local** — arrancar el relay local
+- [x] **Step 1: Implementar.**
+- [x] **Step 2:** `npx tsc --noEmit` (raíz y `server/tsconfig.json`) limpios.
+- [x] **Step 3: Verificación local** — arrancar el relay local
   (`npm run relay`) y probar con DOS conexiones reales (dos pestañas, o
   un script de prueba con dos clientes `ws`): la primera que pulsa
   "buscar" queda esperando; la segunda que pulsa "buscar" empareja con
@@ -127,7 +127,7 @@ Sin tests automatizados (el relay no tiene infraestructura de tests hoy
   mientras espera en cola no dispara nada raro en el servidor (sale de
   `colaPublica` limpio). Confirmar que dos "buscar" seguidos de la MISMA
   IP en menos de 3s se ignoran (revisar logs del relay).
-- [ ] **Step 4: Commit** — `feat: cola publica de matchmaking en el relay (Plan 16)`
+- [x] **Step 4: Commit** — `feat: cola publica de matchmaking en el relay (Plan 16)`
 
 ---
 
@@ -153,24 +153,24 @@ const flujoBuscar = (): void => {
 };
 ```
 
-- [ ] **Step 1: Implementar.**
-- [ ] **Step 2:** `npx tsc --noEmit` limpio.
-- [ ] **Step 3: Verificación en navegador** — relay local + build de
+- [x] **Step 1: Implementar.**
+- [x] **Step 2:** `npx tsc --noEmit` limpio.
+- [x] **Step 3: Verificación en navegador** — relay local + build de
   producción (`npm run build` + `npm run preview`, ver lección de
   CLAUDE.md: `window.pandemia` es DEV-only), dos pestañas: "BUSCAR
   PARTIDA" en ambas, confirmar que se emparejan con la MISMA semilla y
   que el marcador TÚ/RIVAL funciona igual que con código de sala.
   CANCELAR antes de emparejar debe volver al menú limpio. Sin errores de
   consola.
-- [ ] **Step 4: Commit** — `feat: boton buscar partida en la pantalla de sala (Plan 16)`
+- [x] **Step 4: Commit** — `feat: boton buscar partida en la pantalla de sala (Plan 16)`
 
 ---
 
 ## Task 3: Cierre
 
-- [ ] **Step 1:** `npm test` completo (no debería tocar `src/sim/`) y
+- [x] **Step 1:** `npm test` completo (no debería tocar `src/sim/`) y
   `npx tsc --noEmit` limpios.
-- [ ] **Step 2: Cierre** — actualizar
+- [x] **Step 2: Cierre** — actualizar
   `docs/superpowers/specs/2026-07-05-pandemia-design.md` (matchmaking en
   vivo: cola pública pasa a ✅), checkboxes marcados, commit
   `chore: cola publica verificada (Plan 16 completo)`, push. Recordar
