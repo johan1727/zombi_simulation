@@ -1,7 +1,7 @@
 import type { World } from '../sim/world';
 import { TICK_RATE } from '../sim/config';
 import { UMBRAL_COLAPSO, type Partida } from '../game/partida';
-import type { Rival } from '../game/rival';
+import type { RivalComparable } from '../game/rival';
 import { codificarDesafio, muestrearParaUrl } from '../game/desafio';
 import { componerHistorias } from './historias';
 
@@ -41,7 +41,7 @@ function tickDeColapso(curva: readonly number[]): number {
  * directamente — solo `rival.vivosPct`/`rival.indiceCiudad`, que ya saben
  * elegir entre el mundo en vivo o la curva congelada del desafío.
  */
-export function calcularVeredicto(world: World, partida: Partida, rival: Rival): Veredicto {
+export function calcularVeredicto(world: World, partida: Partida, rival: RivalComparable): Veredicto {
   const tuColapsado = world.stats.vivos < world.citizens.length * UMBRAL_COLAPSO;
   const rivalColapsado = rival.vivosPct < UMBRAL_COLAPSO * 100;
 
@@ -121,7 +121,7 @@ export class Resultado {
   constructor(
     private readonly world: World,
     private readonly partida: Partida,
-    private readonly rival: Rival
+    private readonly rival: RivalComparable
   ) {
     this.el = document.getElementById('resultado') as HTMLDivElement;
   }

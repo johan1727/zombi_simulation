@@ -14,7 +14,8 @@ import { Controles } from './controles';
 import { PanelAgentes } from '../ui/panelAgentes';
 import { Posesion } from './posesion';
 import { Partida } from './partida';
-import { Rival } from './rival';
+import { Rival, INTERVALO_MUESTRA, calcularMuestraPropia } from './rival';
+import type { ConexionSala } from '../net/sala';
 import { Resultado } from '../ui/resultado';
 import { Audio } from '../ui/audio';
 import { Tutorial } from '../ui/tutorial';
@@ -96,6 +97,35 @@ async function iniciar(): Promise<void> {
   const resultado = new Resultado(world, partida, rival);
   const tutorial = new Tutorial();
   const barks = new Barks(scene, rig.camera);
+
+  /**
+   * Matchmaking en vivo (Plan 10 Task 2, enganche real en Task 3): cuando el
+   * jugador entre por la pantalla de sala (aún no existe — Task 3), Task 3
+   * asignará aquí la `ConexionSala` ya emparejada y reemplazará `rival` por
+   * un `RivalEnVivo` (src/net/rivalEnVivo.ts). Con `conexionSalaActiva` en
+   * `undefined` (como hoy), `enviarMuestraPropia()` es un no-op — CERO
+   * cambio de comportamiento respecto a antes de esta task.
+   */
+  let conexionSalaActiva: ConexionSala | undefined;
+  let brechasPropiasPrevias = 0;
+
+  /**
+   * Igual cálculo que el modo fantasma de `Rival` (`calcularMuestraPropia`,
+   * src/game/rival.ts) y misma cadencia (`INTERVALO_MUESTRA`, 5 s a 30 tps),
+   * pero sobre el `world` del JUGADOR (no el rival) — la muestra que se
+   * envía por red para que el otro lado la vea como su "rival en vivo".
+   */
+  const enviarMuestraPropia = (): void => {
+    if (!conexionSalaActiva) return;
+    if (world.tickCount % INTERVALO_MUESTRA !== 0) return;
+    const m = calcularMuestraPropia(world, brechasPropiasPrevias);
+    brechasPropiasPrevias = m.brechasActuales;
+    conexionSalaActiva.enviarMuestra({
+      vivosPct: m.vivosPct,
+      indiceCiudad: m.indiceCiudad,
+      brecha: m.brecha,
+    });
+  };
 
   window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -179,6 +209,7 @@ async function iniciar(): Promise<void> {
         world.tick();
         partida.update(world);
         rival.tick();
+        enviarMuestraPropia();
       },
     };
   }
@@ -191,6 +222,7 @@ async function iniciar(): Promise<void> {
     () => {
       partida.update(world);
       rival.tick();
+      enviarMuestraPropia();
     }
   );
 }

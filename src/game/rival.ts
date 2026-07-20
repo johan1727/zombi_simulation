@@ -2,12 +2,61 @@ import { World } from '../sim/world';
 import { CITIZENS } from '../sim/config';
 import { interpolarCurva, type Desafio } from './desafio';
 
-/** Cada cuántos ticks propios se toma una muestra de la curva (5 s a 30 tps). */
-const INTERVALO_MUESTRA = 150;
-/** Tope de muestras (145 × 5 s ≈ 12 min, más que de sobra para una partida de 8 min). */
-const MAX_MUESTRAS = 145;
+/** Cada cuántos ticks propios se toma una muestra de la curva (5 s a 30 tps). Exportada: Plan 10 la reusa en `main.ts` para saber cuándo enviar la muestra propia por red. */
+export const INTERVALO_MUESTRA = 150;
+/** Tope de muestras (145 × 5 s ≈ 12 min, más que de sobra para una partida de 8 min). Exportada para que `RivalEnVivo` (src/net/rivalEnVivo.ts) use el mismo tope. */
+export const MAX_MUESTRAS = 145;
 /** La curva de un `Desafio` se muestrea cada 10 s (`desafio.ts`); la de Rival, cada 5 s. Factor entre ambas. */
 const FACTOR_MUESTRA_RETO = 2;
+
+/**
+ * Contrato público mínimo que `hud.ts`/`resultado.ts`/`audio.ts` necesitan de
+ * un "rival" — extraído para Plan 10 (matchmaking en vivo): `RivalEnVivo`
+ * (src/net/rivalEnVivo.ts) implementa este mismo contrato con SUS PROPIOS
+ * campos privados, y TypeScript no la aceptaría donde se pida el tipo de
+ * clase `Rival` a secas (los miembros privados de una clase cuentan para su
+ * identidad nominal). Tipando los parámetros de los consumidores como esta
+ * interfaz (estructural, sin privados) en vez de la clase `Rival`, cualquier
+ * modo — fantasma, reto o en vivo — es intercambiable sin cambiar una línea
+ * de comportamiento.
+ */
+export interface RivalComparable {
+  tick(): void;
+  readonly vivosPct: number;
+  readonly curva: number[];
+  readonly avisosBrecha: number[];
+  readonly indiceCiudad: number;
+}
+
+/** Cuenta cuántas zonas de `world.brecha` están activas ahora mismo. Compartida entre el modo fantasma de `Rival` y el cálculo de la muestra PROPIA que `main.ts` envía por red para el modo en vivo (Plan 10 Task 2) — mismo criterio, un solo bucle. */
+export function contarBrechas(world: World): number {
+  let n = 0;
+  for (const b of world.brecha) if (b) n++;
+  return n;
+}
+
+/**
+ * Calcula la muestra `{vivosPct, indiceCiudad, brecha}` del `world` propio en
+ * el instante actual, dado cuántas brechas había en la muestra anterior
+ * (`brechasPrevias` — el llamador es quien guarda ese contador entre
+ * llamadas, mismo patrón que `Rival.brechasPrevias`). `brecha` es true si
+ * apareció una brecha NUEVA desde la última muestra. Usada por el modo
+ * fantasma de `Rival` (abajo) y por `main.ts` para construir el mensaje que
+ * `ConexionSala.enviarMuestra` manda al rival remoto — un solo lugar con
+ * este cálculo, no duplicado.
+ */
+export function calcularMuestraPropia(
+  world: World,
+  brechasPrevias: number
+): { vivosPct: number; indiceCiudad: number; brecha: boolean; brechasActuales: number } {
+  const brechasActuales = contarBrechas(world);
+  return {
+    vivosPct: world.vivosPct,
+    indiceCiudad: world.indiceCiudad,
+    brecha: brechasActuales > brechasPrevias,
+    brechasActuales,
+  };
+}
 
 /**
  * El rival fantasma: un `World` con la MISMA semilla que el del jugador,
@@ -29,7 +78,7 @@ const FACTOR_MUESTRA_RETO = 2;
  * consumidores (`hud.ts`, `resultado.ts`) siguen usando la misma interfaz
  * pública de `Rival`, solo que sus getters cambian de fuente según el modo.
  */
-export class Rival {
+export class Rival implements RivalComparable {
   readonly world: World;
   /** Muestra de `vivosPct` cada 5 s (ver INTERVALO_MUESTRA), tope MAX_MUESTRAS. */
   readonly curva: number[] = [];
@@ -73,13 +122,12 @@ export class Rival {
       this.world.tickCount % INTERVALO_MUESTRA === 0 &&
       this.curva.length < MAX_MUESTRAS
     ) {
-      this.curva.push(this.world.vivosPct);
-      let brechasActuales = 0;
-      for (const b of this.world.brecha) if (b) brechasActuales++;
-      if (brechasActuales > this.brechasPrevias) {
+      const m = calcularMuestraPropia(this.world, this.brechasPrevias);
+      this.curva.push(m.vivosPct);
+      if (m.brecha) {
         this.avisosBrecha.push(this.world.tickCount);
       }
-      this.brechasPrevias = brechasActuales;
+      this.brechasPrevias = m.brechasActuales;
     }
   }
 
