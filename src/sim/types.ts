@@ -20,6 +20,8 @@ export interface OrdenJugador {
   z: number;
   /** Solo relevante para tipo 'control' (posesión WASD): Shift sostenido. */
   veloz?: boolean;
+  /** Solo tipo 'control', solo dentro de un edificio: +1 subir un piso, -1 bajar. */
+  cambiarPiso?: 1 | -1;
 }
 
 /** Evento notable para historias/audio/HUD. El texto lo compone la UI. */

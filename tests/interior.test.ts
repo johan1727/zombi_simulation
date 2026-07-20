@@ -110,4 +110,42 @@ describe('vida interior', () => {
     expect(c.dentroDe).toBe(-1);
     expect(buildingAt(w.city, c.x, c.z)).toBeNull(); // fuera DE VERDAD
   });
+
+  it('un agente sano dentro de un edificio se mueve por su orden "control", no por IA autonoma', () => {
+    const w = new World('interior-agente-1', 5);
+    const a = w.agentes[0];
+    const b = w.city.buildings.find((x) => x.kind === 'jugable')!;
+    a.dentroDe = b.id;
+    a.piso = 0;
+    a.pisoObjetivo = 0;
+    a.x = b.x + b.width / 2;
+    a.z = b.z + b.depth / 2;
+    a.prevX = a.x;
+    a.prevZ = a.z;
+    const destinoX = a.x + 2;
+    for (let t = 0; t < 20; t++) {
+      w.encolarOrden({ agente: a.id, tipo: 'control', x: destinoX, z: a.z });
+      w.tick();
+    }
+    expect(a.x).toBeGreaterThan(b.x + b.width / 2); // avanzó hacia el destino, no quedó quieto
+  });
+
+  it('cambiarPiso sube al agente por la escalera tras escaleraTicks parado ahi', () => {
+    const w = new World('interior-agente-2', 5);
+    const a = w.agentes[0];
+    const b = w.city.buildings.find((x) => x.kind === 'jugable')!;
+    const e = b.escalera!;
+    a.dentroDe = b.id;
+    a.piso = 0;
+    a.pisoObjetivo = 0;
+    a.x = e.x + e.width / 2;
+    a.z = e.z + e.depth / 2;
+    a.prevX = a.x;
+    a.prevZ = a.z;
+    w.encolarOrden({ agente: a.id, tipo: 'control', x: a.x, z: a.z, cambiarPiso: 1 });
+    w.tick();
+    expect(a.pisoObjetivo).toBe(1);
+    for (let t = 0; t < 50; t++) w.tick();
+    expect(a.piso).toBe(1);
+  });
 });

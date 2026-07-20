@@ -1,7 +1,7 @@
 import type { Citizen, OrdenJugador, RolAgente } from './types';
 import type { World } from './world';
 import type { Rng } from './rng';
-import { AGENTES, DT, HERIDAS, MEGAFONO, OBRERO, PARAMEDICO, POLICIA, PANICO, CITY, CITY_PERIOD } from './config';
+import { AGENTES, DT, HERIDAS, INTERIOR, MEGAFONO, OBRERO, PARAMEDICO, POLICIA, PANICO, CITY, CITY_PERIOD } from './config';
 import { moveWithSlide } from './collision';
 import { NOMBRES } from './citizens';
 import { intentarEntradaAgente } from './refugio';
@@ -74,6 +74,10 @@ export function aplicarOrden(o: OrdenJugador, world: World): void {
     // aunque alguien construya la orden con veloz: true a mano.
     a.corriendoOrden = o.tipo === 'control' && !!o.veloz;
     a.ordenControl = o.tipo === 'control';
+    if (o.tipo === 'control' && o.cambiarPiso && a.dentroDe >= 0 && a.pisoObjetivo === a.piso) {
+      const objetivo = a.piso + o.cambiarPiso;
+      if (objetivo >= 0 && objetivo <= INTERIOR.azotea) a.pisoObjetivo = objetivo;
+    }
     return;
   }
   // habilidad
