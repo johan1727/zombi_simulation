@@ -129,6 +129,7 @@ export function spawnCitizens(rng: Rng, count: number): Citizen[] {
       brazoAmputado: false,
       ticksSprintando: 0,
       corriendoOrden: false,
+      ordenControl: false,
     });
     grupoRestante--;
   }

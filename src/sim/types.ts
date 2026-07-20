@@ -107,6 +107,8 @@ export interface Citizen {
   ticksSprintando: number;
   /** true si la orden 'control' activa (posesión WASD) lleva Shift sostenido. */
   corriendoOrden: boolean;
+  /** true si la última orden aplicada a este agente fue 'control' (posesión WASD). Nunca true para civiles. */
+  ordenControl: boolean;
 }
 
 export type Salud = 'sano' | 'incubando' | 'zombi' | 'eliminado' | 'caido';
