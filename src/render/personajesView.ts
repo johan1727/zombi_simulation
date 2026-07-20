@@ -23,10 +23,19 @@ const ROL_COLORES: Record<Exclude<RolAgente, ''>, number> = {
 /** La marca del paramédico sobre un incubando diagnosticado. */
 const COLOR_DIAGNOSTICADO = 0xff3ea5;
 
-/** Cada cuántos frames de render alterna visible/oculto un agente caído. */
-const PARPADEO_FRAMES = 15;
+/** Cada cuántos frames de render alterna visible/oculto un agente caído.
+ * Exportado para que `PersonajesAltaView` (Plan 11 Task 2) parpadee sus
+ * slots de esqueleto real con la MISMA cadencia — ambos incrementan su
+ * propio contador una vez por frame de render, así que se mantienen
+ * sincronizados mientras ambos `update()` se llamen una vez por frame. */
+export const PARPADEO_FRAMES = 15;
 
-function colorFor(c: Citizen): number {
+/**
+ * Exportado para Plan 11 Task 2 (`personajesAltaView.ts`): el pool de
+ * esqueletos reales debe teñir sus slots con el MISMO criterio de color que
+ * el pool barato, no inventar uno nuevo.
+ */
+export function colorFor(c: Citizen): number {
   if (c.esAgente && c.salud !== 'zombi' && c.salud !== 'eliminado') {
     return ROL_COLORES[c.rolAgente as Exclude<RolAgente, ''>];
   }
@@ -83,7 +92,8 @@ const PIELES_POR_GRUPO: Record<GrupoPiel, readonly [NombrePiel, NombrePiel]> = {
  * documentada en el reporte) y se distinguen visualmente por el tinte de
  * `ROL_COLORES` en `colorFor`, igual que ya hacían sobre la cápsula lisa.
  */
-function pielActiva(c: Citizen): NombrePiel {
+/** Exportado por el mismo motivo que `colorFor` (ver comentario arriba). */
+export function pielActiva(c: Citizen): NombrePiel {
   return PIELES_POR_GRUPO[grupoPiel(c)][c.id % 2];
 }
 
@@ -100,8 +110,9 @@ function claveMesh(piel: NombrePiel, pose: Pose, frame: number): string {
   return `${piel}:${pose}:${frame}`;
 }
 
-/** true si el ciudadano se está moviendo (mismo criterio que el resto del render). */
-function enMovimiento(c: Citizen): boolean {
+/** true si el ciudadano se está moviendo (mismo criterio que el resto del render).
+ * Exportado por el mismo motivo que `colorFor` (ver comentario arriba). */
+export function enMovimiento(c: Citizen): boolean {
   return c.dirX !== 0 || c.dirZ !== 0;
 }
 
@@ -247,7 +258,19 @@ export class PersonajesView {
     scene.add(this.ring);
   }
 
-  update(citizens: Citizen[], alpha: number, seleccionado: number, tickCount: number): void {
+  /**
+   * `ocultosPorAlta` (Plan 11 Task 2): ids de ciudadano cubiertos ESTE frame
+   * por un slot de esqueleto real (`PersonajesAltaView`) — se fuerzan a
+   * escala 0 en TODAS sus combinaciones piel/pose/frame para no dibujarlos
+   * dos veces (silueta duplicada, pool barato + esqueleto real superpuestos).
+   */
+  update(
+    citizens: Citizen[],
+    alpha: number,
+    seleccionado: number,
+    tickCount: number,
+    ocultosPorAlta?: Set<number>
+  ): void {
     this.frameCount++;
     const parpadeoOculto = Math.floor(this.frameCount / PARPADEO_FRAMES) % 2 === 1;
     const clavesSucias = new Set<string>();
@@ -255,7 +278,8 @@ export class PersonajesView {
     for (let i = 0; i < citizens.length; i++) {
       const c = citizens[i];
       const caido = c.salud === 'caido';
-      const oculto = c.salud === 'eliminado' || (caido && parpadeoOculto);
+      const oculto =
+        c.salud === 'eliminado' || (caido && parpadeoOculto) || (ocultosPorAlta?.has(c.id) ?? false);
       const x = c.prevX + (c.x - c.prevX) * alpha;
       const z = c.prevZ + (c.z - c.prevZ) * alpha;
       const baseY = 0.85 + c.piso * INTERIOR.alturaPiso;

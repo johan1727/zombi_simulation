@@ -77,7 +77,17 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
   incluso recién abierta en este entorno): `canvas.toDataURL('image/png')`
   vía `javascript_tool`, guardar el base64 a archivo con Node (nunca pegarlo
   a mano — un string de cientos de miles de caracteres se corrompe fácil) y
-  leerlo con la herramienta de lectura de imágenes.
+  leerlo con la herramienta de lectura de imágenes. Si el PNG completo pesa
+  demasiado para el resultado de `javascript_tool` (cientos de KB), dibujarlo
+  reducido en un `<canvas>` offscreen (p. ej. 480px de ancho) y exportarlo
+  como `image/jpeg` con calidad ~0.7 antes de leer el data URL — sigue siendo
+  suficiente para verificación visual y evita el riesgo de corte a mitad de
+  string. Además (Plan 11 Task 2): `CameraRig.update()` (modo director)
+  recalcula `camera.position` cada frame desde su campo privado `focus` —
+  mutar `rig.camera.position` a mano desde el gancho de depuración NO tiene
+  efecto duradero en cuanto se llama `frame()`/`rig.update()` de nuevo
+  (lo sobreescribe); para mover la cámara en pruebas manuales usar
+  `rig.volverADirector(x, z)`.
 - Trampa de `THREE.InstancedMesh` (Task 9, `SplatsView`): si la malla nace con
   `count = 0` y se llena con instancias más tarde, el primer render calcula
   `boundingSphere` con el conjunto vacío y lo deja inválido (radio `-1`) para
@@ -85,7 +95,13 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
   las mire de frente (invisibles, pero `mesh.count` y las matrices/colores
   están bien). Si una `InstancedMesh` crece con el tiempo desde vacía, poner
   `mesh.frustumCulled = false` o recalcular `computeBoundingSphere()` tras
-  cada `update()`.
+  cada `update()`. Trampa hermana (Plan 11 Task 2, `PersonajesAltaView`):
+  cuando varias instancias/mallas COMPARTEN un `THREE.Material` (como los
+  materiales por piel de `personajesView.ts`, usados por 12 `InstancedMesh`
+  cada uno), un `SkinnedMesh` normal (sin instancing) que necesite un color
+  propio NUNCA debe mutar ese material compartido (`material.color.set(...)`)
+  — cambiaría el color de TODAS las instancias que lo usan a la vez. Clonar
+  el material por slot/objeto antes de tocar `.color`/`.map`.
 - Balance (Planes 2-3-5): los cuellos de botella suelen ser MECÁNICA faltante,
   no ajuste (búnker eterno → asedio); el gate debe medir la curva a un punto
   fijo del reloj, no la cola larga; el paisaje es NO monotónico (perillas

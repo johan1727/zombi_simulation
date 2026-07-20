@@ -5,6 +5,7 @@ import { cargarModelosFondo } from '../render/buildingModels';
 import { cargarModelosAutos, CarsView } from '../render/carsView';
 import { JugablesView } from '../render/jugablesView';
 import { cargarPersonajes, PersonajesView } from '../render/personajesView';
+import { PersonajesAltaView } from '../render/personajesAltaView';
 import { SplatsView } from '../render/splatsView';
 import { CameraRig } from '../render/cameraRig';
 import { startLoop } from './loop';
@@ -70,6 +71,9 @@ async function iniciar(): Promise<void> {
   new CarsView(scene, world.city, modelosAutos);
   const jugablesView = new JugablesView(scene, world.city);
   const personajesView = new PersonajesView(scene, world.citizens.length, personajesAssets);
+  // Nivel "Alta" (Plan 11 Task 2): reusa los mismos assets crudos/materiales por piel
+  // que ya cargó/construyó cargarPersonajes(), sin volver a pedir los .glb por red.
+  const personajesAltaView = new PersonajesAltaView(scene, personajesAssets.crudos, personajesAssets.materiales);
   const splatsView = new SplatsView(scene);
   const rig = new CameraRig(canvas, { w: world.city.width, d: world.city.depth });
   const audio = new Audio();
@@ -113,14 +117,27 @@ async function iniciar(): Promise<void> {
   window.addEventListener('pointerdown', desbloquearAudio);
   window.addEventListener('keydown', desbloquearAudio);
 
+  // Delta de tiempo REAL entre frames de render (segundos), para el
+  // AnimationMixer de PersonajesAltaView (Plan 11 Task 2) — a diferencia del
+  // resto del juego, este mixer no tickea con la sim (30 tps fijos) sino con
+  // el reloj de pantalla. `performance.now()` es válido fuera de src/sim.
+  // Mismo tope que `MAX_ELAPSED` de loop.ts: evita un salto de animación
+  // enorme si la pestaña estuvo en segundo plano.
+  let ultimoFrameMs = performance.now();
+
   const frame = (alpha: number): void => {
+    const ahoraMs = performance.now();
+    const dtSegundos = Math.min((ahoraMs - ultimoFrameMs) / 1000, 0.25);
+    ultimoFrameMs = ahoraMs;
+
     if (posesion.activo) posesion.actualizarCamara(alpha);
     else rig.update();
     controles.update();
     const foco = rig.focusPoint;
     cityView.updateOcclusion(rig.camera.position.x, rig.camera.position.z, foco.x, foco.z);
     jugablesView.update(world, foco.x, foco.z);
-    personajesView.update(world.citizens, alpha, controles.seleccionado, world.tickCount);
+    const ocultosPorAlta = personajesAltaView.update(world.citizens, alpha, world.tickCount, dtSegundos, rig.camera);
+    personajesView.update(world.citizens, alpha, controles.seleccionado, world.tickCount, ocultosPorAlta);
     splatsView.update(world.splats);
     audio.update(world, partida, rival);
     hud.update(world, partida, rival, audio.habilitado);
@@ -144,6 +161,9 @@ async function iniciar(): Promise<void> {
       controles,
       posesion,
       rig,
+      personajesAltaView,
+      personajesView,
+      scene,
       partida,
       rival,
       resultado,
