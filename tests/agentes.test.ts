@@ -243,6 +243,37 @@ describe('agentes', () => {
     expect(caido.salud).toBe('sano'); // segunda orden: ya no hay ventana que amputar, revive normal
   });
 
+  it('una orden "control" con veloz=true mueve al agente mas rapido que sin el flag', () => {
+    // Comparación de distancia recorrida desde el mismo punto de partida
+    // (misma semilla ⇒ misma posición inicial en ambos mundos), patrón de
+    // heridas.test.ts/panico.test.ts (sqrt(dx*dx+dz*dz), nunca Math.hypot).
+    // Se prefiere esto a la variante del brief (que creaba mundos extra solo
+    // para leer x0/dejaba una variable `dLento` sin usar) por más clara.
+    const lento = new World('sprint-1', 5);
+    const rapido = new World('sprint-1', 5);
+    const aLento = lento.agentes[0];
+    const aRapido = rapido.agentes[0];
+    const x0 = aLento.x;
+    const z0 = aLento.z;
+    for (let t = 0; t < 30; t++) {
+      lento.encolarOrden({ agente: aLento.id, tipo: 'control', x: aLento.x + 10, z: aLento.z });
+      rapido.encolarOrden({ agente: aRapido.id, tipo: 'control', x: aRapido.x + 10, z: aRapido.z, veloz: true });
+      lento.tick();
+      rapido.tick();
+    }
+    const distLento = Math.sqrt((aLento.x - x0) ** 2 + (aLento.z - z0) ** 2);
+    const distRapido = Math.sqrt((aRapido.x - x0) ** 2 + (aRapido.z - z0) ** 2);
+    expect(distRapido).toBeGreaterThan(distLento * 1.3); // holgado bajo el factor 1.6 real
+  });
+
+  it('una orden "mover" (modo director) ignora veloz: nunca hay sprint fuera de posesion', () => {
+    const w = new World('sprint-2', 5);
+    const a = w.agentes[0];
+    w.encolarOrden({ agente: a.id, tipo: 'mover', x: a.x + 10, z: a.z, veloz: true });
+    w.tick();
+    expect(a.corriendoOrden).toBe(false);
+  });
+
   it('un ciudadano con brazo amputado no cuenta como luchador', () => {
     const w = new World('amputa-3', 6);
     const zombi = w.citizens[0];

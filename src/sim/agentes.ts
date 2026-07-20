@@ -56,6 +56,7 @@ export function crearAgente(rol: Exclude<RolAgente, ''>, x: number, z: number, i
     // pánico/huida de panico.ts), así que este campo nunca se incrementa
     // para ellos: se deja en 0 solo para cumplir la forma de Citizen.
     ticksSprintando: 0,
+    corriendoOrden: false,
   };
 }
 
@@ -66,6 +67,10 @@ export function aplicarOrden(o: OrdenJugador, world: World): void {
   if (o.tipo === 'mover' || o.tipo === 'control') {
     a.ordenX = o.x;
     a.ordenZ = o.z;
+    // El sprint es EXCLUSIVO de la posesión WASD (orden 'control'); una
+    // orden 'mover' (modo director) SIEMPRE deja corriendoOrden en false,
+    // aunque alguien construya la orden con veloz: true a mano.
+    a.corriendoOrden = o.tipo === 'control' && !!o.veloz;
     return;
   }
   // habilidad
@@ -205,7 +210,9 @@ export function updateAgente(c: Citizen, world: World): void {
   c.prevX = c.x;
   c.prevZ = c.z;
   if (c.cdHabilidad > 0) c.cdHabilidad--;
-  const velocidad = AGENTES.velocidad * (c.zonaHerida === 'pierna' ? HERIDAS.factorVelocidadFractura : 1);
+  const velocidad = AGENTES.velocidad
+    * (c.zonaHerida === 'pierna' ? HERIDAS.factorVelocidadFractura : 1)
+    * (c.corriendoOrden ? AGENTES.factorSprint : 1);
 
   if (c.salud === 'caido') {
     c.caidoTicks--;
