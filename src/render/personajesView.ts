@@ -87,6 +87,45 @@ function pielActiva(c: Citizen): NombrePiel {
   return PIELES_POR_GRUPO[grupoPiel(c)][c.id % 2];
 }
 
+/**
+ * Ciclo de poses (Plan 9 Task 2): cada ciudadano se dibuja en exactamente
+ * un pool `(piel, pose, frame)` por frame de render. Ver Meta del plan
+ * sobre por qué "run" cubre toda marcha/huida/posesión (no hay clip de
+ * "walk" propio) y por qué la cojera ralentiza "run" en vez de usar un
+ * clip dedicado.
+ */
+type Pose = 'idle' | 'run';
+
+function claveMesh(piel: NombrePiel, pose: Pose, frame: number): string {
+  return `${piel}:${pose}:${frame}`;
+}
+
+/** true si el ciudadano se está moviendo (mismo criterio que el resto del render). */
+function enMovimiento(c: Citizen): boolean {
+  return c.dirX !== 0 || c.dirZ !== 0;
+}
+
+/** Ticks de sim por frame de animación en pose "run" (30 tps / 6 ≈ 5 fps de ciclo). */
+const CICLO_TICKS = 6;
+
+/**
+ * Pose y frame activos de un ciudadano en un tick dado. Determinista: sin
+ * `Math.random`, el desfase `c.id * 7` desincroniza a los ciudadanos entre
+ * sí (mismo espíritu que `c.id % 2` de `pielActiva`). Los agentes caídos
+ * quedan en 'idle' (cualquier frame sirve: el cuerpo se aplana con
+ * `scaleY = 0.35` en `update()`, no tiene sentido animar un ciclo de
+ * marcha tumbado).
+ */
+function poseYFrame(c: Citizen, tickCount: number): { pose: Pose; frame: number } {
+  if (!enMovimiento(c) || c.salud === 'caido') {
+    return { pose: 'idle', frame: (tickCount + c.id) % FRAMES_IDLE };
+  }
+  // Cojera: ciclo de "run" a la mitad de velocidad (aproximación sin clip propio, ver Meta).
+  const factorCojera = c.zonaHerida === 'pierna' ? 2 : 1;
+  const fase = Math.floor((tickCount + c.id * 7) / (CICLO_TICKS * factorCojera));
+  return { pose: 'run', frame: fase % FRAMES_RUN };
+}
+
 export interface PersonajesAssets {
   geometria: THREE.BufferGeometry;
   geometriaIdle: THREE.BufferGeometry[]; // FRAMES_IDLE elementos
@@ -201,10 +240,11 @@ export async function cargarPersonajes(): Promise<PersonajesAssets> {
 }
 
 export class PersonajesView {
-  private readonly meshes: Map<NombrePiel, THREE.InstancedMesh>;
+  /** Un InstancedMesh por combinación (piel, pose, frame): 4 × (FRAMES_IDLE + FRAMES_RUN) = 48. */
+  private readonly meshes: Map<string, THREE.InstancedMesh>;
   private readonly dummy = new THREE.Object3D();
   private readonly tmp = new THREE.Color();
-  private readonly cachePiel: Array<NombrePiel | null>;
+  private readonly cacheClave: Array<string | null>;
   private readonly cacheColor: Array<number | null>;
   private readonly ring: THREE.Mesh;
   private frameCount = 0;
@@ -214,17 +254,25 @@ export class PersonajesView {
     for (const nombre of PIELES_DISPONIBLES) {
       const material = assets.materiales.get(nombre);
       if (!material) throw new Error(`Falta el material de la piel: ${nombre}`);
-      const mesh = new THREE.InstancedMesh(assets.geometria, material, count);
-      // Trampa conocida (CLAUDE.md, lección de SplatsView): con `count` fijo
-      // pero no todas las instancias usadas cada frame (la mayoría ocultas
-      // con escala ~0 salvo en su pool activo), el boundingSphere del primer
-      // render puede quedar inválido y recortar instancias reales del
-      // frustum. `frustumCulled = false` evita el problema por completo.
-      mesh.frustumCulled = false;
-      scene.add(mesh);
-      this.meshes.set(nombre, mesh);
+      const geometriasPorPose: Array<[Pose, THREE.BufferGeometry[]]> = [
+        ['idle', assets.geometriaIdle],
+        ['run', assets.geometriaRun],
+      ];
+      for (const [pose, geometrias] of geometriasPorPose) {
+        for (let frame = 0; frame < geometrias.length; frame++) {
+          const mesh = new THREE.InstancedMesh(geometrias[frame], material, count);
+          // Trampa conocida (CLAUDE.md, lección de SplatsView): con `count` fijo
+          // pero no todas las instancias usadas cada frame (la mayoría ocultas
+          // con escala ~0 salvo en su pool activo), el boundingSphere del primer
+          // render puede quedar inválido y recortar instancias reales del
+          // frustum. `frustumCulled = false` evita el problema por completo.
+          mesh.frustumCulled = false;
+          scene.add(mesh);
+          this.meshes.set(claveMesh(nombre, pose, frame), mesh);
+        }
+      }
     }
-    this.cachePiel = new Array<NombrePiel | null>(count).fill(null);
+    this.cacheClave = new Array<string | null>(count).fill(null);
     this.cacheColor = new Array<number | null>(count).fill(null);
 
     const ringGeo = new THREE.TorusGeometry(1.2, 0.08, 8, 24);
@@ -235,10 +283,10 @@ export class PersonajesView {
     scene.add(this.ring);
   }
 
-  update(citizens: Citizen[], alpha: number, seleccionado: number): void {
+  update(citizens: Citizen[], alpha: number, seleccionado: number, tickCount: number): void {
     this.frameCount++;
     const parpadeoOculto = Math.floor(this.frameCount / PARPADEO_FRAMES) % 2 === 1;
-    const pielesSucias = new Set<NombrePiel>();
+    const clavesSucias = new Set<string>();
 
     for (let i = 0; i < citizens.length; i++) {
       const c = citizens[i];
@@ -254,28 +302,29 @@ export class PersonajesView {
       }
 
       const piel = pielActiva(c);
-      for (const nombre of PIELES_DISPONIBLES) {
-        const mesh = this.meshes.get(nombre)!;
+      const { pose, frame } = poseYFrame(c, tickCount);
+      const clave = claveMesh(piel, pose, frame);
+      for (const [claveMeshActual, mesh] of this.meshes) {
         this.dummy.position.set(x, y, z);
-        if (nombre === piel && !oculto) this.dummy.scale.set(1, scaleY, 1);
+        if (claveMeshActual === clave && !oculto) this.dummy.scale.set(1, scaleY, 1);
         else this.dummy.scale.set(0.0001, 0.0001, 0.0001);
         this.dummy.updateMatrix();
         mesh.setMatrixAt(i, this.dummy.matrix);
       }
 
       const color = colorFor(c);
-      if (this.cachePiel[i] !== piel || this.cacheColor[i] !== color) {
-        this.cachePiel[i] = piel;
+      if (this.cacheClave[i] !== clave || this.cacheColor[i] !== color) {
+        this.cacheClave[i] = clave;
         this.cacheColor[i] = color;
         this.tmp.setHex(color);
-        this.meshes.get(piel)!.setColorAt(i, this.tmp);
-        pielesSucias.add(piel);
+        this.meshes.get(clave)!.setColorAt(i, this.tmp);
+        clavesSucias.add(clave);
       }
     }
 
-    for (const [nombre, mesh] of this.meshes) {
+    for (const [clave, mesh] of this.meshes) {
       mesh.instanceMatrix.needsUpdate = true;
-      if (pielesSucias.has(nombre) && mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+      if (clavesSucias.has(clave) && mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     }
 
     if (

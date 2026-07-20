@@ -120,7 +120,7 @@ async function iniciar(): Promise<void> {
     const foco = rig.focusPoint;
     cityView.updateOcclusion(rig.camera.position.x, rig.camera.position.z, foco.x, foco.z);
     jugablesView.update(world, foco.x, foco.z);
-    personajesView.update(world.citizens, alpha, controles.seleccionado);
+    personajesView.update(world.citizens, alpha, controles.seleccionado, world.tickCount);
     splatsView.update(world.splats);
     audio.update(world, partida, rival);
     hud.update(world, partida, rival, audio.habilitado);
