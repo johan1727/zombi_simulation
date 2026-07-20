@@ -52,9 +52,6 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
 
 - `hashState()` en `world.ts` trunca posiciones a 24 bits (tres bytes en `mix()`);
   si el mapa crece mucho más allá de ~1677 m (a escala ×100), ampliar el mezclador.
-- `CameraRig` registra listeners en `window` (`pointerup`, `pointermove`, `resize`)
-  en el constructor sin `dispose()`: si algún día se reconstruye sin recargar la
-  página, añadir teardown para evitar fugas de listeners duplicados.
 - En Windows, usar las herramientas de preview (dev server + eval) para verificar
   consola, FPS y memoria de forma programática, pero dejar el juicio visual fino
   (fluidez percibida, estética) a un humano. El screenshot de esas herramientas
@@ -113,12 +110,6 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
   `if (c.salud !== 'zombi')` justo después de un `if (c.salud === 'zombi')
   {...; return;}` no compila (TS2367, tipo ya estrechado) — quitar el `if`
   redundante.
-- (Plan 4 Task 4, fin de partida) `startLoop` (`src/game/loop.ts`) tenía
-  `world.tick()` cableado dentro del stepper sin punto de corte: para congelar
-  la sim sin tocar el render (reloj a 0:00), se le añadieron `debeSeguir?` (se
-  chequea ANTES del tick) y `afterTick?` (se llama justo DESPUÉS, para que
-  `Partida.update` vea el `tickCount` recién actualizado y no dispare un tick
-  extra por condición de carrera de un tick de retraso).
 - (Plan 4 Task 8, audio) Para consumir DELTAS de un array de la sim entre
   frames de render, importa si el array solo CRECE (`world.hitos`) o se
   COMPACTA in-place cada tick (`world.ruidos`) — ahí un índice guardado no
@@ -131,12 +122,27 @@ Este archivo es un documento vivo. Al terminar cada tarea o plan:
   de `Rival` (nunca tickea, deriva `curva`/`indiceCiudad` de datos congelados
   en vez de simular) es el patrón para "comparar contra una partida grabada"
   sin duplicar clases. Replicar ambos en vez de inventar de nuevo.
-- (Plan 4 Task 10, hallazgo de revisión) Un `.catch(() => {})` silencioso en
-  `navigator.clipboard.writeText` deja al usuario sin forma de copiar un link
-  viral si el navegador lo bloquea (falta de gesto real, permiso denegado,
-  contexto sin TLS) — encadenar un fallback `execCommand('copy')` y, si
-  también falla, revelar un campo de texto visible y preseleccionado para
-  copiar a mano. Nunca fallar en silencio en una feature de compartir.
+- (Plan 8, entrar a edificios poseído) El sistema de interiores (`interior.ts`,
+  `refugio.ts`) YA era agnóstico a `esAgente` en el despacho de `world.tick()`
+  antes de este plan — solo faltaban un punto de entrada propio (no ligado al
+  pánico) y una rama que leyera `ordenX/ordenZ` en vez de mover por IA. Patrón
+  reutilizable: para dar a un agente poseído un privilegio que hoy solo
+  disparan civiles bajo una condición de IA (pánico, instinto), NO enganchar
+  el privilegio a esa condición — guardar en el `Citizen` si la ÚLTIMA orden
+  aplicada fue `'control'` (posesión WASD) y gatear ahí, así una orden
+  `'mover'` del modo director (agente no poseído, o el mismo agente antes de
+  ser poseído) nunca dispara el efecto por accidente de pasar cerca. Trampa de
+  cámara real encontrada: `CameraRig.actualizarTercera` posicionaba la cámara
+  a una altura FIJA sobre y=0 mientras `personajesView.ts` SÍ sumaba
+  `piso * INTERIOR.alturaPiso` al renderizar — el personaje subía de piso
+  pero la cámara se quedaba a nivel de calle. Al verificar en navegador (con
+  el gancho `window.pandemia.tick()`/`frame(1)`, nunca `frame()` sin
+  argumento) apareció un "torso gigante llenando la pantalla" en las capturas
+  — NO es un bug de este plan: se reprodujo IDÉNTICO afuera con un agente sin
+  tocar (T-pose con brazos en cruz + cámara en tercera persona a 6 m), ya
+  conocido y aprobado desde Plan 6. Antes de investigar un artefacto visual
+  raro en una escena recién tocada, reproducir la MISMA escena con código NO
+  tocado (otro agente, otro punto) para descartar que sea preexistente.
 - (Plan 5 Task 5, giros de semilla) Cuando un brief da un snippet de código
   ilustrativo, no copiarlo literal: el ejemplo de `eventos.ts` traía `import
   type { World }` sin usarlo en el cuerpo — con `noUnusedLocals` eso no

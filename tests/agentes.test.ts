@@ -274,6 +274,41 @@ describe('agentes', () => {
     expect(a.corriendoOrden).toBe(false);
   });
 
+  it('un agente poseido que camina hacia la puerta de un edificio jugable entra solo', () => {
+    const w = new World('entrada-agente-1', 5);
+    const a = w.agentes[0];
+    const b = w.city.buildings.find((x) => x.kind === 'jugable')!;
+    const p = b.puerta!;
+    const fuera: ReadonlyArray<readonly [number, number]> = [[-3, 0], [0, -3], [3, 0], [0, 3]];
+    a.x = p.x + fuera[p.lado][0];
+    a.z = p.z + fuera[p.lado][1];
+    a.prevX = a.x;
+    a.prevZ = a.z;
+    for (let t = 0; t < 60; t++) {
+      w.encolarOrden({ agente: a.id, tipo: 'control', x: p.x, z: p.z });
+      w.tick();
+      if (a.dentroDe >= 0) break;
+    }
+    expect(a.dentroDe).toBe(b.id);
+  });
+
+  it('una orden "mover" (modo director) NUNCA hace entrar a un agente a un edificio, aunque pase cerca de la puerta', () => {
+    const w = new World('entrada-agente-2', 5);
+    const a = w.agentes[0];
+    const b = w.city.buildings.find((x) => x.kind === 'jugable')!;
+    const p = b.puerta!;
+    const fuera: ReadonlyArray<readonly [number, number]> = [[-3, 0], [0, -3], [3, 0], [0, 3]];
+    a.x = p.x + fuera[p.lado][0];
+    a.z = p.z + fuera[p.lado][1];
+    a.prevX = a.x;
+    a.prevZ = a.z;
+    for (let t = 0; t < 60; t++) {
+      w.encolarOrden({ agente: a.id, tipo: 'mover', x: p.x, z: p.z });
+      w.tick();
+    }
+    expect(a.dentroDe).toBe(-1);
+  });
+
   it('un ciudadano con brazo amputado no cuenta como luchador', () => {
     const w = new World('amputa-3', 6);
     const zombi = w.citizens[0];

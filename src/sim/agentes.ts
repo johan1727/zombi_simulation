@@ -1,9 +1,10 @@
 import type { Citizen, OrdenJugador, RolAgente } from './types';
 import type { World } from './world';
 import type { Rng } from './rng';
-import { AGENTES, DT, HERIDAS, MEGAFONO, OBRERO, PARAMEDICO, POLICIA, PANICO, CITY, CITY_PERIOD } from './config';
+import { AGENTES, DT, HERIDAS, INTERIOR, MEGAFONO, OBRERO, PARAMEDICO, POLICIA, PANICO, CITY, CITY_PERIOD } from './config';
 import { moveWithSlide } from './collision';
 import { NOMBRES } from './citizens';
+import { intentarEntradaAgente } from './refugio';
 
 /**
  * Crea un agente del jugador: sano, sin familia, plantado en (x, z).
@@ -57,6 +58,7 @@ export function crearAgente(rol: Exclude<RolAgente, ''>, x: number, z: number, i
     // para ellos: se deja en 0 solo para cumplir la forma de Citizen.
     ticksSprintando: 0,
     corriendoOrden: false,
+    ordenControl: false,
   };
 }
 
@@ -71,6 +73,11 @@ export function aplicarOrden(o: OrdenJugador, world: World): void {
     // orden 'mover' (modo director) SIEMPRE deja corriendoOrden en false,
     // aunque alguien construya la orden con veloz: true a mano.
     a.corriendoOrden = o.tipo === 'control' && !!o.veloz;
+    a.ordenControl = o.tipo === 'control';
+    if (o.tipo === 'control' && o.cambiarPiso && a.dentroDe >= 0 && a.pisoObjetivo === a.piso) {
+      const objetivo = a.piso + o.cambiarPiso;
+      if (objetivo >= 0 && objetivo <= INTERIOR.azotea) a.pisoObjetivo = objetivo;
+    }
     return;
   }
   // habilidad
@@ -236,6 +243,7 @@ export function updateAgente(c: Citizen, world: World): void {
       c.dirX = dx / d;
       c.dirZ = dz / d;
       moveWithSlide(world.city, c, c.x + c.dirX * velocidad * DT, c.z + c.dirZ * velocidad * DT);
+      if (c.ordenControl) intentarEntradaAgente(c, world);
       return;
     }
   }

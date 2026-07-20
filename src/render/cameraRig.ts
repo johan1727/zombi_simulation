@@ -141,10 +141,14 @@ export class CameraRig {
   /**
    * Tercera persona: llamar cada frame EN VEZ de `update()` mientras `modoTercera`.
    * `px/pz` = posición interpolada del agente; `dirX/dirZ` = su eje de marcha actual
-   * (0,0 si está quieto). El yaw de cámara sigue el movimiento con suavizado
-   * exponencial (render-only: no toca la sim ni afecta el determinismo).
+   * (0,0 si está quieto). `alturaSuelo` = offset vertical del piso actual (0 en la
+   * calle; `piso * INTERIOR.alturaPiso` dentro de un edificio, Plan 8 — sin este
+   * offset la cámara se queda a nivel de calle mientras el personaje sube pisos,
+   * ver `personajesView.ts` que sí lo aplica al renderizar). El yaw de cámara
+   * sigue el movimiento con suavizado exponencial (render-only: no toca la sim
+   * ni afecta el determinismo).
    */
-  actualizarTercera(px: number, pz: number, dirX: number, dirZ: number): void {
+  actualizarTercera(px: number, pz: number, dirX: number, dirZ: number, alturaSuelo: number): void {
     const ahora = performance.now();
     const dt = Math.min((ahora - this.ultimoTerceraMs) / 1000, 0.1);
     this.ultimoTerceraMs = ahora;
@@ -160,8 +164,8 @@ export class CameraRig {
 
     const sen = Math.sin(this.yawTercera);
     const cos = Math.cos(this.yawTercera);
-    this.camera.position.set(px - sen * TERCERA_ATRAS, TERCERA_ARRIBA, pz - cos * TERCERA_ATRAS);
-    this.camera.lookAt(px + sen * TERCERA_MIRA, 1.4, pz + cos * TERCERA_MIRA);
+    this.camera.position.set(px - sen * TERCERA_ATRAS, TERCERA_ARRIBA + alturaSuelo, pz - cos * TERCERA_ATRAS);
+    this.camera.lookAt(px + sen * TERCERA_MIRA, 1.4 + alturaSuelo, pz + cos * TERCERA_MIRA);
     this.focus.set(px, 0, pz);
   }
 

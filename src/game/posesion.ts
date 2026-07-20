@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { World } from '../sim/world';
 import type { CameraRig } from '../render/cameraRig';
-import { AGENTES, DT } from '../sim/config';
+import { AGENTES, DT, INTERIOR } from '../sim/config';
 
 /**
  * Paso por tick de la orden 'control'. La fórmula del spec (~3 ticks adelante,
@@ -37,6 +37,12 @@ export class Posesion {
   private readonly teclas = new Set<string>();
   /** Shift sostenido: sprint en posesión. No tiene dirección, no va en `teclas`. */
   private shiftPresionado = false;
+  /**
+   * E/Q (subir/bajar piso): un flag MOMENTÁNEO, no sostenido como WASD — se
+   * consume en el mismo tick en que se detecta (ver `alTick`), así que una
+   * pulsación no queda "pegada" esperando el próximo tick de sim.
+   */
+  private cambiarPisoPendiente: 1 | -1 | 0 = 0;
 
   private readonly raycaster = new THREE.Raycaster();
   private readonly suelo = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -57,6 +63,8 @@ export class Posesion {
       const k = e.key.toLowerCase();
       if (this.activo && TECLAS_MOVIMIENTO.has(k)) this.teclas.add(k);
       if (this.activo && k === 'shift') this.shiftPresionado = true;
+      if (this.activo && k === 'e') this.cambiarPisoPendiente = 1;
+      if (this.activo && k === 'q') this.cambiarPisoPendiente = -1;
     });
     window.addEventListener('keyup', (e) => {
       const k = e.key.toLowerCase();
@@ -66,6 +74,7 @@ export class Posesion {
     window.addEventListener('blur', () => {
       this.teclas.clear();
       this.shiftPresionado = false;
+      this.cambiarPisoPendiente = 0;
     });
 
     let bajadaX = 0;
@@ -94,6 +103,7 @@ export class Posesion {
     this.idAgente = idAgente;
     this.teclas.clear();
     this.shiftPresionado = false;
+    this.cambiarPisoPendiente = 0;
     this.rig.entrarTercera(a.dirX, a.dirZ);
   }
 
@@ -105,6 +115,7 @@ export class Posesion {
     this.idAgente = -1;
     this.teclas.clear();
     this.shiftPresionado = false;
+    this.cambiarPisoPendiente = 0;
     if (a) this.rig.volverADirector(a.x, a.z);
   }
 
@@ -119,13 +130,16 @@ export class Posesion {
       return;
     }
     const dir = this.direccionMundo();
-    if (!dir) return; // sin teclas: no se encola nada, el agente frena solo (T1)
+    const piso = this.cambiarPisoPendiente;
+    this.cambiarPisoPendiente = 0;
+    if (!dir && !piso) return; // sin teclas de movimiento NI de piso: no se encola nada (T1)
     this.world.encolarOrden({
       agente: this.idAgente,
       tipo: 'control',
-      x: a.x + dir.x * PASO,
-      z: a.z + dir.z * PASO,
+      x: dir ? a.x + dir.x * PASO : a.x,
+      z: dir ? a.z + dir.z * PASO : a.z,
       veloz: this.shiftPresionado,
+      ...(piso ? { cambiarPiso: piso } : {}),
     });
   }
 
@@ -135,7 +149,8 @@ export class Posesion {
     if (!a) return;
     const px = a.prevX + (a.x - a.prevX) * alpha;
     const pz = a.prevZ + (a.z - a.prevZ) * alpha;
-    this.rig.actualizarTercera(px, pz, a.dirX, a.dirZ);
+    const alturaSuelo = a.dentroDe >= 0 ? a.piso * INTERIOR.alturaPiso : 0;
+    this.rig.actualizarTercera(px, pz, a.dirX, a.dirZ, alturaSuelo);
   }
 
   /** WASD combinado con el yaw ACTUAL de cámara (adelante/derecha relativos a cámara). */

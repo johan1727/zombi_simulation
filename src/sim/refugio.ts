@@ -4,7 +4,7 @@ import { CITY, CITY_PERIOD, REFUGIO } from './config';
 import { NORMAL_INTERIOR } from './interior';
 
 /** Si hay una PUERTA jugable pegada (bloque propio o vecinos), entra a refugiarse. */
-export function intentarRefugio(c: Citizen, world: World): void {
+function entrarPorPuerta(c: Citizen, world: World, pisoObjetivo: number): void {
   const bx = Math.floor(c.x / CITY_PERIOD);
   const bz = Math.floor(c.z / CITY_PERIOD);
   const candidatos: ReadonlyArray<readonly [number, number]> = [
@@ -22,7 +22,7 @@ export function intentarRefugio(c: Citizen, world: World): void {
       const [nx, nz] = NORMAL_INTERIOR[p.lado];
       c.dentroDe = b.id;
       c.piso = 0;
-      c.pisoObjetivo = 1; // instinto: subir a esconderse
+      c.pisoObjetivo = pisoObjetivo;
       c.escaleraTicks = 0;
       c.x = p.x + nx * 1.2;
       c.z = p.z + nz * 1.2;
@@ -32,4 +32,13 @@ export function intentarRefugio(c: Citizen, world: World): void {
       return;
     }
   }
+}
+
+export function intentarRefugio(c: Citizen, world: World): void {
+  entrarPorPuerta(c, world, 1); // instinto civil: subir a esconderse
+}
+
+/** Entrada deliberada de un agente bajo control del jugador: se queda en planta baja, el jugador decide el piso (Task 2). */
+export function intentarEntradaAgente(c: Citizen, world: World): void {
+  entrarPorPuerta(c, world, 0);
 }

@@ -1,7 +1,7 @@
 import type { Building } from './cityGen';
 import type { Citizen } from './types';
 import type { World } from './world';
-import { DIRECCIONES, DT, INFECCION, INTERIOR, INTERIOR_VISION, PANICO, ZOMBIS } from './config';
+import { AGENTES, DIRECCIONES, DT, INFECCION, INTERIOR, INTERIOR_VISION, PANICO, ZOMBIS } from './config';
 import { infectar } from './infeccion';
 
 /** Normal hacia dentro del edificio, por lado de la puerta. */
@@ -85,6 +85,11 @@ export function updateInterior(c: Citizen, world: World): void {
   c.prevZ = c.z;
   const b = world.city.buildings[c.dentroDe];
 
+  if (c.esAgente && c.salud === 'sano') {
+    updateInteriorAgente(c, world, b);
+    return;
+  }
+
   if (c.salud === 'zombi') {
     updateInteriorZombi(c, world, b);
     return;
@@ -153,6 +158,31 @@ export function updateInterior(c: Citizen, world: World): void {
     c.dirZ = dz0;
   }
   moverInterior(b, c, c.x + c.dirX * 0.5 * DT, c.z + c.dirZ * 0.5 * DT);
+}
+
+/**
+ * Un agente sano dentro de un edificio se mueve por la orden 'control' del
+ * jugador (misma cola determinista que afuera), no por IA autónoma. El
+ * cambio de piso lo decide el jugador (tecla dedicada, ver `aplicarOrden`
+ * en `agentes.ts`), no un instinto de esconderse arriba como el civil.
+ */
+function updateInteriorAgente(c: Citizen, world: World, b: Building): void {
+  void world;
+  if (c.cdHabilidad > 0) c.cdHabilidad--;
+  if (avanzarEscalera(b, c)) return; // subiendo/bajando: no se mueve en el plano
+  if (Number.isNaN(c.ordenX)) return; // sin orden: quieto (el jugador soltó WASD)
+  const dx = c.ordenX - c.x;
+  const dz = c.ordenZ - c.z;
+  const d = Math.sqrt(dx * dx + dz * dz);
+  if (d <= AGENTES.llegadaOrden) {
+    c.ordenX = NaN;
+    c.ordenZ = NaN;
+    return;
+  }
+  c.dirX = dx / d;
+  c.dirZ = dz / d;
+  const velocidad = 0.9 * (c.corriendoOrden ? AGENTES.factorSprint : 1);
+  moverInterior(b, c, c.x + c.dirX * velocidad * DT, c.z + c.dirZ * velocidad * DT);
 }
 
 function updateInteriorZombi(c: Citizen, world: World, b: Building): void {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { World } from '../src/sim/world';
-import { intentarRefugio } from '../src/sim/refugio';
+import { intentarRefugio, intentarEntradaAgente } from '../src/sim/refugio';
 
 function juntoAPuerta(w: World, c: World['citizens'][0]): number {
   const b = w.city.buildings.find((x) => x.kind === 'jugable')!;
@@ -48,5 +48,14 @@ describe('refugio por la puerta', () => {
     expect(c.dentroDe).toBe(id); // ya no hay expulsión
     w.tick();
     expect(w.ocupantes[id]).toBe(0); // el zombi no cuenta como ocupante humano
+  });
+
+  it('intentarEntradaAgente entra en planta baja (el jugador decide el piso, no instinto de esconderse)', () => {
+    const w = new World('refugio-agente-1', 5);
+    const c = w.citizens[0];
+    const id = juntoAPuerta(w, c);
+    intentarEntradaAgente(c, w);
+    expect(c.dentroDe).toBe(id);
+    expect(c.pisoObjetivo).toBe(0); // NO sube sola, a diferencia de intentarRefugio
   });
 });
