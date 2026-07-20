@@ -121,9 +121,9 @@ reusarla, no duplicar.)
 Sin tests unitarios (mismo criterio que el resto de estos dos archivos,
 lógica de render puro). Verificación en navegador.
 
-- [ ] **Step 1: Implementar.**
-- [ ] **Step 2:** `npx tsc --noEmit` limpio.
-- [ ] **Step 3: Verificación en navegador** — poseer un agente y comparar
+- [x] **Step 1: Implementar.**
+- [x] **Step 2:** `npx tsc --noEmit` limpio.
+- [x] **Step 3: Verificación en navegador** — poseer un agente y comparar
   visualmente caminar normal vs. sostener Shift (sprint): el ciclo de
   piernas debe verse claramente MÁS RÁPIDO al esprintar, sin patinaje de
   pies aparente en ninguno de los dos casos (capturas con
@@ -135,17 +135,17 @@ lógica de render puro). Verificación en navegador.
   en el lugar" a toda velocidad. Repetir la comparación con la cámara
   cerca (esqueleto real, Plan 11) y lejos (pool horneado, Plan 9) para
   confirmar que ambos sistemas laten igual de bien. Sin errores de consola.
-- [ ] **Step 4: Commit** — `feat: ciclo de animacion proporcional a la velocidad real, sin patinaje de pies (Plan 14)`
+- [x] **Step 4: Commit** — `feat: ciclo de animacion proporcional a la velocidad real, sin patinaje de pies (Plan 14)`
 
 ---
 
 ## Task 2: Cierre
 
-- [ ] **Step 1:** `npm test` completo (no debería tocar `src/sim/`) y
+- [x] **Step 1:** `npm test` completo (no debería tocar `src/sim/`) y
   `npx tsc --noEmit` limpios; medir FPS rápidamente (método ya
   establecido) para confirmar que el cálculo extra de `velocidadReal` por
   ciudadano y frame no tiene costo perceptible (es una resta y una raíz
   cuadrada por ciudadano, del mismo orden que otros cálculos que ya corren
   ahí — no debería medirse, pero confirmar).
-- [ ] **Step 2: Cierre** — checkboxes marcados, commit
+- [x] **Step 2: Cierre** — checkboxes marcados, commit
   `chore: animacion de caminar pulida y verificada (Plan 14 completo)`, push.
