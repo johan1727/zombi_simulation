@@ -153,9 +153,9 @@ UI, llamar `minimapa.update(foco.x, foco.z)` en el loop de `frame(alpha)`
 (mismo `foco` que ya se calcula ahí para `jugablesView.update`/
 `cityView.updateOcclusion` — reusar la variable existente, no recalcular).
 
-- [ ] **Step 1: Implementar.**
-- [ ] **Step 2:** `npx tsc --noEmit` limpio.
-- [ ] **Step 3: Verificación en navegador** — confirmar que el minimapa
+- [x] **Step 1: Implementar.**
+- [x] **Step 2:** `npx tsc --noEmit` limpio.
+- [x] **Step 3: Verificación en navegador** — confirmar que el minimapa
   aparece en la esquina inferior derecha sin superponerse al panel de
   agentes; que muestra puntos moviéndose acordes a los ciudadanos reales
   (comparar contra el estado real vía `window.pandemia.world.citizens`);
@@ -164,14 +164,14 @@ UI, llamar `minimapa.update(foco.x, foco.z)` en el loop de `frame(alpha)`
   el FPS de forma perceptible (redibujo cada 6 frames, cientos de
   `fillRect` — barato, pero medir con el método ya establecido si hay
   dudas). Sin errores de consola.
-- [ ] **Step 4: Commit** — `feat: minimapa fijo con ciudad, edificios y ciudadanos (Plan 12)`
+- [x] **Step 4: Commit** — `feat: minimapa fijo con ciudad, edificios y ciudadanos (Plan 12)`
 
 ---
 
 ## Task 2: Cierre
 
-- [ ] **Step 1:** `npm test` completo (no debería tocar `src/sim/`,
+- [x] **Step 1:** `npm test` completo (no debería tocar `src/sim/`,
   confirmar con `git diff --stat -- src/sim/` vacío) y `npx tsc --noEmit`
   limpios.
-- [ ] **Step 2: Cierre** — checkboxes marcados, commit
+- [x] **Step 2: Cierre** — checkboxes marcados, commit
   `chore: minimapa verificado (Plan 12 completo)`, push.
