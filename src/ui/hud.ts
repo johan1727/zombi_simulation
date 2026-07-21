@@ -58,6 +58,19 @@ export class Hud {
     }
   }
 
+  /**
+   * Sello de anti-trampas (Plan 17 Task 3): `main.ts` llama esto solo si
+   * `consultarVerificado()` contra el servidor de verificación (best-effort,
+   * con timeout corto) confirmó que ESTE desafío exacto ya fue validado por
+   * un replay real al compartirse. Nunca se llama si el servidor no
+   * responde o el desafío no está en su caché — el banner simplemente se
+   * queda sin sello, sin bloquear ni afectar nada del arranque del juego.
+   */
+  marcarRetoVerificado(): void {
+    if (!this.bannerRetoEl) return;
+    this.bannerRetoEl.textContent = `${this.bannerRetoEl.textContent ?? ''} ✅ verificado`;
+  }
+
   /** `partida` y `rival` son opcionales para no romper llamadas existentes. */
   update(world: World, partida?: Partida, rival?: RivalComparable, audioHabilitado?: boolean): void {
     const restantes = partida

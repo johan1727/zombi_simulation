@@ -44,12 +44,36 @@ const MAX_ORDENES = 100_000;
 const MAX_BODY_BYTES = 2 * 1024 * 1024;
 /** Tolerancia de comparación de la curva (floats): las muestras ya vienen redondeadas a enteros en ambos lados, esto solo cubre imprecisión residual. */
 const TOLERANCIA_CURVA = 0.5;
+/**
+ * Tope de entradas de la caché de desafíos ya confirmados (ver más abajo,
+ * Task 3): un `Map` en memoria, sin persistencia, mismo espíritu que
+ * `salas`/`colaPublica` de `server/relay.ts` — si el proceso se reinicia,
+ * los sellos ya emitidos se pierden (aceptable, es solo un indicador best-
+ * effort, nunca una fuente de verdad que bloquee nada).
+ */
+const CACHE_MAX_ENTRADAS = 5000;
 
 export interface PeticionVerificar {
   seed: string;
   ordenLog: { tick: number; orden: OrdenJugador }[];
   /** Hasta qué tick replayar (fin de la partida real: reloj o colapso). */
   duracionTicks: number;
+  curvaAfirmada: number[];
+  indiceAfirmado: number;
+}
+
+/**
+ * Consulta ligera (Task 3): al ABRIR un `?reto=` el cliente NO tiene el
+ * `ordenLog` original (nunca viaja en el link, ver `src/game/desafio.ts`),
+ * así que no puede pedir un replay real — solo puede preguntar si este
+ * seed+curva+índice EXACTOS ya fueron confirmados antes por un replay real
+ * (disparado cuando alguien MÁS compartió este mismo desafío). Dos personas
+ * no pueden compartir la misma terna por azar sin haber jugado la misma
+ * partida real, así que la terna sirve de identidad suficiente para la
+ * caché sin necesitar el log.
+ */
+export interface ConsultaVerificado {
+  seed: string;
   curvaAfirmada: number[];
   indiceAfirmado: number;
 }
@@ -71,6 +95,27 @@ function esOrdenJugador(o: unknown): o is OrdenJugador {
   return true;
 }
 
+function validarSeed(v: unknown): string | null {
+  if (typeof v !== 'string' || v.length === 0 || v.length > 64) return null;
+  return v;
+}
+
+function validarIndiceAfirmado(v: unknown): number | null {
+  if (typeof v !== 'number' || !Number.isInteger(v)) return null;
+  if (v < 0 || v > 300) return null;
+  return v;
+}
+
+function validarCurvaAfirmada(v: unknown): number[] | null {
+  if (!Array.isArray(v) || v.length === 0 || v.length > 200) return null;
+  const curva: number[] = [];
+  for (const x of v) {
+    if (typeof x !== 'number' || !Number.isFinite(x) || x < 0 || x > 100) return null;
+    curva.push(x);
+  }
+  return curva;
+}
+
 /**
  * Nunca lanza: cualquier entrada malformada, fuera de rango o con tipos
  * inválidos devuelve `null` (mismo criterio que `decodificarDesafio`).
@@ -79,20 +124,17 @@ export function validarPeticion(body: unknown): PeticionVerificar | null {
   if (typeof body !== 'object' || body === null) return null;
   const r = body as Record<string, unknown>;
 
-  if (typeof r.seed !== 'string' || r.seed.length === 0 || r.seed.length > 64) return null;
+  const seed = validarSeed(r.seed);
+  if (seed === null) return null;
 
   if (typeof r.duracionTicks !== 'number' || !Number.isInteger(r.duracionTicks)) return null;
   if (r.duracionTicks < 0 || r.duracionTicks > DURACION_MAXIMA_TICKS) return null;
 
-  if (typeof r.indiceAfirmado !== 'number' || !Number.isInteger(r.indiceAfirmado)) return null;
-  if (r.indiceAfirmado < 0 || r.indiceAfirmado > 300) return null;
+  const indiceAfirmado = validarIndiceAfirmado(r.indiceAfirmado);
+  if (indiceAfirmado === null) return null;
 
-  if (!Array.isArray(r.curvaAfirmada) || r.curvaAfirmada.length === 0 || r.curvaAfirmada.length > 200) return null;
-  const curvaAfirmada: number[] = [];
-  for (const v of r.curvaAfirmada) {
-    if (typeof v !== 'number' || !Number.isFinite(v) || v < 0 || v > 100) return null;
-    curvaAfirmada.push(v);
-  }
+  const curvaAfirmada = validarCurvaAfirmada(r.curvaAfirmada);
+  if (curvaAfirmada === null) return null;
 
   if (!Array.isArray(r.ordenLog) || r.ordenLog.length > MAX_ORDENES) return null;
   const ordenLog: { tick: number; orden: OrdenJugador }[] = [];
@@ -107,7 +149,52 @@ export function validarPeticion(body: unknown): PeticionVerificar | null {
     ordenLog.push({ tick: e.tick, orden: e.orden });
   }
 
-  return { seed: r.seed, ordenLog, duracionTicks: r.duracionTicks, curvaAfirmada, indiceAfirmado: r.indiceAfirmado };
+  return { seed, ordenLog, duracionTicks: r.duracionTicks, curvaAfirmada, indiceAfirmado };
+}
+
+/**
+ * Nunca lanza, mismo criterio que `validarPeticion` — pero sin `ordenLog`
+ * ni `duracionTicks` (la consulta de Task 3 no los necesita).
+ */
+export function validarConsulta(body: unknown): ConsultaVerificado | null {
+  if (typeof body !== 'object' || body === null) return null;
+  const r = body as Record<string, unknown>;
+
+  const seed = validarSeed(r.seed);
+  if (seed === null) return null;
+  const indiceAfirmado = validarIndiceAfirmado(r.indiceAfirmado);
+  if (indiceAfirmado === null) return null;
+  const curvaAfirmada = validarCurvaAfirmada(r.curvaAfirmada);
+  if (curvaAfirmada === null) return null;
+
+  return { seed, curvaAfirmada, indiceAfirmado };
+}
+
+/**
+ * Caché de desafíos ya confirmados por un replay real (`registrarVerificado`,
+ * llamado desde el handler de `/verificar` cuando `valido === true`) — ver
+ * `ConsultaVerificado` arriba para el porqué. Clave = terna serializada
+ * (seed+índice+curva, la curva ya viene de enteros redondeados en ambos
+ * lados de esta app — cliente y replay — así que `join(',')` es estable).
+ */
+const verificados = new Map<string, true>();
+
+function claveVerificado(seed: string, indiceAfirmado: number, curvaAfirmada: number[]): string {
+  return `${seed}|${indiceAfirmado}|${curvaAfirmada.join(',')}`;
+}
+
+function registrarVerificado(seed: string, indiceAfirmado: number, curvaAfirmada: number[]): void {
+  const clave = claveVerificado(seed, indiceAfirmado, curvaAfirmada);
+  if (!verificados.has(clave) && verificados.size >= CACHE_MAX_ENTRADAS) {
+    // FIFO simple: `Map` preserva orden de inserción, se descarta la más vieja.
+    const primera = verificados.keys().next().value;
+    if (primera !== undefined) verificados.delete(primera);
+  }
+  verificados.set(clave, true);
+}
+
+function estaVerificado(seed: string, indiceAfirmado: number, curvaAfirmada: number[]): boolean {
+  return verificados.has(claveVerificado(seed, indiceAfirmado, curvaAfirmada));
 }
 
 /**
@@ -194,10 +281,14 @@ const servidor = http.createServer((req, res) => {
     return;
   }
 
-  if (req.method !== 'POST' || req.url !== '/verificar') {
+  // `/verificado` (Task 3): consulta liviana de caché al ABRIR un `?reto=`,
+  // sin replay (ver `ConsultaVerificado` más arriba). Mismo método/CORS que
+  // `/verificar`, cuerpo distinto.
+  if (req.method !== 'POST' || (req.url !== '/verificar' && req.url !== '/verificado')) {
     responderJson(res, 404, { valido: false, error: 'ruta no encontrada' });
     return;
   }
+  const ruta = req.url;
 
   const trozos: Buffer[] = [];
   let bytes = 0;
@@ -225,6 +316,17 @@ const servidor = http.createServer((req, res) => {
       return;
     }
 
+    if (ruta === '/verificado') {
+      const consulta = validarConsulta(body);
+      if (!consulta) {
+        responderJson(res, 400, { verificado: false, error: 'petición inválida' });
+        return;
+      }
+      const verificado = estaVerificado(consulta.seed, consulta.indiceAfirmado, consulta.curvaAfirmada);
+      responderJson(res, 200, { verificado });
+      return;
+    }
+
     const peticion = validarPeticion(body);
     if (!peticion) {
       responderJson(res, 400, { valido: false, error: 'petición inválida' });
@@ -232,6 +334,9 @@ const servidor = http.createServer((req, res) => {
     }
 
     const resultado = replayYComparar(peticion);
+    if (resultado.valido) {
+      registrarVerificado(peticion.seed, peticion.indiceAfirmado, peticion.curvaAfirmada);
+    }
     responderJson(res, 200, resultado);
   });
 

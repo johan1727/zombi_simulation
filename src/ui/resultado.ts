@@ -4,6 +4,7 @@ import { UMBRAL_COLAPSO, type Partida } from '../game/partida';
 import type { RivalComparable } from '../game/rival';
 import { codificarDesafio, muestrearParaUrl } from '../game/desafio';
 import { componerHistorias } from './historias';
+import { enviarVerificacion } from '../net/verificar';
 
 /**
  * Igual que en Partida/Rival (5 s a 30 tps): se duplica aquí porque es un
@@ -221,6 +222,12 @@ export class Resultado {
    * si también falla, se revela un campo de texto seleccionable para copiar
    * a mano — sin usar `window.prompt` (bloquea la pestaña y complica las
    * pruebas automatizadas).
+   *
+   * Anti-trampas (Plan 17 Task 3): en segundo plano, sin esperar ni afectar
+   * nada del copiado, manda `world.ordenLog` completo al servidor de
+   * verificación (`enviarVerificacion`, fire-and-forget) para que quede un
+   * replay real confirmado — el link en sí NUNCA lleva el log (sigue siendo
+   * 100% offline/self-contained), esto es solo un registro aparte.
    */
   private copiarDesafio(btn: HTMLButtonElement): void {
     const { world, partida } = this;
@@ -232,6 +239,14 @@ export class Resultado {
     const ss = (segsTotales % 60).toString().padStart(2, '0');
     const mensaje = `Sobreviví ${mm}:${ss} con Índice ${world.indiceCiudad}. Misma pandemia, supérame: ${url}`;
     this.ultimoDesafio = { codigo, url, mensaje };
+
+    enviarVerificacion({
+      seed: world.seed,
+      ordenLog: world.ordenLog,
+      duracionTicks: world.tickCount,
+      curvaAfirmada: curva,
+      indiceAfirmado: world.indiceCiudad,
+    });
 
     const textoOriginal = btn.textContent ?? 'COPIAR DESAFÍO';
     const marcarCopiado = (): void => {
