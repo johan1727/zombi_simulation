@@ -47,6 +47,8 @@ export class World {
   /** Eventos notables para historias/audio/HUD; tope 300 salvo hitos de agente. */
   readonly hitos: Hito[] = [];
   private readonly colaOrdenes: OrdenJugador[] = [];
+  /** Log completo de órdenes propias con su tick, para replay/verificación server-side (Plan 17). */
+  readonly ordenLog: { tick: number; orden: OrdenJugador }[] = [];
   readonly grid = new SpatialGrid<Citizen>();
   /** Un array de índices de citizens por edificio, reconstruido cada tick en orden de índice. */
   readonly dentroPorEdificio: number[][];
@@ -94,6 +96,7 @@ export class World {
 
   /** Encola una orden del jugador; se aplica al INICIO del siguiente tick. */
   encolarOrden(o: OrdenJugador): void {
+    this.ordenLog.push({ tick: this.tickCount, orden: o });
     this.colaOrdenes.push(o);
   }
 

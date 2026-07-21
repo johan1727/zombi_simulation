@@ -4,10 +4,15 @@ import { TICK_RATE } from '../sim/config';
 /** Umbral de colapso: menos del 10% de la población original con vida. */
 export const UMBRAL_COLAPSO = 0.1;
 
-/** Cada cuántos ticks se muestrea la curva propia (5 s a 30 tps) — igual que Rival. */
-const INTERVALO_MUESTRA = 150;
-/** Tope de muestras — igual que Rival. */
-const MAX_MUESTRAS = 145;
+/**
+ * Cada cuántos ticks se muestrea la curva propia (5 s a 30 tps) — igual que
+ * Rival. Exportada (Plan 17 Task 2): `server/verificar.ts` la reusa para
+ * reconstruir la MISMA curva fina durante un replay server-side, sin
+ * duplicar el número a mano ni arriesgar que diverjan.
+ */
+export const INTERVALO_MUESTRA = 150;
+/** Tope de muestras — igual que Rival. Exportada, ver `INTERVALO_MUESTRA`. */
+export const MAX_MUESTRAS = 145;
 
 /**
  * Estado de la partida: reloj de 8 minutos y condición de fin (reloj o

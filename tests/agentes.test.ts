@@ -309,6 +309,32 @@ describe('agentes', () => {
     expect(a.dentroDe).toBe(-1);
   });
 
+  it('ordenLog acumula {tick, orden} en el orden correcto tras varias órdenes intercaladas con tick()', () => {
+    const w = new World('ordenlog-1', 5);
+    const a = w.agentes[0];
+    const b = w.agentes[1];
+    // Capturar las órdenes ANTES de encolarlas: a.x/b.z se mueven en cada
+    // tick(), así que releerlas después daría valores distintos a los
+    // que realmente se empujaron a la cola.
+    const orden0 = { agente: a.id, tipo: 'mover' as const, x: a.x + 5, z: a.z };
+    w.encolarOrden(orden0);
+    w.tick(); // tick 0 -> tickCount pasa a 1
+    const orden1 = { agente: b.id, tipo: 'habilidad' as const, x: b.x, z: b.z };
+    w.encolarOrden(orden1);
+    w.tick(); // tick 1 -> tickCount pasa a 2
+    const orden2 = { agente: a.id, tipo: 'mover' as const, x: a.x - 5, z: a.z };
+    const orden3 = { agente: b.id, tipo: 'control' as const, x: b.x, z: b.z + 1 };
+    w.encolarOrden(orden2);
+    w.encolarOrden(orden3);
+    w.tick(); // tick 2 -> tickCount pasa a 3
+    expect(w.ordenLog).toEqual([
+      { tick: 0, orden: orden0 },
+      { tick: 1, orden: orden1 },
+      { tick: 2, orden: orden2 },
+      { tick: 2, orden: orden3 },
+    ]);
+  });
+
   it('un ciudadano con brazo amputado no cuenta como luchador', () => {
     const w = new World('amputa-3', 6);
     const zombi = w.citizens[0];

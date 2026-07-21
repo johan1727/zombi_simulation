@@ -10,10 +10,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "relay": "node server/relay.ts",
+    "verificar": "tsx server/verificar.ts",
     "typecheck:server": "tsc --noEmit -p server/tsconfig.json"
   },
   "dependencies": {
     "three": "^0.170.0",
+    "tsx": "^4.23.1",
     "ws": "^8.21.1"
   },
   "devDependencies": {

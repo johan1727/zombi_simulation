@@ -24,6 +24,7 @@ import { Audio } from '../ui/audio';
 import { Tutorial } from '../ui/tutorial';
 import { Barks } from '../ui/barks';
 import { decodificarDesafio } from './desafio';
+import { consultarVerificado } from '../net/verificar';
 
 const canvas = document.getElementById('app') as HTMLCanvasElement;
 const avisoDesconexionEl = document.getElementById('aviso-desconexion');
@@ -106,6 +107,27 @@ async function iniciar(seed: string, conexionInicial: ConexionSala | undefined):
   const panelAgentes = new PanelAgentes(world, controles);
   const minimapa = new Minimapa(world);
   const partida = new Partida();
+
+  /**
+   * Anti-trampas (Plan 17 Task 3): con un `?reto=` válido, pregunta en
+   * segundo plano al servidor de verificación si ESTE desafío exacto
+   * (seed+curva+índice) ya fue confirmado por un replay real cuando alguien
+   * lo compartió (`resultado.ts`/`enviarVerificacion`) — el link en sí NUNCA
+   * lleva el `ordenLog`, así que esto NO puede ser un replay nuevo, solo una
+   * consulta a esa caché (ver `server/verificar.ts`/`ConsultaVerificado`).
+   * `consultarVerificado` ya tiene su propio timeout corto y nunca lanza;
+   * si el servidor no responde o el desafío no está en caché, el banner
+   * simplemente se queda sin sello — el juego arranca igual.
+   */
+  if (reto) {
+    void consultarVerificado({
+      seed: reto.seed,
+      curvaAfirmada: reto.curva,
+      indiceAfirmado: reto.indice,
+    }).then((verificado) => {
+      if (verificado) hud.marcarRetoVerificado();
+    });
+  }
   /**
    * El rival (Plan 10 Task 3, tres modos posibles):
    * - `conexionInicial` presente: `RivalEnVivo` — el jugador creó/se unió a
