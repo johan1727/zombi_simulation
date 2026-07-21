@@ -1,10 +1,10 @@
-# PANDEMIA — blueprint de Render para el relay de matchmaking en vivo
-# (Plan 10 Task 4). Despliega SOLO server/relay.ts — el juego en sí
-# (cliente) es 100% estático y se sirve aparte (GitHub Pages, Vercel,
-# Netlify, etc.), no desde aquí.
+# PANDEMIA — blueprint de Render para los servicios de servidor (relay de
+# matchmaking en vivo, Plan 10 Task 4; verificación de desafíos, Plan 17
+# Task 2). El juego en sí (cliente) es 100% estático y se sirve aparte
+# (GitHub Pages, Vercel, Netlify, etc.), no desde aquí.
 #
 # Uso: en el dashboard de Render, "New +" -> "Blueprint" -> conectar este
-# repo. Render detecta este archivo y crea el servicio solo.
+# repo. Render detecta este archivo y crea ambos servicios.
 services:
   - type: web
     name: pandemia-relay
@@ -13,6 +13,21 @@ services:
     region: oregon
     buildCommand: npm install
     startCommand: node server/relay.ts
+    envVars:
+      - key: NODE_ENV
+        value: production
+  - type: web
+    name: pandemia-verificar
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install
+    # A diferencia de relay.ts, verificar.ts importa de src/sim/ y src/game/
+    # (imports relativos sin extensión, estilo Vite/tsc) — `node` puro no
+    # los resuelve (ERR_MODULE_NOT_FOUND), hace falta `tsx` (ver cabecera de
+    # server/verificar.ts). `npm run verificar` ya invoca `tsx` vía
+    # package.json, así que no hace falta duplicar el comando aquí.
+    startCommand: npm run verificar
     envVars:
       - key: NODE_ENV
         value: production
