@@ -226,7 +226,7 @@ Edificios/props (coches, parques): modelos estáticos de Kenney.nl desde el Plan
 
 - **Sonido (deuda obligatoria, no opcional):** el ruido es mecánica central (gritos, sirenas, disparos atraen zombis); el jugador debe poder oírlo para leer el sistema. Audio mínimo al final de la Fase 1 o inicio de Fase 2.
 - **Móvil/táctil (Fase 2):** los links virales se abren sobre todo en teléfonos. El modo director debe funcionar con toques (tocar = seleccionar/mover, pellizcar = zoom). La posesión puede quedarse solo en escritorio.
-- **Anti-trampas (Fase 2):** los marcadores de desafío son falsificables en cliente. Solución vía determinismo: el servidor re-simula la partida con los inputs registrados del jugador y verifica el resultado.
+- **Anti-trampas (Fase 2):** ✅ implementado (Plan 17). El link de desafío sigue siendo 100% offline (no lleva el log de órdenes) — al COMPARTIR, el cliente manda `world.ordenLog` completo a `server/verificar.ts` en segundo plano, que re-simula la partida byte a byte (`World` es determinista y puro) y, si coincide, lo registra en una caché en memoria (sin persistencia); al ABRIR un `?reto=`, el cliente solo consulta esa caché por seed+curva+índice (sin poder re-simular, ya que el link no trae el log) y muestra un sello "✅ verificado" si aplica. Todo best-effort con timeout corto — sin servidor, o sin caché, el juego funciona exactamente igual, sin sello.
 - **Muerte durante posesión:** si el agente poseído muere, la cámara vuelve al modo director con un efecto dramático breve; el agente muere con las reglas normales.
 
 ## 9. Reparto de trabajo

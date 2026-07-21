@@ -63,14 +63,14 @@ Esto es puramente aditivo — un array que crece, sin afectar RNG ni
 determinismo (verificarlo explícitamente con `tests/determinism.test.ts`,
 que no debería cambiar de resultado).
 
-- [ ] **Step 1: Test que falla** — en el archivo de tests que ya cubra
+- [x] **Step 1: Test que falla** — en el archivo de tests que ya cubra
   `World`/`encolarOrden`, confirmar que `ordenLog` acumula `{tick, orden}`
   en el orden correcto tras varias llamadas a `encolarOrden` intercaladas
   con `world.tick()`.
-- [ ] **Step 2-3:** TDD estándar; `npm test` completo (INCLUYE
+- [x] **Step 2-3:** TDD estándar; `npm test` completo (INCLUYE
   `tests/determinism.test.ts`, es el test más importante del proyecto —
   no debería moverse ni un bit) y `npx tsc --noEmit` en verde.
-- [ ] **Step 4: Commit** — `feat: registrar el log de ordenes del jugador para verificacion futura (Plan 17)`
+- [x] **Step 4: Commit** — `feat: registrar el log de ordenes del jugador para verificacion futura (Plan 17)`
 
 ---
 
@@ -109,14 +109,14 @@ puro, sin DOM) — confirmar que el `tsconfig` de `server/` (ya existe,
 Plan 10) resuelve los paths de `../src/sim/...` correctamente, ajustar
 si hace falta.
 
-- [ ] **Step 1: Implementar.**
-- [ ] **Step 2:** `npx tsc --noEmit -p server/tsconfig.json` limpio.
-- [ ] **Step 3: Verificación local** — con el relay corriendo local,
+- [x] **Step 1: Implementar.**
+- [x] **Step 2:** `npx tsc --noEmit -p server/tsconfig.json` limpio.
+- [x] **Step 3: Verificación local** — con el relay corriendo local,
   jugar una partida real corta (o simular una vía script), capturar su
   `ordenLog` real (exponerlo temporalmente en el gancho de dev si hace
   falta), mandarlo a `/verificar` y confirmar `{valido: true}`; mandar
   un `indiceAfirmado` alterado a mano y confirmar `{valido: false}`.
-- [ ] **Step 4: Commit** — `feat: endpoint de verificacion de desafios en el servidor (Plan 17)`
+- [x] **Step 4: Commit** — `feat: endpoint de verificacion de desafios en el servidor (Plan 17)`
 
 ---
 
@@ -139,21 +139,21 @@ simple en el HUD (`#banner-reto` ya existe — agregar el sello ahí mismo,
 "✅" o nada, sin bloquear el arranque del juego si el servidor no
 responde).
 
-- [ ] **Step 1: Implementar.**
-- [ ] **Step 2:** `npx tsc --noEmit` limpio.
-- [ ] **Step 3: Verificación en navegador** — compartir un desafío real
+- [x] **Step 1: Implementar.**
+- [x] **Step 2:** `npx tsc --noEmit` limpio.
+- [x] **Step 3: Verificación en navegador** — compartir un desafío real
   con el relay corriendo, abrir el link resultante y confirmar el sello
   de verificado; abrir un `?reto=` con el servidor APAGADO y confirmar
   que el juego arranca igual, sin sello, sin error visible al jugador.
-- [ ] **Step 4: Commit** — `feat: sello de verificacion en desafios compartidos (Plan 17)`
+- [x] **Step 4: Commit** — `feat: sello de verificacion en desafios compartidos (Plan 17)`
 
 ---
 
 ## Task 4: Cierre
 
-- [ ] **Step 1:** `npm test` completo (`tests/determinism.test.ts` en
+- [x] **Step 1:** `npm test` completo (`tests/determinism.test.ts` en
   verde es obligatorio) y `npx tsc --noEmit` limpios.
-- [ ] **Step 2: Cierre** — actualizar el design doc (anti-trampas pasa a
+- [x] **Step 2: Cierre** — actualizar el design doc (anti-trampas pasa a
   ✅, documentar la decisión de "verificación opcional, link sigue
   funcionando offline"), checkboxes marcados, commit
   `chore: anti-trampas verificado (Plan 17 completo)`, push + redeploy
