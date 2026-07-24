@@ -2,16 +2,28 @@ import { describe, expect, it } from 'vitest';
 import { World } from '../src/sim/world';
 import { PANICO } from '../src/sim/config';
 
+/** Fuerza a un ciudadano recién nacido a un estado "en la calle" conocido:
+ * con Plan 19 una fracción de familias nace ya `dentroDe >= 0`, y esta
+ * escena depende de que los tres estén afuera para que panico.ts (no
+ * interior.ts) gobierne su movimiento. */
+function enLaCalle(c: World['citizens'][0], x: number, z: number): void {
+  c.dentroDe = -1;
+  c.piso = 0;
+  c.pisoObjetivo = 0;
+  c.escaleraTicks = 0;
+  c.x = x; c.z = z; c.prevX = x; c.prevZ = z;
+}
+
 function escena(seed: string, conLider: boolean): { w: World; asustado: World['citizens'][0] } {
   const w = new World(seed, 3);
   const [asustado, lider, otro] = w.citizens;
-  asustado.x = 50; asustado.z = 4; asustado.prevX = 50; asustado.prevZ = 4;
+  enLaCalle(asustado, 50, 4);
   asustado.animo = 'panico';
   asustado.animoTicks = 0;
   asustado.personality = 'cobarde';
-  lider.x = 53; lider.z = 4; lider.prevX = 53; lider.prevZ = 4;
+  enLaCalle(lider, 53, 4);
   lider.personality = conLider ? 'lider' : 'cobarde';
-  otro.x = 200; otro.z = 200; otro.prevX = 200; otro.prevZ = 200;
+  enLaCalle(otro, 200, 200);
   return { w, asustado };
 }
 

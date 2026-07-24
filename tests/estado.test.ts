@@ -2,12 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { World } from '../src/sim/world';
 
 describe('estado del brote (Task 1)', () => {
-  it('los ciudadanos nacen sanos, tranquilos y fuera de edificios', () => {
+  it('los ciudadanos nacen sanos, tranquilos, y fuera de edificios salvo una fracción de familias que nace ya en casa (Plan 19)', () => {
     const w = new World('estado', 100);
     for (const c of w.citizens) {
       expect(c.salud).toBe('sano');
       expect(c.animo).toBe('tranquilo');
-      expect(c.dentroDe).toBe(-1);
+      if (c.dentroDe < 0) {
+        expect(c.dentroDe).toBe(-1);
+      } else {
+        // familia que nació ya adentro: solo en un edificio jugable, planta baja.
+        expect(w.city.buildings[c.dentroDe].kind).toBe('jugable');
+        expect(c.piso).toBe(0);
+      }
       expect(c.incubacionTicks).toBe(0);
       expect(c.cdMordida).toBe(0);
     }

@@ -189,6 +189,12 @@ export const EVENTO = {
 
 export type TipoEvento = 'apagon' | 'lluvia' | 'helicoptero';
 
+// ——— Plan 19: familias que empiezan dentro de su casa ———
+
+export const CITIZENS_INDOOR = {
+  fraccionFamiliasEnCasa: 0.15, // 15% de las familias empiezan adentro
+} as const;
+
 // ——— Plan 19: autos con alarma (ruido que atrae zombis) ———
 
 export const AUTOS = {

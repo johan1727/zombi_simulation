@@ -34,6 +34,12 @@ describe('zombis', () => {
 
   it('los ruidos decaen y desaparecen', () => {
     const w = new World('caza-2', 1);
+    // Con Plan 19, si la única ciudadana de esta semilla nació ya adentro de
+    // un refugio ocupado, resolverAsedios() añade su propio ruido periódico
+    // de "refugiados" en tickCount % ASEDIO.ruidoCadaTicks === 0 (incluido
+    // el tick 0) — ruido real, pero ajeno a lo que este test mide. Se fuerza
+    // a la calle para aislar el decaimiento del ruido de prueba.
+    w.citizens[0].dentroDe = -1;
     w.ruidos.push({ x: 10, z: 10, radio: 12, ticks: 3 });
     for (let t = 0; t < 5; t++) w.tick();
     expect(w.ruidos.length).toBe(0);

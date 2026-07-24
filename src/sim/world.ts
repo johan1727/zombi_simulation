@@ -78,7 +78,7 @@ export class World {
     const { tick, tipo } = elegirEvento(this.rngEvento);
     this.evento = { tick, tipo, activo: false, helicopteroLlegaEnTicks: 0 };
     this.city = generateCity(rngCiudad);
-    this.citizens = spawnCitizens(this.rngCiudadanos, citizenCount);
+    this.citizens = spawnCitizens(this.rngCiudadanos, citizenCount, this.city);
     // 4 agentes deterministas, DISPERSOS en cuatro cruces del centro: evita
     // el imán degenerado de un cúmulo inmóvil y que una sola horda barra al
     // equipo entero (decisión de diseño, resolución del bloqueo de la Task 1).
@@ -86,7 +86,13 @@ export class World {
     this.citizens.push(crearAgente('paramedico', corridorCenter(4), corridorCenter(3), this.citizens.length, this.rngAgentes));
     this.citizens.push(crearAgente('megafono', corridorCenter(2), corridorCenter(5), this.citizens.length, this.rngAgentes));
     this.citizens.push(crearAgente('obrero', corridorCenter(4), corridorCenter(5), this.citizens.length, this.rngAgentes));
-    this.ocupantes = this.city.buildings.map(() => 0);
+    // Cuenta los ocupantes iniciales (familias que nacen ya adentro, Plan 19)
+    // en vez de asumir que todo edificio arranca vacío.
+    this.ocupantes = this.city.buildings.map((b) => {
+      let n = 0;
+      for (const c of this.citizens) if (c.dentroDe === b.id) n++;
+      return n;
+    });
     this.brecha = this.city.buildings.map(() => false);
     this.presion = this.city.buildings.map(() => 0);
     this.refuerzoPuerta = this.city.buildings.map(() => 0);
