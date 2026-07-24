@@ -129,17 +129,17 @@ zombis) si el zombi quedó cerca de algún auto con `enfriamientoAuto[i]
 `world.ruidos.push({x: auto.x, z: auto.z, radio: AUTOS.radioRuido, ticks:
 AUTOS.duracionTicks})` y fija `enfriamientoAuto[i] = AUTOS.enfriamientoTicks`.
 
-- [ ] **Step 1: Test que falla** — un zombi que pasa cerca de un auto,
+- [x] **Step 1: Test que falla** — un zombi que pasa cerca de un auto,
   corrido muchos ticks con una semilla fija, dispara la alarma al menos
   una vez (probabilístico — correr suficientes ticks para que sea
   determinísticamente esperable, mismo patrón que otros tests
   probabilísticos del proyecto); el cooldown evita una segunda alarma
   del MISMO auto dentro de `enfriamientoTicks`.
-- [ ] **Step 2-3:** TDD estándar; `npm test` COMPLETO y `npx tsc --noEmit`
+- [x] **Step 2-3:** TDD estándar; `npm test` COMPLETO y `npx tsc --noEmit`
   en verde. Verificar `tests/determinism.test.ts` explícitamente (nuevo
   stream de RNG es el punto más común de romper determinismo si se
   comparte por error).
-- [ ] **Step 4: Commit** — `feat: autos con alarma que atrae zombis (Plan 19)`
+- [x] **Step 4: Commit** — `feat: autos con alarma que atrae zombis (Plan 19)`
 
 ---
 

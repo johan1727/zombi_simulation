@@ -31,6 +31,8 @@ export class World {
   readonly rngEvento: Rng;
   /** Zona de herida al infectar (sortearZonaHerida, infeccion.ts); stream propio para no resecuenciar rngInfeccion/rngCombate/rngAgentes. */
   readonly rngHeridas: Rng;
+  /** Activación de alarma de auto (updateZombi, zombis.ts); stream propio para no resecuenciar rngZombis. */
+  readonly rngAutos: Rng;
 
   /** Giro de semilla a mitad de partida: tick y tipo sorteados en el constructor, IDÉNTICO para World y Rival (misma semilla). */
   readonly evento: { tick: number; tipo: TipoEvento; activo: boolean; helicopteroLlegaEnTicks: number };
@@ -42,6 +44,8 @@ export class World {
   readonly presion: number[];
   /** Presión extra que aguanta cada puerta reforzada por el obrero (por edificio). */
   readonly refuerzoPuerta: number[];
+  /** Enfriamiento de la alarma de cada auto (paralelo a city.autos), decae 1/tick hasta 0. */
+  readonly enfriamientoAuto: number[];
   /** Usos restantes de la habilidad del obrero (compartidos entre todas las puertas). */
   usosObrero = OBRERO.usos;
   /** Eventos notables para historias/audio/HUD; tope 300 salvo hitos de agente. */
@@ -70,6 +74,7 @@ export class World {
     this.rngAgentes = createRng(`pandemia:${seed}:agentes`);
     this.rngEvento = createRng(`pandemia:${seed}:evento`);
     this.rngHeridas = createRng(`pandemia:${seed}:heridas`);
+    this.rngAutos = createRng(`pandemia:${seed}:autos`);
     const { tick, tipo } = elegirEvento(this.rngEvento);
     this.evento = { tick, tipo, activo: false, helicopteroLlegaEnTicks: 0 };
     this.city = generateCity(rngCiudad);
@@ -85,6 +90,7 @@ export class World {
     this.brecha = this.city.buildings.map(() => false);
     this.presion = this.city.buildings.map(() => 0);
     this.refuerzoPuerta = this.city.buildings.map(() => 0);
+    this.enfriamientoAuto = this.city.autos.map(() => 0);
     this.dentroPorEdificio = this.city.buildings.map(() => []);
     this.peligro = new Array(this.peligroCols * Math.ceil(CITY_DEPTH / PELIGRO.celda)).fill(0);
   }
@@ -195,6 +201,9 @@ export class World {
       if (r.ticks > 0) this.ruidos[w++] = r;
     }
     this.ruidos.length = w;
+    for (let i = 0; i < this.enfriamientoAuto.length; i++) {
+      if (this.enfriamientoAuto[i] > 0) this.enfriamientoAuto[i]--;
+    }
     if (this.tickCount % PELIGRO.decaimientoCadaTicks === 0 && this.tickCount > 0) {
       for (let k = 0; k < this.peligro.length; k++) {
         this.peligro[k] = Math.floor((this.peligro[k] * 9) / 10);
