@@ -211,7 +211,7 @@ A mitad de partida (tick fijo derivado de la semilla, IDÉNTICO para jugador y r
 
 ## 8. Niveles de calidad gráfica (arquitectura de assets, Fase 3 adelantada)
 
-**Decisión de diseño (feedback 2026-07-11):** los assets NO son "todo o nada" — se construyen desde el día uno como niveles de calidad intercambiables, para que el juego escale solo según la computadora del jugador (menú de ajustes, Fase 3.5) sin rehacer el pipeline.
+**Decisión de diseño (feedback 2026-07-11):** los assets NO son "todo o nada" — se construyen desde el día uno como niveles de calidad intercambiables, para que el juego escale solo según la computadora del jugador sin rehacer el pipeline. **✅ Menú de ajustes (Plan 18):** el jugador elige manualmente entre "Alta" (Media + esqueletos reales LOD) y "Media" (solo el pool horneado) desde un panel (⚙️, persistido en `localStorage`, aplica al recargar). El nivel "Baja" (cápsulas) se perdió al reemplazar `citizensView.ts` en el Plan 6 y no se reconstruyó — sigue sin existir un piso más bajo que "Media"; solo vale la pena si algún jugador real reporta que "Media" sigue siendo pesado.
 
 | Nivel | Ciudadanos | Técnica | Cuándo |
 |---|---|---|---|

@@ -124,9 +124,9 @@ no depende de assets cargados — puede mostrarse incluso durante "Cargando…")
 Sin tests unitarios (mismo criterio que el resto de `src/ui/*.ts` sin
 lógica de sim). Verificación en navegador.
 
-- [ ] **Step 1: Implementar.**
-- [ ] **Step 2:** `npx tsc --noEmit` limpio.
-- [ ] **Step 3: Verificación en navegador** — abrir el panel de ajustes,
+- [x] **Step 1: Implementar.**
+- [x] **Step 2:** `npx tsc --noEmit` limpio.
+- [x] **Step 3: Verificación en navegador** — abrir el panel de ajustes,
   cambiar a "Media", confirmar que recarga y que NINGÚN ciudadano anima
   con esqueleto real por cerca que esté la cámara (verificar que
   `PersonajesAltaView` no se construye, p. ej. contando draw calls o
@@ -134,15 +134,15 @@ lógica de sim). Verificación en navegador.
   confirmar que el sistema de esqueletos reales vuelve a funcionar
   exactamente igual que antes de este plan. Confirmar que el valor
   persiste entre recargas sin tocar el panel. Sin errores de consola.
-- [ ] **Step 4: Commit** — `feat: menu de ajustes con nivel de calidad grafica (Plan 18)`
+- [x] **Step 4: Commit** — `feat: menu de ajustes con nivel de calidad grafica (Plan 18)`
 
 ---
 
 ## Task 2: Cierre
 
-- [ ] **Step 1:** `npm test` completo (no debería tocar `src/sim/`) y
+- [x] **Step 1:** `npm test` completo (no debería tocar `src/sim/`) y
   `npx tsc --noEmit` limpios.
-- [ ] **Step 2: Cierre** — actualizar la tabla de calidad del design doc
+- [x] **Step 2: Cierre** — actualizar la tabla de calidad del design doc
   (mencionar que "Alta"/"Media" ya son elegibles por el jugador, "Baja"
   con cápsulas sigue sin existir — anotarlo como trabajo futuro real si
   algún día hace falta un piso más bajo), checkboxes marcados, commit
