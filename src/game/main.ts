@@ -25,6 +25,7 @@ import { Tutorial } from '../ui/tutorial';
 import { Barks } from '../ui/barks';
 import { decodificarDesafio } from './desafio';
 import { consultarVerificado } from '../net/verificar';
+import { leerCalidad, iniciarPanelAjustes } from '../ui/ajustes';
 
 const canvas = document.getElementById('app') as HTMLCanvasElement;
 const avisoDesconexionEl = document.getElementById('aviso-desconexion');
@@ -90,7 +91,13 @@ async function iniciar(seed: string, conexionInicial: ConexionSala | undefined):
   const personajesView = new PersonajesView(scene, world.citizens.length, personajesAssets);
   // Nivel "Alta" (Plan 11 Task 2): reusa los mismos assets crudos/materiales por piel
   // que ya cargó/construyó cargarPersonajes(), sin volver a pedir los .glb por red.
-  const personajesAltaView = new PersonajesAltaView(scene, personajesAssets.crudos, personajesAssets.materiales);
+  // Plan 18: solo se construye si el jugador eligió calidad "alta" (localStorage,
+  // leído UNA vez antes de iniciar() — cambiar el ajuste recarga la página, no
+  // hay soporte para destruir/reconstruir esta vista a mitad de partida).
+  const personajesAltaView =
+    leerCalidad() === 'alta'
+      ? new PersonajesAltaView(scene, personajesAssets.crudos, personajesAssets.materiales)
+      : null;
   const splatsView = new SplatsView(scene);
   const rig = new CameraRig(canvas, { w: world.city.width, d: world.city.depth });
   const audio = new Audio();
@@ -223,7 +230,9 @@ async function iniciar(seed: string, conexionInicial: ConexionSala | undefined):
     const foco = rig.focusPoint;
     cityView.updateOcclusion(rig.camera.position.x, rig.camera.position.z, foco.x, foco.z);
     jugablesView.update(world, foco.x, foco.z);
-    const ocultosPorAlta = personajesAltaView.update(world.citizens, alpha, world.tickCount, dtSegundos, rig.camera);
+    const ocultosPorAlta = personajesAltaView
+      ? personajesAltaView.update(world.citizens, alpha, world.tickCount, dtSegundos, rig.camera)
+      : undefined;
     personajesView.update(world.citizens, alpha, controles.seleccionado, world.tickCount, ocultosPorAlta);
     splatsView.update(world.splats);
     audio.update(world, partida, rival);
@@ -285,6 +294,11 @@ async function iniciar(seed: string, conexionInicial: ConexionSala | undefined):
     }
   );
 }
+
+// Plan 18: el panel de ajustes no depende de assets ni del arranque de la
+// partida — se engancha de una vez, incluso mientras el HUD todavía
+// muestra "Cargando…" o la pantalla de sala sigue abierta.
+iniciarPanelAjustes();
 
 void (async (): Promise<void> => {
   const { seed, conexion } = await elegirInicio();
