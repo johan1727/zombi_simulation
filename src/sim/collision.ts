@@ -1,6 +1,9 @@
 import { CITY, CITY_PERIOD, CITY_WIDTH, CITY_DEPTH, MARGEN_ACERA } from './config';
 import type { Building, CityLayout } from './cityGen';
 
+/** Radio de colisión de un auto estacionado (Plan 19), en metros. */
+export const RADIO_AUTO = 2;
+
 /** Edificio cuyo interior contiene (x,z), o null si es calle/acera/fuera. */
 export function buildingAt(city: CityLayout, x: number, z: number): Building | null {
   if (x < 0 || z < 0 || x >= CITY_WIDTH || z >= CITY_DEPTH) return null;
@@ -15,19 +18,33 @@ export function buildingAt(city: CityLayout, x: number, z: number): Building | n
   return city.buildings[bx * CITY.blocksY + bz];
 }
 
-/** Avanza hacia (nx,nz) deslizándose por las paredes; clampa al mapa. */
+/** true si (x,z) cae dentro del radio de colisión de algún auto estacionado.
+ * Distancia con `dx*dx+dz*dz` (nunca la función trigonométrica no portable
+ * de distancia euclídea — regla de portabilidad). */
+function autoObstaculoEn(city: CityLayout, x: number, z: number): boolean {
+  for (const auto of city.autos) {
+    const dx = x - auto.x;
+    const dz = z - auto.z;
+    if (dx * dx + dz * dz < RADIO_AUTO * RADIO_AUTO) return true;
+  }
+  return false;
+}
+
+/** Avanza hacia (nx,nz) deslizándose por las paredes y autos estacionados; clampa al mapa. */
 export function moveWithSlide(
   city: CityLayout,
   c: { x: number; z: number },
   nx: number,
   nz: number
 ): void {
-  if (!buildingAt(city, nx, nz)) {
+  const bloqueado = (x: number, z: number): boolean =>
+    !!buildingAt(city, x, z) || autoObstaculoEn(city, x, z);
+  if (!bloqueado(nx, nz)) {
     c.x = nx;
     c.z = nz;
-  } else if (!buildingAt(city, nx, c.z)) {
+  } else if (!bloqueado(nx, c.z)) {
     c.x = nx;
-  } else if (!buildingAt(city, c.x, nz)) {
+  } else if (!bloqueado(c.x, nz)) {
     c.z = nz;
   }
   c.x = Math.min(Math.max(c.x, 1), CITY_WIDTH - 1);
