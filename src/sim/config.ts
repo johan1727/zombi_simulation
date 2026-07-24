@@ -188,3 +188,22 @@ export const EVENTO = {
 } as const;
 
 export type TipoEvento = 'apagon' | 'lluvia' | 'helicoptero';
+
+// ——— Plan 19: familias que empiezan dentro de su casa ———
+
+export const CITIZENS_INDOOR = {
+  fraccionFamiliasEnCasa: 0.15, // 15% de las familias empiezan adentro
+} as const;
+
+// ——— Plan 19: autos con alarma (ruido que atrae zombis) ———
+
+export const AUTOS = {
+  /** RADIO_AUTO (collision.ts) + 1 m. Literal duplicado a propósito: config.ts
+   * es la capa base sin dependencias de otros módulos de sim (evita un
+   * import circular config↔collision) — si RADIO_AUTO cambia, actualizar aquí. */
+  radioActivacion: 3,
+  probabilidadPorTick: 0.005, // ~1 vez cada 6-7s de exposición continua a 30 tps
+  radioRuido: 25, // más fuerte que un grito normal — es una alarma de auto
+  duracionTicks: 90, // 3 s de sonido
+  enfriamientoTicks: 900, // 30 s: la MISMA alarma no vuelve a saltar de inmediato
+} as const;

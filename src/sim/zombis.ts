@@ -1,6 +1,6 @@
 import type { Citizen } from './types';
 import type { World } from './world';
-import { CITY, CITY_PERIOD, DIRECCIONES, DT, EVENTO, INFECCION, PANICO, ZOMBIS } from './config';
+import { AUTOS, CITY, CITY_PERIOD, DIRECCIONES, DT, EVENTO, INFECCION, PANICO, ZOMBIS } from './config';
 import { moveWithSlide } from './collision';
 import { infectar } from './infeccion';
 import { NORMAL_INTERIOR } from './interior';
@@ -62,6 +62,23 @@ export function updateZombi(c: Citizen, world: World): void {
     c.dirZ = dz / len;
   }
   moveWithSlide(world.city, c, c.x + c.dirX * vel * DT, c.z + c.dirZ * vel * DT);
+
+  // alarma de auto (Plan 19): un zombi demasiado cerca de un auto en reposo
+  // puede activar su alarma por accidente — ruido fuerte que atrae más
+  // zombis. rngAutos es un stream PROPIO (nunca rngZombis, que esta misma
+  // función ya usa para el rumbo errante) para no resecuenciarlo.
+  const autos = world.city.autos;
+  for (let i = 0; i < autos.length; i++) {
+    if (world.enfriamientoAuto[i] > 0) continue;
+    const auto = autos[i];
+    const adx = c.x - auto.x;
+    const adz = c.z - auto.z;
+    if (adx * adx + adz * adz > AUTOS.radioActivacion * AUTOS.radioActivacion) continue;
+    if (world.rngAutos.chance(AUTOS.probabilidadPorTick)) {
+      world.ruidos.push({ x: auto.x, z: auto.z, radio: AUTOS.radioRuido, ticks: AUTOS.duracionTicks });
+      world.enfriamientoAuto[i] = AUTOS.enfriamientoTicks;
+    }
+  }
 
   // mordida
   if (objetivo && c.cdMordida === 0) {

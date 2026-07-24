@@ -79,17 +79,17 @@ por cada llamada a `moveWithSlide` es aceptable dado el número chico de
 autos por cuadra [1-2] — si el perfilado en Task 3/cierre muestra costo
 real, considerar indexar por cuadra, no antes.)
 
-- [ ] **Step 1: Test que falla** — un ciudadano/zombi no puede atravesar
+- [x] **Step 1: Test que falla** — un ciudadano/zombi no puede atravesar
   la posición de un auto conocido (`moveWithSlide` hacia el centro de un
   auto no lo mueve ahí); un auto no bloquea completamente una calle (debe
   quedar espacio para pasar al lado, dado `OFFSET_BORDE`/el ancho de
   calle real — verificar con los valores reales de `CITY.streetWidth`).
-- [ ] **Step 2-3:** TDD estándar; `npm test` COMPLETO (con balance y
+- [x] **Step 2-3:** TDD estándar; `npm test` COMPLETO (con balance y
   determinism) y `npx tsc --noEmit` en verde. Si `tests/balance.test.ts`
   se mueve, documentar el análisis (¿autos bloqueando calles cambia
   rutas de huida/zombis de forma medible?) antes de recalibrar o de
   concluir que es ruido — mismo protocolo del Plan 5.
-- [ ] **Step 4: Commit** — `feat: autos estacionados como obstaculo real de colision (Plan 19)`
+- [x] **Step 4: Commit** — `feat: autos estacionados como obstaculo real de colision (Plan 19)`
 
 ---
 
@@ -129,17 +129,17 @@ zombis) si el zombi quedó cerca de algún auto con `enfriamientoAuto[i]
 `world.ruidos.push({x: auto.x, z: auto.z, radio: AUTOS.radioRuido, ticks:
 AUTOS.duracionTicks})` y fija `enfriamientoAuto[i] = AUTOS.enfriamientoTicks`.
 
-- [ ] **Step 1: Test que falla** — un zombi que pasa cerca de un auto,
+- [x] **Step 1: Test que falla** — un zombi que pasa cerca de un auto,
   corrido muchos ticks con una semilla fija, dispara la alarma al menos
   una vez (probabilístico — correr suficientes ticks para que sea
   determinísticamente esperable, mismo patrón que otros tests
   probabilísticos del proyecto); el cooldown evita una segunda alarma
   del MISMO auto dentro de `enfriamientoTicks`.
-- [ ] **Step 2-3:** TDD estándar; `npm test` COMPLETO y `npx tsc --noEmit`
+- [x] **Step 2-3:** TDD estándar; `npm test` COMPLETO y `npx tsc --noEmit`
   en verde. Verificar `tests/determinism.test.ts` explícitamente (nuevo
   stream de RNG es el punto más común de romper determinismo si se
   comparte por error).
-- [ ] **Step 4: Commit** — `feat: autos con alarma que atrae zombis (Plan 19)`
+- [x] **Step 4: Commit** — `feat: autos con alarma que atrae zombis (Plan 19)`
 
 ---
 
@@ -182,7 +182,7 @@ ceros del tamaño de `city.buildings.length` en el constructor de
 === b.id` para cada edificio y sumarlo, en vez de asumir que arranca en
 0 para todos.
 
-- [ ] **Step 1: Test que falla** — con una semilla fija, al menos una
+- [x] **Step 1: Test que falla** — con una semilla fija, al menos una
   familia arranca con `dentroDe >= 0` (y TODOS sus miembros comparten el
   mismo edificio); `world.ocupantes` en el tick 0 refleja correctamente
   esos ocupantes iniciales (no se pierden ni se duplican al entrar/salir
@@ -190,20 +190,20 @@ ceros del tamaño de `city.buildings.length` en el constructor de
   igual que uno que entró por la puerta más tarde (reusa
   `updateInterior` sin caso especial — confirmarlo, no debería hacer
   falta ningún cambio en `interior.ts`).
-- [ ] **Step 2-3:** TDD estándar; `npm test` COMPLETO (con balance —
+- [x] **Step 2-3:** TDD estándar; `npm test` COMPLETO (con balance —
   ciudadanos ya refugiados desde el inicio podrían cambiar la letalidad
   temprana del brote de forma real, no solo ruido; documentar el
   análisis igual que Task 1) y `npx tsc --noEmit` en verde.
-- [ ] **Step 4: Commit** — `feat: una fraccion de familias empieza dentro de su casa (Plan 19)`
+- [x] **Step 4: Commit** — `feat: una fraccion de familias empieza dentro de su casa (Plan 19)`
 
 ---
 
 ## Task 4: Cierre
 
-- [ ] **Step 1:** `npm test` completo (las 3 tasks anteriores, junto)
+- [x] **Step 1:** `npm test` completo (las 3 tasks anteriores, junto)
   y `npx tsc --noEmit` limpios. Confirmar que `tests/portabilidad.test.ts`
   sigue verde (sin `Math.hypot`/etc. nuevos).
-- [ ] **Step 2: Cierre** — actualizar la sección "Vida ambiental" del
+- [x] **Step 2: Cierre** — actualizar la sección "Vida ambiental" del
   design doc (autos-obstáculo y familias-en-casa pasan a ✅), lecciones
   en CLAUDE.md si aplica (especialmente si el balance se movió y hubo
   que recalibrar), checkboxes marcados, commit

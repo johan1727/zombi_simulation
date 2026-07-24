@@ -1,7 +1,8 @@
 import type { Rng } from './rng';
 import type { Citizen, Personality } from './types';
+import type { Building, CityLayout } from './cityGen';
 import { corridorCenter, corridorIndexAt } from './cityGen';
-import { CITY, CITY_WIDTH, CITY_DEPTH, CITY_PERIOD, CITIZENS, DT, HERIDAS, TICK_RATE } from './config';
+import { CITY, CITY_WIDTH, CITY_DEPTH, CITY_PERIOD, CITIZENS, CITIZENS_INDOOR, DT, HERIDAS, TICK_RATE } from './config';
 
 export const NOMBRES = [
   'María', 'José', 'Carmen', 'Luis', 'Ana', 'Miguel', 'Sofía', 'Carlos',
@@ -39,7 +40,43 @@ export function pickPersonality(rng: Rng): Personality {
 /** Margen para no caminar pegado al borde de la calle. */
 const LANE_MARGIN = 1.2;
 
-export function spawnCitizens(rng: Rng, count: number): Citizen[] {
+/** Separación del muro real para un punto interior "razonable" al nacer
+ * (mismo espíritu que MARGEN_PARED en interior.ts, duplicado a propósito
+ * para no crear un acoplamiento citizens.ts↔interior.ts por una constante). */
+const MARGEN_INTERIOR_NACER = 1;
+
+/** Mismo patrón de "candidatos por bloque" que `refugio.ts` usa para buscar
+ * puertas cercanas, pero sin exigir estar a distancia de entrada de una: acá
+ * solo hace falta un edificio jugable cercano a una posición de calle recién
+ * calculada, para que una familia completa nazca ya adentro. */
+function edificioJugableCercano(city: CityLayout, x: number, z: number): Building | null {
+  const bx = Math.floor(x / CITY_PERIOD);
+  const bz = Math.floor(z / CITY_PERIOD);
+  const candidatos: ReadonlyArray<readonly [number, number]> = [
+    [bx, bz], [bx - 1, bz], [bx, bz - 1], [bx - 1, bz - 1],
+  ];
+  for (const [ix, iz] of candidatos) {
+    if (ix < 0 || iz < 0 || ix >= CITY.blocksX || iz >= CITY.blocksY) continue;
+    const b = city.buildings[ix * CITY.blocksY + iz];
+    if (b.kind === 'jugable') return b;
+  }
+  return null;
+}
+
+/** Posición interior "razonable" (no en la puerta exacta) para el miembro
+ * `offset` de una familia dentro de `b`: centro del edificio con un pequeño
+ * desvío por miembro, siempre dentro de los márgenes reales. */
+function posicionInteriorFamilia(b: Building, offset: number): { x: number; z: number } {
+  const minX = b.x + MARGEN_INTERIOR_NACER;
+  const maxX = b.x + b.width - MARGEN_INTERIOR_NACER;
+  const minZ = b.z + MARGEN_INTERIOR_NACER;
+  const maxZ = b.z + b.depth - MARGEN_INTERIOR_NACER;
+  const x = Math.min(Math.max(b.x + b.width / 2 + offset * 1.0, minX), maxX);
+  const z = Math.min(Math.max(b.z + b.depth / 2, minZ), maxZ);
+  return { x, z };
+}
+
+export function spawnCitizens(rng: Rng, count: number, city: CityLayout): Citizen[] {
   const citizens: Citizen[] = [];
   let grupoRestante = 0;
   let apellidoGrupo = '';
@@ -61,6 +98,7 @@ export function spawnCitizens(rng: Rng, count: number): Citizen[] {
     let dirX = 0;
     let dirZ = 0;
     let laneOffset: number;
+    let dentroDe = -1;
 
     if (i === cabezaActual) {
       // la cabeza elige calle como siempre
@@ -77,15 +115,40 @@ export function spawnCitizens(rng: Rng, count: number): Citizen[] {
         x = 1 + rng.next() * (CITY_WIDTH - 2);
         dirX = rng.chance(0.5) ? 1 : -1;
       }
+      // una fracción de las familias (o solitarios: una "familia" de uno)
+      // arranca ya adentro de un edificio jugable cercano a su calle —
+      // misma rng que el resto de decisiones de esta función, sin stream
+      // propio (parte de la misma familia de decisiones de inicialización).
+      if (rng.chance(CITIZENS_INDOOR.fraccionFamiliasEnCasa)) {
+        const b = edificioJugableCercano(city, x, z);
+        if (b) {
+          dentroDe = b.id;
+          const pos = posicionInteriorFamilia(b, 0);
+          x = pos.x;
+          z = pos.z;
+        }
+      }
     } else {
-      // los familiares nacen pegados a la cabeza, sobre su misma calle
       const cabeza = citizens[cabezaActual];
-      const paso = (i - cabezaActual) * 1.5;
-      laneOffset = cabeza.laneOffset;
-      x = Math.min(Math.max(cabeza.x + cabeza.dirX * paso, 1), CITY_WIDTH - 1);
-      z = Math.min(Math.max(cabeza.z + cabeza.dirZ * paso, 1), CITY_DEPTH - 1);
-      dirX = cabeza.dirX;
-      dirZ = cabeza.dirZ;
+      if (cabeza.dentroDe >= 0) {
+        // la cabeza nació adentro: toda la familia entra con ella, mismo edificio.
+        const b = city.buildings[cabeza.dentroDe];
+        dentroDe = cabeza.dentroDe;
+        laneOffset = cabeza.laneOffset;
+        dirX = cabeza.dirX;
+        dirZ = cabeza.dirZ;
+        const pos = posicionInteriorFamilia(b, i - cabezaActual);
+        x = pos.x;
+        z = pos.z;
+      } else {
+        // los familiares nacen pegados a la cabeza, sobre su misma calle
+        const paso = (i - cabezaActual) * 1.5;
+        laneOffset = cabeza.laneOffset;
+        x = Math.min(Math.max(cabeza.x + cabeza.dirX * paso, 1), CITY_WIDTH - 1);
+        z = Math.min(Math.max(cabeza.z + cabeza.dirZ * paso, 1), CITY_DEPTH - 1);
+        dirX = cabeza.dirX;
+        dirZ = cabeza.dirZ;
+      }
     }
 
     citizens.push({
@@ -106,7 +169,7 @@ export function spawnCitizens(rng: Rng, count: number): Citizen[] {
       incubacionTicks: 0,
       animo: 'tranquilo',
       animoTicks: 0,
-      dentroDe: -1,
+      dentroDe,
       piso: 0,
       pisoObjetivo: 0,
       escaleraTicks: 0,
